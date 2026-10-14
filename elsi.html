@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOKABIO</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-left">
+            <a href="index.html" class="logo">YOKABIO</a>
+        </div>
+
+        <div class="navbar-right">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="project.html">Project</a></li>
+                <li><a href="design.html">Design</a></li>
+                <li><a href="experiment.html">Experiment</a></li>
+                <li><a href="future.html">Future</a></li>
+                <li><a href="elsi.html">ELSI</a></li>
+                <li><a href="team.html">Team</a></li>
+            </ul>
+
+            <div class="search-icon-container">
+                <button id="search-toggle-btn" class="search-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="search-overlay" class="search-overlay hidden">
+        <div class="search-input-wrapper">
+            <input type="text" id="search-input" placeholder="Search...">
+        </div>
+        <div id="search-results" class="search-results"></div>
+    </div>
+
+    <main class="content">
+        <div class="page-hero-header page-hero-header--with-title">
+            <h1>ELSI</h1>
+        </div>
+        <p>ELSI (Ethical, Legal and Social Issues) content will be added here.</p>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy;BIOMOD 2026 YOKABIO</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
