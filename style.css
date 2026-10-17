@@ -256,6 +256,15 @@ a.search-result-item:hover {
     margin-bottom: 0;
 }
 
+/* 本文中の画像・動画：横にはみ出さず、縦横比を保って中央に表示する */
+.section-text img,
+.section-text video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 24px auto;
+}
+
 /* 全ページ共通のフッター */
 .site-footer {
     background: linear-gradient(135deg, #2b1055, #000000); /* 深い紫から黒へのグラデーション */

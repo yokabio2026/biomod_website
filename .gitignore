@@ -1,0 +1,17 @@
+# 動作確認のために一時的に作る設定（共有しない）
+.claude/
+
+# パソコンが自動で作るファイル
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# エディタの個人設定・一時ファイル
+.vscode/
+.idea/
+*.swp
+*~
+
+# 編集の控え（履歴はGitに残るので不要）
+*.bak
+*.orig

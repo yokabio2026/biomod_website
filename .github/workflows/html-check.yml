@@ -1,0 +1,16 @@
+name: HTMLチェック
+
+# 変更を送ったとき（Pull Request）と、公開用ブランチ(main)が更新されたときに、
+# HTMLの崩れを自動で調べる。エラーがあると「失敗」と表示される。
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  html-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: HTMLの崩れを調べる
+        run: python3 tools/check_html.py
