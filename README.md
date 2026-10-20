@@ -1,5 +1,9 @@
 # YOKABIO サイト 編集ガイド
 
+> **▶ [公開サイト（Home）を開く](https://yokabio2026.github.io/biomod_website/)**
+> **▶ [練習用ページ（sandbox）を開く](https://yokabio2026.github.io/biomod_website/sandbox.html)**
+> （練習用ページは、サイトのメニューには出ません。ここからだけ開けます）
+
 チームメンバー向けの、サイトの編集方法です。HTMLが詳しくなくても大丈夫です。
 **「文章だけを書き換える」** なら、この表のとおりにやればOKです。
 
