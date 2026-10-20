@@ -19,7 +19,7 @@
 |---|---|
 | `index.html` | Home |
 | `project.html` | Project（background / The problem / Challenges / Solutions / Our goals and achievements） |
-| `design.html` `experiment.html` `future.html` `elsi.html` `team.html` | それぞれのページ（今は仮の文章） |
+| `design.html` `simulation.html` `experiment.html` `future.html` `elsi.html` `team.html` | それぞれのページ（今は仮の文章） |
 | `sandbox.html` / `sandbox.css` | **練習用のページとCSS**（メニューにも検索にも出ません。ここに書いたデザインは本番に影響しません） |
 | `images/` | サイトで使う画像を入れるフォルダ（[ルール](images/README.md)） |
 | `videos/` | サイトに直接置く短い動画（mp4）を入れるフォルダ（[ルール](videos/README.md)） |
