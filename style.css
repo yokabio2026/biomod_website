@@ -226,7 +226,7 @@ a.search-result-item:hover {
 .section-title::after {
     content: '';
     display: block;
-    width: 900px;
+    width: min(1100px, 100%);
     height: 1px;
     margin: 24px auto 0;
     background-color: #d0d0d0;
@@ -240,10 +240,10 @@ a.search-result-item:hover {
 
 /* 本文テキストが横に広がりすぎないよう幅を制限し、読みやすく整える */
 .section-text {
-    max-width: 700px;
+    max-width: 1100px;
     margin: 0 auto;
     color: #333333;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.8;
     text-align: left;
 }
@@ -337,12 +337,12 @@ a.search-result-item:hover {
     text-align: center;
 }
 
-/* 幅広：文章の幅（700px）より広く、最大960pxで表示する（グラフなど、小さい文字がある画像向け）。
+/* 幅広：文章の幅より広く、最大1280pxで表示する（グラフなど、小さい文字がある画像向け）。
    <img> に付けても、<figure> に付けてもよい。画面が狭いときは、画面の幅に収まる */
 .section-text .media-wide {
     position: relative;
     left: 50%;
-    width: min(960px, calc(100vw - 40px));
+    width: min(1280px, calc(100vw - 40px));
     max-width: none;
     margin: 24px 0;
     transform: translateX(-50%);
