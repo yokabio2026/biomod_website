@@ -256,6 +256,20 @@ a.search-result-item:hover {
     margin-bottom: 0;
 }
 
+/* 大見出し（section-title）の中を、さらに細かく分ける小見出し */
+.section-text .sub-title {
+    margin: 56px 0 16px;
+    color: #2b1055;
+    font-size: 1.5rem;
+    font-weight: bold;
+    line-height: 1.4;
+}
+
+/* 後から文章を書き足すための、数行ぶんの空き。文章を書いたら、この class は外して（残して）も大丈夫 */
+.section-text .text-blank {
+    min-height: 120px;
+}
+
 /* 本文中の画像・動画：横にはみ出さず、縦横比を保って中央に表示する */
 .section-text img,
 .section-text video {
