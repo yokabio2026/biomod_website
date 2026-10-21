@@ -386,3 +386,78 @@ a.search-result-item:hover {
     pointer-events: none;
     z-index: 2147483647;
 }
+
+/* スマホなど、画面が狭いとき：メニューを2段にして、余白と文字を小さめにする */
+@media (max-width: 700px) {
+    .navbar {
+        height: auto;
+        flex-wrap: wrap;
+        padding: 0 16px 6px;
+    }
+
+    /* 右側のまとまりをほどいて、ロゴ・検索・メニューを同じ並びで扱う */
+    .navbar-right {
+        display: contents;
+    }
+
+    .navbar-left {
+        order: 1;
+        height: 48px;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-icon-container {
+        order: 2;
+        height: 48px;
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-links {
+        order: 3;
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px 10px;
+    }
+
+    .nav-links a {
+        font-size: 12px;
+    }
+
+    /* 2段になったメニューの高さに合わせて、検索欄の位置を下げる */
+    .search-overlay {
+        top: 102px;
+    }
+
+    .content {
+        padding: 20px;
+    }
+
+    .page-hero-header {
+        margin: -20px -20px 20px -20px;
+        padding: 90px 20px;
+    }
+
+    .page-hero-header--with-title {
+        padding-top: 80px;
+        padding-bottom: 80px;
+    }
+
+    .page-hero-header h1 {
+        font-size: 2.5rem;
+    }
+
+    .section-title {
+        font-size: 2rem;
+    }
+
+    .content-section {
+        margin-bottom: 70px;
+    }
+
+    .section-text {
+        font-size: 16px;
+    }
+}
