@@ -265,6 +265,62 @@ a.search-result-item:hover {
     margin: 24px auto;
 }
 
+/* 画像・動画を横に並べる：中の画像・動画が、同じ幅で等分に並ぶ（2枚でも3枚でもよい） */
+.section-text .media-row {
+    display: flex;
+    gap: 16px;
+    margin: 24px 0;
+    align-items: flex-start;
+}
+
+.section-text .media-row > * {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.section-text .media-row img,
+.section-text .media-row video {
+    width: 100%;
+    margin: 0;
+}
+
+/* 文章の横に、画像・動画を置く：画像（動画）が左、文章が右。
+   media-text--reverse を足すと、画像（動画）が右、文章が左になる */
+.section-text .media-text {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: center;
+    margin: 24px 0;
+}
+
+.section-text .media-text img,
+.section-text .media-text video {
+    width: 100%;
+    margin: 0;
+}
+
+.section-text .media-text--reverse > img,
+.section-text .media-text--reverse > video {
+    order: 2;
+}
+
+/* 画面が狭いとき（スマホなど）は、横並びをやめて、縦に積む */
+@media (max-width: 600px) {
+    .section-text .media-row {
+        flex-direction: column;
+    }
+
+    .section-text .media-text {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .section-text .media-text--reverse > img,
+    .section-text .media-text--reverse > video {
+        order: 0;
+    }
+}
+
 /* 全ページ共通のフッター */
 .site-footer {
     background: linear-gradient(135deg, #2b1055, #000000); /* 深い紫から黒へのグラデーション */
