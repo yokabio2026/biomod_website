@@ -305,6 +305,39 @@ a.search-result-item:hover {
     order: 2;
 }
 
+/* 説明文つきの画像（図）：<figure> の中に画像、<figcaption> に出典などの説明を書く */
+.section-text figure {
+    margin: 24px 0;
+}
+
+.section-text figure img,
+.section-text figure video {
+    margin: 0 auto;
+}
+
+.section-text figcaption {
+    margin-top: 8px;
+    color: #666666;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* 幅広：文章の幅（700px）より広く、最大960pxで表示する（グラフなど、小さい文字がある画像向け）。
+   <img> に付けても、<figure> に付けてもよい。画面が狭いときは、画面の幅に収まる */
+.section-text .media-wide {
+    position: relative;
+    left: 50%;
+    width: min(960px, calc(100vw - 40px));
+    max-width: none;
+    margin: 24px 0;
+    transform: translateX(-50%);
+}
+
+.section-text figure.media-wide img {
+    width: 100%;
+}
+
 /* 画面が狭いとき（スマホなど）は、横並びをやめて、縦に積む */
 @media (max-width: 600px) {
     .section-text .media-row {
