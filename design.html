@@ -92,8 +92,68 @@
             <h2 class="section-title">DNA Sequence Design</h2>
             <div class="content-space">
                 <div class="section-text">
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
+                    <p>
+                        The goal of ALiGN is to connect GUVs in an intended pattern and with an intended number of partners, and finally to exchange materials between them.
+                        In this project we connect three GUVs (GUV1, GUV2 and GUV3). This requires two different connections, GUV1–GUV2 and GUV2–GUV3, that must not interfere with each other. If we can design these two connections independently, the same idea should extend to four or more GUVs.
+                    </p>
+                    <p>
+                        The core of our design is a set of very short DNA strands with weak binding. Each strand carries a thiol (SH) modification at one end, which anchors it to the GUV membrane.
+                    </p>
+
+                    <h3 class="sub-title">Weak 6-nt DNA: Connecting with an Intended Number of Partners</h3>
+                    <p>
+                        Choosing the right partner is not enough to prevent aggregation: many GUV2s could still attach to one GUV1. If only a few strands were enough to keep a connection, GUVs would keep gathering.
+                        Therefore, each short duplex is designed to be very weak, so that a connection holds only when many strands bind at the same time.
+                    </p>
+                    <p>
+                        Once GUV1 and GUV2 are connected, most of the strands on the facing surfaces are used in that connection. The few strands left over are not enough to hold another partner.
+                        By tuning the surface density of DNA on each GUV through simulation and experiments, we aim to obtain many sets of exactly three GUVs connected as GUV1–GUV2–GUV3.
+                    </p>
+                    <p>
+                        Each strand has a 4-nt binding part (ACAC / GTGT or AGAG / CTCT) and a TT spacer on the membrane side. All strands carry SH at the 3′ end.
+                        Because the two pairs use different binding sequences, the GUV1–GUV2 connection and the GUV2–GUV3 connection do not cross-react.
+                    </p>
+                    <p>
+                        <strong>Pair 1 (GUV1 – GUV2)</strong><br>
+                        Conn6_L1: 5′-<code>ACACTT</code>-3′ (SH)<br>
+                        Conn6_R1: 5′-<code>GTGTTT</code>-3′ (SH)
+                    </p>
+                    <p>
+                        <strong>Pair 2 (GUV2 – GUV3)</strong><br>
+                        Conn6_L2: 5′-<code>AGAGTT</code>-3′ (SH)<br>
+                        Conn6_R2: 5′-<code>CTCTTT</code>-3′ (SH)
+                    </p>
+
+                    <h3 class="sub-title">Supporting Design 1: 23-bp DNA to Show Target-Specific Connection</h3>
+                    <p>
+                        Before controlling the number of connections, we first need to show that DNA can control the two connection patterns separately.
+                        For this demonstration we use strands that form a stable 23-bp duplex. Each pair has its own sequence, so GUV1 connects to GUV2 and GUV2 connects to GUV3, but GUV1 does not connect to GUV3.
+                        For these strands, SH is at the 3′ end on the L side and at the 5′ end on the R side.
+                    </p>
+                    <p>
+                        <strong>Pair 1 (GUV1 – GUV2)</strong><br>
+                        Conn23_L1: 5′-<code>GCATCTACACTCAATACCCAGCC</code>-3′ (SH)<br>
+                        Conn23_R1: (SH) 5′-<code>GGCTGGGTATTGAGTGTAGATGC</code>-3′
+                    </p>
+                    <p>
+                        <strong>Pair 2 (GUV2 – GUV3)</strong><br>
+                        Conn23_L2: 5′-<code>CTAGTCCATTGTAACGAAGGCCA</code>-3′ (SH)<br>
+                        Conn23_R2: (SH) 5′-<code>TGGCCTTCGTTACAATGGACTAG</code>-3′
+                    </p>
+
+                    <h3 class="sub-title">Supporting Design 2: 63-nt Scaffold DNA as a Backup Plan</h3>
+                    <p>
+                        If the weak 6-nt binding alone rarely starts a connection, we will use a 63-nt scaffold strand to create a trigger.
+                        Its 23-nt end hybridizes to the 23-bp anchor strand on one GUV, and the remaining 40 nt is a repeat (CA or CT, ten 4-nt units) that gathers many 6-nt strands of the partner GUV at one spot.
+                    </p>
+                    <p>
+                        Conn6_L1X: 5′-<code style="word-break: break-all;">GGCTGGGTATTGAGTGTAGATGCCACACACACACACACACACACACACACACACACACACACA</code>-3′<br>
+                        (binds Conn23_L1 on GUV1; the CA repeat gathers Conn6_R1 on GUV2)
+                    </p>
+                    <p>
+                        Conn6_R2X: 5′-<code style="word-break: break-all;">CTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTAGTCCATTGTAACGAAGGCCA</code>-3′<br>
+                        (binds Conn23_R2 on GUV3; the CT repeat gathers Conn6_L2 on GUV2)
+                    </p>
                 </div>
             </div>
         </div>
