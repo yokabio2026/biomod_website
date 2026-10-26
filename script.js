@@ -663,43 +663,58 @@ function initMemberDrag() {
     let drag = null;
     let rafId = 0;
 
-    /* ---- 写真どうしをつなぐDNA（SVG）。写真を動かすと、のびたり縮んだりしてつながったままになる ---- */
+    /* ---- 写真どうしをつなぐDNA（SVG）。手描きの水彩風。
+            写真を動かすと、のびたり縮んだりしてつながったままになる ---- */
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const DNA_PERIOD = 90;        // 元の並びのとき、らせん1回転ぶんの長さ(px)
-    const DNA_AMPLITUDE = 24;     // らせんの振れ幅(px)
-    const DNA_RUNGS_PER_TURN = 7; // 1回転あたりの横棒（塩基対）の数
-    const DNA_RIBBON_WIDTH = 15;  // ストランド（リボン）の太さ(px)
-    const DNA_COLOR_A = '#ee6f93';       // ピンクのストランド（水彩風）
-    const DNA_COLOR_B = '#4a97e3';       // 青のストランド（水彩風）
-    const DNA_HIGHLIGHT = '#ffffff';     // 水彩のかすれを思わせる、白い破線
+    const DNA_AMPLITUDE = 26;     // らせんの振れ幅(px)
+    const DNA_RUNGS_PER_TURN = 5; // 1回転あたりの横棒（塩基対）の数
+    const DNA_RIBBON_WIDTH = 17;  // ストランド（リボン）の太さ(px)
+    const DNA_PINK = '#ee6f93';
+    const DNA_BLUE = '#4a97e3';
+    const DNA_PINK_DARK = '#c2437c';   // 色むら（濃いところ）
+    const DNA_BLUE_DARK = '#2a64c0';
 
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('class', 'dna-links');
     svg.setAttribute('aria-hidden', 'true');
-    function addPath(color, width, opacity, dash) {
+    // 塗りつぶし用（fill）・線用（stroke）のパスを作る。multiply は、重なったところが透けて混ざって見える水彩の効果
+    function addPath(opts) {
         const p = document.createElementNS(SVG_NS, 'path');
-        // 色がかさなったところが、透けて混ざって見えるようにする（水彩の重なり）
-        p.style.mixBlendMode = 'multiply';
-        if (dash) p.setAttribute('stroke-dasharray', dash);
-        p.setAttribute('fill', 'none');
-        p.setAttribute('stroke', color);
-        p.setAttribute('stroke-width', String(width));
+        p.setAttribute('fill', opts.fill || 'none');
+        p.setAttribute('stroke', opts.stroke || 'none');
+        if (opts.width) p.setAttribute('stroke-width', String(opts.width));
         p.setAttribute('stroke-linecap', 'round');
         p.setAttribute('stroke-linejoin', 'round');
-        p.setAttribute('stroke-opacity', String(opacity));
+        p.setAttribute('opacity', String(opts.opacity));
+        if (opts.dash) p.setAttribute('stroke-dasharray', opts.dash);
+        if (opts.multiply) p.style.mixBlendMode = 'multiply';
         svg.appendChild(p);
         return p;
     }
-    // 描く順番＝奥から手前。奥側のストランド → 横棒 → 手前側のストランド
-    const pathBackA = addPath(DNA_COLOR_A, DNA_RIBBON_WIDTH, 0.5);
-    const pathBackB = addPath(DNA_COLOR_B, DNA_RIBBON_WIDTH, 0.5);
-    const pathRungsA = addPath(DNA_COLOR_A, 6, 0.8);
-    const pathRungsB = addPath(DNA_COLOR_B, 6, 0.8);
-    const pathFrontA = addPath(DNA_COLOR_A, DNA_RIBBON_WIDTH, 0.78);
-    const pathFrontB = addPath(DNA_COLOR_B, DNA_RIBBON_WIDTH, 0.78);
-    const pathChalkA = addPath(DNA_HIGHLIGHT, 1.5, 0.55, '9 7');
-    const pathChalkB = addPath(DNA_HIGHLIGHT, 1.5, 0.55, '7 9');
+    // 描く順番＝奥から手前
+    const pathRungsA = addPath({ fill: DNA_PINK, opacity: 0.8, multiply: true });
+    const pathRungsB = addPath({ fill: DNA_BLUE, opacity: 0.8, multiply: true });
+    const pathRibbonA = addPath({ fill: DNA_PINK, opacity: 0.72, multiply: true });
+    const pathRibbonB = addPath({ fill: DNA_BLUE, opacity: 0.72, multiply: true });
+    const pathDarkA = addPath({ stroke: DNA_PINK_DARK, width: 6, opacity: 0.5, multiply: true });
+    const pathDarkB = addPath({ stroke: DNA_BLUE_DARK, width: 6, opacity: 0.5, multiply: true });
+    const pathLight = addPath({ stroke: '#ffffff', width: 5, opacity: 0.3 });
+    const pathChalkL = addPath({ stroke: '#ffffff', width: 1.3, opacity: 0.85, dash: '12 6 4 9 22 5' });
+    const pathChalkR = addPath({ stroke: '#ffffff', width: 1.3, opacity: 0.85, dash: '6 8 18 6 3 11' });
     main.insertBefore(svg, main.firstChild);
+
+    // なめらかな乱数（手描きのゆらぎ用）。同じ入力には同じ値を返すので、動かしてもちらつかない
+    function hash(i, seed) {
+        const x = Math.sin(i * 127.1 + seed * 311.7) * 43758.5453;
+        return x - Math.floor(x);
+    }
+    function noise(x, seed) {
+        const i = Math.floor(x);
+        const f = x - i;
+        const u = f * f * (3 - 2 * f);
+        return hash(i, seed) * (1 - u) + hash(i + 1, seed) * u;   // 0〜1
+    }
 
     let pairs = [];   // つなぐ写真の組（同じ行で、となりどうし）。l0 は元の並びでの中心間の距離
 
@@ -723,12 +738,14 @@ function initMemberDrag() {
             const ax = ca.x - oa.x, ay = ca.y - oa.y;
             const bx = cb.x - ob.x, by = cb.y - ob.y;
             if (Math.abs(ay - by) > 4 || bx <= ax) continue;   // 行が変わるところはつなげない
-            pairs.push({ a: a, b: b, l0: Math.hypot(bx - ax, by - ay) });
+            pairs.push({ a: a, b: b, l0: Math.hypot(bx - ax, by - ay), seed: pairs.length + 1 });
         }
     }
 
+    const fmt = (x, y) => x.toFixed(1) + ' ' + y.toFixed(1);
+
     function drawLinks() {
-        const d = { backA: '', backB: '', rungsA: '', rungsB: '', frontA: '', frontB: '' };
+        const d = { rungsA: '', rungsB: '', ribbonA: '', ribbonB: '', darkA: '', darkB: '', light: '', chalkL: '', chalkR: '' };
         pairs.forEach((pair) => {
             const ca = photoCenter(pair.a);
             const cb = photoCenter(pair.b);
@@ -738,65 +755,125 @@ function initMemberDrag() {
             if (len < 1) return;
             const ux = dx / len, uy = dy / len;
             const nx = -uy, ny = ux;
+            const seed = pair.seed;
             const turns = Math.max(1.5, pair.l0 / DNA_PERIOD);   // 回転数は一定。のばすと間隔が広がる
-            const amp = DNA_AMPLITUDE * Math.min(1.2, Math.max(0.5, pair.l0 / len)); // のばすと、すこし細くなる
-            const s0 = ca.r * 0.5;            // 写真の下に隠れる部分は描かない
-            const s1 = len - cb.r * 0.5;
+            const amp = DNA_AMPLITUDE * Math.min(1.2, Math.max(0.55, pair.l0 / len)); // のばすと、すこし細くなる
+            const s0 = ca.r * 0.4;            // 写真の下に隠れる部分も、すこし描く
+            const s1 = len - cb.r * 0.4;
             if (s1 <= s0) return;
-            const steps = Math.min(400, Math.max(16, Math.ceil((s1 - s0) / 4)));
             const theta = (s) => (s / len) * turns * Math.PI * 2;
-            const point = (s, sign) => {
+            const center = (s, sign) => {
                 const w = sign * amp * Math.sin(theta(s));
                 return [ca.x + ux * s + nx * w, ca.y + uy * s + ny * w];
             };
-            // ストランドを、奥側・手前側に分けて折れ線にする
+            // ゆらぎの座標：元の並びでの位置で決める（のばしても、模様が一緒にのびる）
+            const noiseX = (s) => (s / len) * pair.l0;
+            const steps = Math.min(300, Math.max(20, Math.ceil((s1 - s0) / 3)));
+
+            // ストランド（リボン）：縁がゆらぎ、太さにもむらがある
             [1, -1].forEach((sign) => {
-                let front = null;
-                let seg = '';
-                let backStr = '';
-                let frontStr = '';
+                const left = [];
+                const right = [];
+                const mid = [];
+                const sd = seed * 10 + (sign > 0 ? 1 : 2);
                 for (let i = 0; i <= steps; i++) {
                     const s = s0 + (s1 - s0) * (i / steps);
-                    const isFront = sign * Math.cos(theta(s)) >= 0;
-                    const p = point(s, sign);
-                    if (front === null) {
-                        front = isFront;
-                        seg = 'M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1);
-                    } else if (isFront !== front) {
-                        seg += ' L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1);
-                        if (front) frontStr += seg; else backStr += seg;
-                        front = isFront;
-                        seg = 'M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1);
+                    const c = center(s, sign);
+                    const c2 = center(s + 1.5, sign);
+                    let tx = c2[0] - c[0], ty = c2[1] - c[1];
+                    const tl = Math.hypot(tx, ty) || 1;
+                    tx /= tl; ty /= tl;
+                    const px = -ty, py = tx;
+                    const x = noiseX(s);
+                    // 手前に来るほど少し太い。さらに、手描きのむら
+                    const wob = 1 + 0.28 * (noise(x / 40, sd + 3) - 0.5);
+                    const w = DNA_RIBBON_WIDTH * (0.78 + 0.3 * Math.abs(Math.cos(theta(s)))) * wob;
+                    const el = w / 2 * (1 + 0.32 * (noise(x / 9, sd + 7) - 0.5));
+                    const er = w / 2 * (1 + 0.32 * (noise(x / 9, sd + 13) - 0.5));
+                    left.push([c[0] + px * el, c[1] + py * el]);
+                    right.push([c[0] - px * er, c[1] - py * er]);
+                    mid.push([c, px, py, w, x]);
+                }
+                let poly = 'M' + fmt(left[0][0], left[0][1]);
+                for (let i = 1; i < left.length; i++) poly += ' L' + fmt(left[i][0], left[i][1]);
+                for (let i = right.length - 1; i >= 0; i--) poly += ' L' + fmt(right[i][0], right[i][1]);
+                poly += ' Z';
+                if (sign === 1) d.ribbonA += poly; else d.ribbonB += poly;
+
+                // 色むら：濃い部分と、絵の具が薄くなった部分
+                let inDark = false;
+                let inLight = false;
+                for (let i = 0; i < mid.length; i++) {
+                    const m = mid[i];
+                    const dk = noise(m[4] / 28, sd + 21);
+                    const lt = noise(m[4] / 22, sd + 31);
+                    const shift = (noise(m[4] / 30, sd + 41) - 0.5) * m[3] * 0.4;
+                    const dp = [m[0][0] + m[1] * shift, m[0][1] + m[2] * shift];
+                    if (dk > 0.55) {
+                        d[sign === 1 ? 'darkA' : 'darkB'] += (inDark ? ' L' : ' M') + fmt(dp[0], dp[1]);
+                        inDark = true;
                     } else {
-                        seg += ' L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1);
+                        inDark = false;
+                    }
+                    const lp = [m[0][0] - m[1] * shift, m[0][1] - m[2] * shift];
+                    if (lt < 0.3) {
+                        d.light += (inLight ? ' L' : ' M') + fmt(lp[0], lp[1]);
+                        inLight = true;
+                    } else {
+                        inLight = false;
                     }
                 }
-                if (front) frontStr += seg; else backStr += seg;
-                if (sign === 1) { d.frontA += frontStr; d.backA += backStr; } else { d.frontB += frontStr; d.backB += backStr; }
+                // 縁のかすれた白い破線（縁の少し内側）
+                for (let i = 0; i < left.length; i++) {
+                    const m = mid[i];
+                    const k = 0.78;
+                    const lx = m[0][0] + (left[i][0] - m[0][0]) * k;
+                    const ly = m[0][1] + (left[i][1] - m[0][1]) * k;
+                    const rx = m[0][0] + (right[i][0] - m[0][0]) * k;
+                    const ry = m[0][1] + (right[i][1] - m[0][1]) * k;
+                    d.chalkL += (i ? ' L' : ' M') + fmt(lx, ly);
+                    d.chalkR += (i ? ' L' : ' M') + fmt(rx, ry);
+                }
             });
-            // 横棒
-            const rungStep = Math.PI / DNA_RUNGS_PER_TURN * 2;
+
+            // 横棒：片側はピンク、反対側は青。まん中で重なって混ざる。すこし斜めで、太さもばらばら
+            const rungStep = Math.PI * 2 / DNA_RUNGS_PER_TURN;
             const th0 = theta(s0);
             const th1 = theta(s1);
             for (let th = Math.ceil(th0 / rungStep) * rungStep + rungStep / 2; th < th1; th += rungStep) {
-                const s = (th / (turns * Math.PI * 2)) * len;
-                const p = point(s, 1);
-                const q = point(s, -1);
-                // 横棒は、片側はピンク・もう片側は青。まん中で重なって混ざる
-                const m1 = [p[0] + (q[0] - p[0]) * 0.6, p[1] + (q[1] - p[1]) * 0.6];
-                const m2 = [p[0] + (q[0] - p[0]) * 0.4, p[1] + (q[1] - p[1]) * 0.4];
-                d.rungsA += 'M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' L' + m1[0].toFixed(1) + ' ' + m1[1].toFixed(1);
-                d.rungsB += 'M' + q[0].toFixed(1) + ' ' + q[1].toFixed(1) + ' L' + m2[0].toFixed(1) + ' ' + m2[1].toFixed(1);
+                if (Math.abs(Math.sin(th)) < 0.3) continue;   // 交差のところは、リボンのうしろなので描かない
+                const k = Math.round(th / rungStep);
+                const s = (th / (turns * Math.PI * 2)) * len + (hash(k, seed) - 0.5) * 6;
+                const p = center(s, 1);
+                const q = center(s, -1);
+                const rx = q[0] - p[0], ry = q[1] - p[1];
+                const rl = Math.hypot(rx, ry) || 1;
+                const rnx = -ry / rl, rny = rx / rl;
+                const half = (4.5 + 3 * hash(k + 50, seed)) / 2;   // 横棒の太さの半分
+                const j = (n) => (hash(k * 7 + n, seed) - 0.5) * 2.4;
+                const mk = (a, b, n0) => {
+                    // a から b へ向かう細長い四角形。角を少しずつずらして、手描きっぽくする
+                    const c1 = [a[0] + rnx * (half + j(n0)), a[1] + rny * (half + j(n0 + 1))];
+                    const c2 = [b[0] + rnx * (half + j(n0 + 2)), b[1] + rny * (half + j(n0 + 3))];
+                    const c3 = [b[0] - rnx * (half + j(n0 + 4)), b[1] - rny * (half + j(n0 + 5))];
+                    const c4 = [a[0] - rnx * (half + j(n0 + 6)), a[1] - rny * (half + j(n0 + 7))];
+                    return 'M' + fmt(c1[0], c1[1]) + ' L' + fmt(c2[0], c2[1]) + ' L' + fmt(c3[0], c3[1]) + ' L' + fmt(c4[0], c4[1]) + ' Z';
+                };
+                const m1 = [p[0] + rx * 0.58, p[1] + ry * 0.58];
+                const m2 = [p[0] + rx * 0.42, p[1] + ry * 0.42];
+                d.rungsA += mk(p, m1, 0);
+                d.rungsB += mk(q, m2, 10);
             }
         });
-        pathBackA.setAttribute('d', d.backA);
-        pathBackB.setAttribute('d', d.backB);
         pathRungsA.setAttribute('d', d.rungsA);
         pathRungsB.setAttribute('d', d.rungsB);
-        pathFrontA.setAttribute('d', d.frontA);
-        pathFrontB.setAttribute('d', d.frontB);
-        pathChalkA.setAttribute('d', d.frontA);
-        pathChalkB.setAttribute('d', d.frontB);
+        pathRibbonA.setAttribute('d', d.ribbonA);
+        pathRibbonB.setAttribute('d', d.ribbonB);
+        pathDarkA.setAttribute('d', d.darkA);
+        pathDarkB.setAttribute('d', d.darkB);
+        pathLight.setAttribute('d', d.light);
+        pathChalkL.setAttribute('d', d.chalkL);
+        pathChalkR.setAttribute('d', d.chalkR);
     }
 
     // 元の位置に戻るアニメーションの間、毎フレームDNAを描き直す
