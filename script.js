@@ -663,6 +663,137 @@ function initMemberDrag() {
     let drag = null;
     let rafId = 0;
 
+    /* ---- 写真どうしをつなぐDNA（SVG）。写真を動かすと、のびたり縮んだりしてつながったままになる ---- */
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const DNA_PERIOD = 60;        // 元の並びのとき、らせん1回転ぶんの長さ(px)
+    const DNA_AMPLITUDE = 24;     // らせんの振れ幅(px)
+    const DNA_RUNGS_PER_TURN = 6; // 1回転あたりの横棒（塩基対）の数
+    const DNA_COLOR_A = '#8b6cf0';
+    const DNA_COLOR_B = '#4da3ff';
+    const DNA_RUNG_COLOR = '#b9a8f5';
+
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'dna-links');
+    svg.setAttribute('aria-hidden', 'true');
+    function addPath(color, width, opacity) {
+        const p = document.createElementNS(SVG_NS, 'path');
+        p.setAttribute('fill', 'none');
+        p.setAttribute('stroke', color);
+        p.setAttribute('stroke-width', String(width));
+        p.setAttribute('stroke-linecap', 'round');
+        p.setAttribute('stroke-linejoin', 'round');
+        p.setAttribute('stroke-opacity', String(opacity));
+        svg.appendChild(p);
+        return p;
+    }
+    // 描く順番＝奥から手前。奥側のストランド → 横棒 → 手前側のストランド
+    const pathBackA = addPath(DNA_COLOR_A, 4, 0.45);
+    const pathBackB = addPath(DNA_COLOR_B, 4, 0.45);
+    const pathRungs = addPath(DNA_RUNG_COLOR, 2.5, 0.75);
+    const pathFrontA = addPath(DNA_COLOR_A, 6, 1);
+    const pathFrontB = addPath(DNA_COLOR_B, 6, 1);
+    main.insertBefore(svg, main.firstChild);
+
+    let pairs = [];   // つなぐ写真の組（同じ行で、となりどうし）。l0 は元の並びでの中心間の距離
+
+    function photoCenter(el) {
+        const r = el.querySelector('img').getBoundingClientRect();
+        const mr = main.getBoundingClientRect();
+        return { x: r.left - mr.left + r.width / 2, y: r.top - mr.top + r.height / 2, r: r.width / 2 };
+    }
+
+    // 動かす前の位置から、「同じ行のとなりどうし」を調べる（画面の幅が変わるたびにやり直す）
+    function computePairs() {
+        pairs = [];
+        const list = Array.from(members);
+        for (let i = 0; i + 1 < list.length; i++) {
+            const a = list[i];
+            const b = list[i + 1];
+            const oa = offsets.get(a);
+            const ob = offsets.get(b);
+            const ca = photoCenter(a);
+            const cb = photoCenter(b);
+            const ax = ca.x - oa.x, ay = ca.y - oa.y;
+            const bx = cb.x - ob.x, by = cb.y - ob.y;
+            if (Math.abs(ay - by) > 4 || bx <= ax) continue;   // 行が変わるところはつなげない
+            pairs.push({ a: a, b: b, l0: Math.hypot(bx - ax, by - ay) });
+        }
+    }
+
+    function drawLinks() {
+        const d = { backA: '', backB: '', rungs: '', frontA: '', frontB: '' };
+        pairs.forEach((pair) => {
+            const ca = photoCenter(pair.a);
+            const cb = photoCenter(pair.b);
+            const dx = cb.x - ca.x;
+            const dy = cb.y - ca.y;
+            const len = Math.hypot(dx, dy);
+            if (len < 1) return;
+            const ux = dx / len, uy = dy / len;
+            const nx = -uy, ny = ux;
+            const turns = Math.max(1.5, pair.l0 / DNA_PERIOD);   // 回転数は一定。のばすと間隔が広がる
+            const amp = DNA_AMPLITUDE * Math.min(1.2, Math.max(0.5, pair.l0 / len)); // のばすと、すこし細くなる
+            const s0 = ca.r * 0.5;            // 写真の下に隠れる部分は描かない
+            const s1 = len - cb.r * 0.5;
+            if (s1 <= s0) return;
+            const steps = Math.min(400, Math.max(16, Math.ceil((s1 - s0) / 4)));
+            const theta = (s) => (s / len) * turns * Math.PI * 2;
+            const point = (s, sign) => {
+                const w = sign * amp * Math.sin(theta(s));
+                return [ca.x + ux * s + nx * w, ca.y + uy * s + ny * w];
+            };
+            // ストランドを、奥側・手前側に分けて折れ線にする
+            [1, -1].forEach((sign) => {
+                let front = null;
+                let seg = '';
+                let backStr = '';
+                let frontStr = '';
+                for (let i = 0; i <= steps; i++) {
+                    const s = s0 + (s1 - s0) * (i / steps);
+                    const isFront = sign * Math.cos(theta(s)) >= 0;
+                    const p = point(s, sign);
+                    if (front === null) {
+                        front = isFront;
+                        seg = 'M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1);
+                    } else if (isFront !== front) {
+                        seg += ' L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1);
+                        if (front) frontStr += seg; else backStr += seg;
+                        front = isFront;
+                        seg = 'M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1);
+                    } else {
+                        seg += ' L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1);
+                    }
+                }
+                if (front) frontStr += seg; else backStr += seg;
+                if (sign === 1) { d.frontA += frontStr; d.backA += backStr; } else { d.frontB += frontStr; d.backB += backStr; }
+            });
+            // 横棒
+            const rungStep = Math.PI / DNA_RUNGS_PER_TURN * 2;
+            const th0 = theta(s0);
+            const th1 = theta(s1);
+            for (let th = Math.ceil(th0 / rungStep) * rungStep + rungStep / 2; th < th1; th += rungStep) {
+                const s = (th / (turns * Math.PI * 2)) * len;
+                const p = point(s, 1);
+                const q = point(s, -1);
+                d.rungs += 'M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' L' + q[0].toFixed(1) + ' ' + q[1].toFixed(1);
+            }
+        });
+        pathBackA.setAttribute('d', d.backA);
+        pathBackB.setAttribute('d', d.backB);
+        pathRungs.setAttribute('d', d.rungs);
+        pathFrontA.setAttribute('d', d.frontA);
+        pathFrontB.setAttribute('d', d.frontB);
+    }
+
+    // 元の位置に戻るアニメーションの間、毎フレームDNAを描き直す
+    function animateLinks(ms) {
+        const end = performance.now() + ms;
+        (function tick() {
+            drawLinks();
+            if (performance.now() < end) requestAnimationFrame(tick);
+        })();
+    }
+
     function applyTransform(el, lifted) {
         const o = offsets.get(el);
         if (!o.x && !o.y && !lifted) {
@@ -684,6 +815,7 @@ function initMemberDrag() {
         o.x = clamp(drag.ox + dx, drag.minX, drag.maxX);
         o.y = clamp(drag.oy + dy, drag.minY, drag.maxY);
         applyTransform(drag.el, true);
+        drawLinks();
     }
 
     function autoScrollLoop() {
@@ -724,6 +856,7 @@ function initMemberDrag() {
         if (drag.active) {
             drag.el.classList.remove('is-dragging');
             applyTransform(drag.el, false);
+            drawLinks();
         }
         drag = null;
     }
@@ -783,6 +916,7 @@ function initMemberDrag() {
             if (reduceMotion) {
                 el.style.transform = '';
                 el.style.zIndex = '';
+                drawLinks();
                 return;
             }
             el.classList.add('is-returning');
@@ -793,6 +927,7 @@ function initMemberDrag() {
             }, 800);
         });
         zTop = 10;
+        if (!reduceMotion) animateLinks(900);
     }
 
     if (resetBtn) resetBtn.addEventListener('click', resetLayout);
@@ -811,5 +946,15 @@ function initMemberDrag() {
             el.style.zIndex = '';
         });
         zTop = 10;
+        computePairs();
+        drawLinks();
+    });
+
+    // 最初の描画（画像や文字が読み込まれて、位置が決まったあとにもう一度描く）
+    computePairs();
+    drawLinks();
+    window.addEventListener('load', () => {
+        computePairs();
+        drawLinks();
     });
 }

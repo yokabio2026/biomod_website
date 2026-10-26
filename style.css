@@ -372,14 +372,31 @@ a.search-result-item:hover {
 .member-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 48px 32px;
-    max-width: 920px;
+    gap: 56px 90px;
+    max-width: 960px;
     margin: 0 auto;
+}
+
+/* 写真どうしをつなぐDNA。写真より奥（下）に描く。JSが <main> の先頭に入れる */
+.content {
+    position: relative;
+}
+
+.dna-links {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
 }
 
 /* 写真をドラッグして動かせる。動かしている間は少し浮かせ、影をつける */
 .member {
     position: relative;
+    z-index: 2;
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
@@ -407,7 +424,7 @@ a.search-result-item:hover {
     width: 100%;
     aspect-ratio: 1 / 1;
     object-fit: cover;
-    border-radius: 16px;
+    border-radius: 50%;
 }
 
 .member-name {
@@ -569,7 +586,7 @@ a.search-result-item:hover {
 @media (max-width: 700px) {
     .member-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 32px 16px;
+        gap: 40px 48px;
     }
 
     .member-name {
