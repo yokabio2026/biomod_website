@@ -665,24 +665,22 @@ function initMemberDrag() {
 
     /* ---- 写真どうしをつなぐDNA（SVG）。写真を動かすと、のびたり縮んだりしてつながったままになる ---- */
     const SVG_NS = 'http://www.w3.org/2000/svg';
-    const DNA_PERIOD = 60;        // 元の並びのとき、らせん1回転ぶんの長さ(px)
+    const DNA_PERIOD = 90;        // 元の並びのとき、らせん1回転ぶんの長さ(px)
     const DNA_AMPLITUDE = 24;     // らせんの振れ幅(px)
-    const DNA_RUNGS_PER_TURN = 6; // 1回転あたりの横棒（塩基対）の数
-    const DNA_COLOR_A = '#ff2a5f';       // 赤のストランド（ネオン）
-    const DNA_COLOR_B = '#1f9bff';       // 青のストランド（ネオン）
-    const DNA_RUNG_COLOR = '#c77dff';    // 横棒（赤と青の中間の、ネオンの紫）
-    const DNA_CORE_A = '#ffd9e2';        // 手前側ストランドの中心の明るい線（ネオン管の芯）
-    const DNA_CORE_B = '#d6efff';
+    const DNA_RUNGS_PER_TURN = 7; // 1回転あたりの横棒（塩基対）の数
+    const DNA_RIBBON_WIDTH = 15;  // ストランド（リボン）の太さ(px)
+    const DNA_COLOR_A = '#ee6f93';       // ピンクのストランド（水彩風）
+    const DNA_COLOR_B = '#4a97e3';       // 青のストランド（水彩風）
+    const DNA_HIGHLIGHT = '#ffffff';     // 水彩のかすれを思わせる、白い破線
 
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('class', 'dna-links');
     svg.setAttribute('aria-hidden', 'true');
-    function addPath(color, width, opacity, glow) {
+    function addPath(color, width, opacity, dash) {
         const p = document.createElementNS(SVG_NS, 'path');
-        if (glow) {
-            // ネオンのにじみ（近くの強い光＋広がる弱い光）
-            p.style.filter = 'drop-shadow(0 0 2px ' + color + ') drop-shadow(0 0 ' + glow + 'px ' + color + ')';
-        }
+        // 色がかさなったところが、透けて混ざって見えるようにする（水彩の重なり）
+        p.style.mixBlendMode = 'multiply';
+        if (dash) p.setAttribute('stroke-dasharray', dash);
         p.setAttribute('fill', 'none');
         p.setAttribute('stroke', color);
         p.setAttribute('stroke-width', String(width));
@@ -693,13 +691,14 @@ function initMemberDrag() {
         return p;
     }
     // 描く順番＝奥から手前。奥側のストランド → 横棒 → 手前側のストランド
-    const pathBackA = addPath(DNA_COLOR_A, 4, 0.5, 4);
-    const pathBackB = addPath(DNA_COLOR_B, 4, 0.5, 4);
-    const pathRungs = addPath(DNA_RUNG_COLOR, 2.5, 0.85, 5);
-    const pathFrontA = addPath(DNA_COLOR_A, 6, 1, 9);
-    const pathFrontB = addPath(DNA_COLOR_B, 6, 1, 9);
-    const pathCoreA = addPath(DNA_CORE_A, 2, 0.9, 0);
-    const pathCoreB = addPath(DNA_CORE_B, 2, 0.9, 0);
+    const pathBackA = addPath(DNA_COLOR_A, DNA_RIBBON_WIDTH, 0.5);
+    const pathBackB = addPath(DNA_COLOR_B, DNA_RIBBON_WIDTH, 0.5);
+    const pathRungsA = addPath(DNA_COLOR_A, 6, 0.8);
+    const pathRungsB = addPath(DNA_COLOR_B, 6, 0.8);
+    const pathFrontA = addPath(DNA_COLOR_A, DNA_RIBBON_WIDTH, 0.78);
+    const pathFrontB = addPath(DNA_COLOR_B, DNA_RIBBON_WIDTH, 0.78);
+    const pathChalkA = addPath(DNA_HIGHLIGHT, 1.5, 0.55, '9 7');
+    const pathChalkB = addPath(DNA_HIGHLIGHT, 1.5, 0.55, '7 9');
     main.insertBefore(svg, main.firstChild);
 
     let pairs = [];   // つなぐ写真の組（同じ行で、となりどうし）。l0 は元の並びでの中心間の距離
@@ -729,7 +728,7 @@ function initMemberDrag() {
     }
 
     function drawLinks() {
-        const d = { backA: '', backB: '', rungs: '', frontA: '', frontB: '' };
+        const d = { backA: '', backB: '', rungsA: '', rungsB: '', frontA: '', frontB: '' };
         pairs.forEach((pair) => {
             const ca = photoCenter(pair.a);
             const cb = photoCenter(pair.b);
@@ -783,16 +782,21 @@ function initMemberDrag() {
                 const s = (th / (turns * Math.PI * 2)) * len;
                 const p = point(s, 1);
                 const q = point(s, -1);
-                d.rungs += 'M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' L' + q[0].toFixed(1) + ' ' + q[1].toFixed(1);
+                // 横棒は、片側はピンク・もう片側は青。まん中で重なって混ざる
+                const m1 = [p[0] + (q[0] - p[0]) * 0.6, p[1] + (q[1] - p[1]) * 0.6];
+                const m2 = [p[0] + (q[0] - p[0]) * 0.4, p[1] + (q[1] - p[1]) * 0.4];
+                d.rungsA += 'M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' L' + m1[0].toFixed(1) + ' ' + m1[1].toFixed(1);
+                d.rungsB += 'M' + q[0].toFixed(1) + ' ' + q[1].toFixed(1) + ' L' + m2[0].toFixed(1) + ' ' + m2[1].toFixed(1);
             }
         });
         pathBackA.setAttribute('d', d.backA);
         pathBackB.setAttribute('d', d.backB);
-        pathRungs.setAttribute('d', d.rungs);
+        pathRungsA.setAttribute('d', d.rungsA);
+        pathRungsB.setAttribute('d', d.rungsB);
         pathFrontA.setAttribute('d', d.frontA);
         pathFrontB.setAttribute('d', d.frontB);
-        pathCoreA.setAttribute('d', d.frontA);
-        pathCoreB.setAttribute('d', d.frontB);
+        pathChalkA.setAttribute('d', d.frontA);
+        pathChalkB.setAttribute('d', d.frontB);
     }
 
     // 元の位置に戻るアニメーションの間、毎フレームDNAを描き直す
