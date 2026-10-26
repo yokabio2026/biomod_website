@@ -373,7 +373,7 @@ a.search-result-item:hover {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 56px 80px;
-    max-width: 1080px;
+    max-width: 1180px;
     margin: 0 auto;
 }
 
