@@ -368,6 +368,39 @@ a.search-result-item:hover {
     }
 }
 
+/* Teamページ：メンバーの写真を、横に4人まで並べる。5人目からは次の行に続く */
+.member-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 48px 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.member img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+.member-name {
+    margin: 16px 0 0;
+    color: #2b1055;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.member-role {
+    margin: 4px 0 0;
+    color: #777777;
+    font-size: 14px;
+    text-align: center;
+}
+
 /* 全ページ共通のフッター */
 .site-footer {
     background: linear-gradient(135deg, #2b1055, #000000); /* 深い紫から黒へのグラデーション */
@@ -459,5 +492,17 @@ a.search-result-item:hover {
 
     .section-text {
         font-size: 16px;
+    }
+}
+
+/* スマホなど：メンバーの写真は、横に2人ずつ */
+@media (max-width: 700px) {
+    .member-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 32px 16px;
+    }
+
+    .member-name {
+        font-size: 15px;
     }
 }
