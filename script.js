@@ -167,6 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // マウスに追従するDNA二重螺旋のカーソルエフェクトを開始する
     initDnaCursor();
+
+    // Teamページ：メンバーの写真をドラッグして動かせるようにする（該当ページだけ）
+    initMemberDrag();
 });
 
 /* =====================================================================
@@ -636,4 +639,177 @@ function initDnaCursor() {
         requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
+}
+
+/* =====================================================================
+   Teamページ：メンバー写真のドラッグ移動と「Reset layout」
+   ===================================================================== */
+
+function initMemberDrag() {
+    const members = document.querySelectorAll('.member');
+    const main = document.querySelector('main');
+    if (members.length === 0 || !main) return;
+
+    const resetBtn = document.getElementById('reset-layout-btn');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const LONG_PRESS_MS = 350;   // タッチ操作：この時間さわり続けたらドラッグ開始（スクロールとの区別）
+    const MOUSE_THRESHOLD = 4;   // マウス：この距離(px)動いたらドラッグ開始
+    const EDGE_SCROLL_ZONE = 80; // 画面の上下端からこの距離(px)以内で自動スクロール
+    const EDGE_SCROLL_STEP = 12;
+
+    const offsets = new Map();   // 各写真の「元の位置からのずれ」(px)
+    members.forEach((el) => offsets.set(el, { x: 0, y: 0 }));
+    let zTop = 10;
+    let drag = null;
+    let rafId = 0;
+
+    function applyTransform(el, lifted) {
+        const o = offsets.get(el);
+        if (!o.x && !o.y && !lifted) {
+            el.style.transform = '';
+            return;
+        }
+        el.style.transform = 'translate(' + o.x + 'px, ' + o.y + 'px)' + (lifted ? ' scale(1.05)' : '');
+    }
+
+    function clamp(v, min, max) {
+        return Math.min(Math.max(v, min), max);
+    }
+
+    // ドラッグ中の位置を更新する（画面が自動スクロールしても、ページ上の位置で計算する）
+    function update() {
+        const dx = (drag.cx + window.scrollX) - (drag.sx + drag.scx);
+        const dy = (drag.cy + window.scrollY) - (drag.sy + drag.scy);
+        const o = offsets.get(drag.el);
+        o.x = clamp(drag.ox + dx, drag.minX, drag.maxX);
+        o.y = clamp(drag.oy + dy, drag.minY, drag.maxY);
+        applyTransform(drag.el, true);
+    }
+
+    function autoScrollLoop() {
+        if (!drag || !drag.active) return;
+        if (drag.cy < EDGE_SCROLL_ZONE) {
+            window.scrollBy(0, -EDGE_SCROLL_STEP);
+        } else if (drag.cy > window.innerHeight - EDGE_SCROLL_ZONE) {
+            window.scrollBy(0, EDGE_SCROLL_STEP);
+        }
+        update();
+        rafId = requestAnimationFrame(autoScrollLoop);
+    }
+
+    function begin() {
+        const el = drag.el;
+        const o = offsets.get(el);
+        const r = el.getBoundingClientRect();
+        const mr = main.getBoundingClientRect();
+        // ページ上での「元の位置」から、動かせる範囲（<main>の中）を求める
+        const baseLeft = r.left + window.scrollX - o.x;
+        const baseTop = r.top + window.scrollY - o.y;
+        drag.minX = -baseLeft;
+        drag.maxX = document.documentElement.clientWidth - r.width - baseLeft;
+        drag.minY = mr.top + window.scrollY - baseTop;
+        drag.maxY = mr.bottom + window.scrollY - r.height - baseTop;
+        drag.active = true;
+        el.classList.remove('is-returning');
+        el.classList.add('is-dragging');
+        el.style.zIndex = String(++zTop);
+        try { el.setPointerCapture(drag.id); } catch (e) { /* 対応していなければ何もしない */ }
+        rafId = requestAnimationFrame(autoScrollLoop);
+    }
+
+    function finish() {
+        if (!drag) return;
+        clearTimeout(drag.timer);
+        cancelAnimationFrame(rafId);
+        if (drag.active) {
+            drag.el.classList.remove('is-dragging');
+            applyTransform(drag.el, false);
+        }
+        drag = null;
+    }
+
+    members.forEach((el) => {
+        el.addEventListener('pointerdown', (e) => {
+            if (drag) return;
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            const o = offsets.get(el);
+            drag = {
+                el: el, id: e.pointerId, type: e.pointerType,
+                sx: e.clientX, sy: e.clientY, scx: window.scrollX, scy: window.scrollY,
+                cx: e.clientX, cy: e.clientY, ox: o.x, oy: o.y,
+                active: false, timer: 0
+            };
+            if (e.pointerType === 'touch') {
+                drag.timer = setTimeout(begin, LONG_PRESS_MS);
+            }
+        });
+        // 長押しメニューや、画像のネイティブなドラッグを出さない
+        el.addEventListener('contextmenu', (e) => { if (drag) e.preventDefault(); });
+        el.addEventListener('dragstart', (e) => e.preventDefault());
+    });
+
+    window.addEventListener('pointermove', (e) => {
+        if (!drag || e.pointerId !== drag.id) return;
+        drag.cx = e.clientX;
+        drag.cy = e.clientY;
+        if (!drag.active) {
+            const moved = Math.hypot(drag.cx - drag.sx, drag.cy - drag.sy);
+            if (drag.type === 'touch') {
+                if (moved > 8) finish();   // 長押しの前に動いた＝スクロールのつもり
+            } else if (moved > MOUSE_THRESHOLD) {
+                begin();
+            }
+            return;
+        }
+        e.preventDefault();
+        update();
+    });
+    window.addEventListener('pointerup', (e) => { if (drag && e.pointerId === drag.id) finish(); });
+    window.addEventListener('pointercancel', (e) => { if (drag && e.pointerId === drag.id) finish(); });
+
+    // ドラッグ中は、タッチ操作でページがスクロールしないようにする
+    window.addEventListener('touchmove', (e) => {
+        if (drag && drag.active) e.preventDefault();
+    }, { passive: false });
+
+    // 元の並びに戻す
+    function resetLayout() {
+        finish();
+        members.forEach((el) => {
+            const o = offsets.get(el);
+            if (!o.x && !o.y) return;
+            o.x = 0;
+            o.y = 0;
+            if (reduceMotion) {
+                el.style.transform = '';
+                el.style.zIndex = '';
+                return;
+            }
+            el.classList.add('is-returning');
+            el.style.transform = '';
+            setTimeout(() => {
+                el.classList.remove('is-returning');
+                el.style.zIndex = '';
+            }, 800);
+        });
+        zTop = 10;
+    }
+
+    if (resetBtn) resetBtn.addEventListener('click', resetLayout);
+
+    // 画面の幅が変わると並びも変わるので、そのときは位置をリセットする
+    let lastWidth = window.innerWidth;
+    window.addEventListener('resize', () => {
+        if (window.innerWidth === lastWidth) return;
+        lastWidth = window.innerWidth;
+        finish();
+        members.forEach((el) => {
+            const o = offsets.get(el);
+            o.x = 0;
+            o.y = 0;
+            el.style.transform = '';
+            el.style.zIndex = '';
+        });
+        zTop = 10;
+    });
 }
