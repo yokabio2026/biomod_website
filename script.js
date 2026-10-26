@@ -668,15 +668,21 @@ function initMemberDrag() {
     const DNA_PERIOD = 60;        // 元の並びのとき、らせん1回転ぶんの長さ(px)
     const DNA_AMPLITUDE = 24;     // らせんの振れ幅(px)
     const DNA_RUNGS_PER_TURN = 6; // 1回転あたりの横棒（塩基対）の数
-    const DNA_COLOR_A = '#8b6cf0';
-    const DNA_COLOR_B = '#4da3ff';
-    const DNA_RUNG_COLOR = '#b9a8f5';
+    const DNA_COLOR_A = '#ff2a5f';       // 赤のストランド（ネオン）
+    const DNA_COLOR_B = '#1f9bff';       // 青のストランド（ネオン）
+    const DNA_RUNG_COLOR = '#c77dff';    // 横棒（赤と青の中間の、ネオンの紫）
+    const DNA_CORE_A = '#ffd9e2';        // 手前側ストランドの中心の明るい線（ネオン管の芯）
+    const DNA_CORE_B = '#d6efff';
 
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('class', 'dna-links');
     svg.setAttribute('aria-hidden', 'true');
-    function addPath(color, width, opacity) {
+    function addPath(color, width, opacity, glow) {
         const p = document.createElementNS(SVG_NS, 'path');
+        if (glow) {
+            // ネオンのにじみ（近くの強い光＋広がる弱い光）
+            p.style.filter = 'drop-shadow(0 0 2px ' + color + ') drop-shadow(0 0 ' + glow + 'px ' + color + ')';
+        }
         p.setAttribute('fill', 'none');
         p.setAttribute('stroke', color);
         p.setAttribute('stroke-width', String(width));
@@ -687,11 +693,13 @@ function initMemberDrag() {
         return p;
     }
     // 描く順番＝奥から手前。奥側のストランド → 横棒 → 手前側のストランド
-    const pathBackA = addPath(DNA_COLOR_A, 4, 0.45);
-    const pathBackB = addPath(DNA_COLOR_B, 4, 0.45);
-    const pathRungs = addPath(DNA_RUNG_COLOR, 2.5, 0.75);
-    const pathFrontA = addPath(DNA_COLOR_A, 6, 1);
-    const pathFrontB = addPath(DNA_COLOR_B, 6, 1);
+    const pathBackA = addPath(DNA_COLOR_A, 4, 0.5, 4);
+    const pathBackB = addPath(DNA_COLOR_B, 4, 0.5, 4);
+    const pathRungs = addPath(DNA_RUNG_COLOR, 2.5, 0.85, 5);
+    const pathFrontA = addPath(DNA_COLOR_A, 6, 1, 9);
+    const pathFrontB = addPath(DNA_COLOR_B, 6, 1, 9);
+    const pathCoreA = addPath(DNA_CORE_A, 2, 0.9, 0);
+    const pathCoreB = addPath(DNA_CORE_B, 2, 0.9, 0);
     main.insertBefore(svg, main.firstChild);
 
     let pairs = [];   // つなぐ写真の組（同じ行で、となりどうし）。l0 は元の並びでの中心間の距離
@@ -783,6 +791,8 @@ function initMemberDrag() {
         pathRungs.setAttribute('d', d.rungs);
         pathFrontA.setAttribute('d', d.frontA);
         pathFrontB.setAttribute('d', d.frontB);
+        pathCoreA.setAttribute('d', d.frontA);
+        pathCoreB.setAttribute('d', d.frontB);
     }
 
     // 元の位置に戻るアニメーションの間、毎フレームDNAを描き直す
