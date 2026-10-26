@@ -372,8 +372,8 @@ a.search-result-item:hover {
 .member-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 56px 90px;
-    max-width: 960px;
+    gap: 56px 80px;
+    max-width: 1040px;
     margin: 0 auto;
 }
 
