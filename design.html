@@ -52,7 +52,7 @@
                 <div class="section-text">
                     <p>
                         ALiGN (Accurately Linkable GUV Network) is our technology for building networks of GUVs.
-                        Its goal is to connect GUVs in an intended pattern and with an intended number of partners, and finally to exchange materials between them.
+                        Its goal is controlled communication between GUVs: to connect GUVs in an intended pattern and with an intended number of partners, and to exchange materials between the connected GUVs.
                     </p>
 
                     <p>
@@ -128,7 +128,7 @@
                         We achieve the first with α-hemolysin and the second with TRIMEB.
                     </p>
 
-                    <h3 class="sub-title">α-Hemolysin</h3>
+                    <h3 class="sub-title">α-Hemolysin as a Pore</h3>
                     <p>
                         α-Hemolysin is a pore-forming protein from <em>Staphylococcus aureus</em>. Its subunits assemble in a lipid membrane and form a pore that small molecules and ions can pass through.
                         By forming α-hemolysin pores in the GUV membrane, we open a path for the contents of a GUV to move to a connected GUV.
@@ -160,6 +160,11 @@
                         Weak-binding strands for connecting GUVs with an intended number of partners (see Weak Binding).
                         Each strand has a 4-nt binding part (ACAC / GTGT or AGAG / CTCT) and a TT spacer on the membrane side. All strands carry SH at the 3′ end.
                     </p>
+
+                    <figure>
+                        <video src="videos/design-dna-6nt.mp4" autoplay loop muted playsinline></video>
+                        <figcaption>Movie 1 Weak binding by 6-nt DNA. Three GUVs come together and connect; the close-up shows the gap between GUV1 and GUV2, where a connection holds only when many strands bind at the same time.</figcaption>
+                    </figure>
                     <p>
                         <strong>Pair 1 (GUV1 – GUV2)</strong><br>
                         Conn6_L1: 5′-<code>ACACTT</code>-3′ (SH)<br>
@@ -176,6 +181,11 @@
                         Strongly binding strands that form a stable 23-bp duplex. We use them first to show that DNA can control the GUV1–GUV2 and GUV2–GUV3 connections separately (see Sequence-Specific Binding).
                         SH is at the 3′ end on the L side and at the 5′ end on the R side.
                     </p>
+
+                    <figure>
+                        <video src="videos/design-dna-23bp.mp4" autoplay loop muted playsinline></video>
+                        <figcaption>Movie 2 Strong binding by 23-bp DNA. A single duplex is enough to hold two GUVs together.</figcaption>
+                    </figure>
                     <p>
                         <strong>Pair 1 (GUV1 – GUV2)</strong><br>
                         Conn23_L1: 5′-<code>GCATCTACACTCAATACCCAGCC</code>-3′ (SH)<br>
@@ -192,6 +202,11 @@
                         A backup plan in case the weak 6-nt binding alone rarely starts a connection.
                         Its 23-nt end hybridizes to the 23-bp anchor strand on one GUV, and the remaining 40 nt is a repeat (CA or CT, ten 4-nt units) that gathers many 6-nt strands of the partner GUV at one spot to create a trigger for connection.
                     </p>
+
+                    <figure class="media-wide">
+                        <img src="images/design-dna-scaffold.png" alt="Close-up of the gap between GUV1 and GUV2, showing the 63-nt scaffold strand bound to the 23-nt anchor strand on GUV1 and gathering 6-nt strands of GUV2">
+                        <figcaption>Fig. 1 The 63-nt scaffold strand in the gap between GUV1 and GUV2. It stays bound to the 23-nt anchor strand on GUV1 and gathers many 6-nt strands of GUV2 at one spot.</figcaption>
+                    </figure>
                     <p>
                         Conn6_L1X: 5′-<code style="word-break: break-all;">GGCTGGGTATTGAGTGTAGATGCCACACACACACACACACACACACACACACACACACACACA</code>-3′<br>
                         (binds Conn23_L1 on GUV1; the CA repeat gathers Conn6_R1 on GUV2)
