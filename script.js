@@ -3027,7 +3027,49 @@ function initMemberDrag() {
         }, reduceMotion ? 0 : 900);
     }
 
-    if (resetBtn) resetBtn.addEventListener('click', resetLayout);
+    /* ---- YOKABIOくんの機嫌：整列ボタンを、短時間に何度も押すと、だんだん怒る ----
+            ・前回のクリックから1秒以内に、また押すと「連打」。連打の回数に応じて、画像が変わる：1回目 = 通常 / 2 / 3 / 4回目 / 5回目以降 = 激怒
+            ・1秒より間があいたら、連打の回数は、新しい1回目から数え直す。ただし、いま表示している怒りは、下げない（回復の処理だけが、戻す）
+            ・最後のクリックから約5秒たつと、機嫌が直る（通常の画像に戻り、回数もリセット）。回復のタイマーは1つだけ。押すたびに、数え直す
+            ・画像が切り替わったときだけ、ぷるっ（1.08倍 → 0.2秒）。怒りが強いほど震える（CSSアニメーション）
+            ・整列そのものは、これまでどおり resetLayout を1回だけ呼ぶ（怒りの更新は、見た目だけ） */
+    const ANGER_GAP_MS = 1000;       // この時間(ミリ秒)以内に、また押したら、連打
+    const ANGER_RECOVER_MS = 5000;   // 最後のクリックから、この時間たつと、機嫌が直る
+    const faceWrap = resetBtn ? resetBtn.querySelector('.mascot-faces') : null;
+    const faces = faceWrap ? Array.from(faceWrap.querySelectorAll('.mascot-face')) : [];
+    const anger = { stage: 1, count: 0, last: 0, timer: 0 };
+    faces.forEach((f) => { if (f.decode) f.decode().catch(() => { /* 読み込めなくても、何もしない */ }); });   // 5枚とも、先に読み込んでおく（切り替えで、ちらつかない）
+
+    function showAnger(stage, shake) {
+        if (!faces.length || stage === anger.stage) return;
+        anger.stage = stage;
+        faces.forEach((f, i) => f.classList.toggle('is-on', i === stage - 1));
+        // ぷるっ：クラスをつけ直して、アニメーションを、最初からやり直す
+        faceWrap.className = 'mascot-faces';
+        void faceWrap.offsetWidth;
+        faceWrap.classList.add(shake && stage >= 2 ? 'is-shake-' + stage : 'is-pop');
+    }
+
+    function angerStep() {
+        if (!faces.length) return;
+        const now = performance.now();
+        anger.count = (anger.count > 0 && now - anger.last <= ANGER_GAP_MS) ? anger.count + 1 : 1;
+        anger.last = now;
+        const target = Math.min(5, anger.count);
+        if (target > anger.stage) showAnger(target, true);   // 怒りは、回復するまで、下がらない
+        clearTimeout(anger.timer);
+        anger.timer = setTimeout(() => {
+            anger.count = 0;
+            showAnger(1, false);   // 機嫌が直る：通常の画像に戻る（ぷるっ、だけ）
+        }, ANGER_RECOVER_MS);
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            resetLayout();   // これまでどおりの整列（1回だけ）
+            angerStep();
+        });
+    }
 
     // 画面の幅が変わると並びも変わるので、そのときは位置をリセットする
     let lastWidth = window.innerWidth;

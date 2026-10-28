@@ -750,3 +750,91 @@ a.search-result-item:hover {
 .member.tut-lift img {
     box-shadow: 0 16px 28px rgba(43, 16, 85, 0.30);
 }
+
+/* ---- YOKABIOくんの機嫌（整列ボタンを短時間に何度も押すと、だんだん怒る）----
+   5枚の画像は、同じ大きさのキャンバス（キャラクターの位置・大きさがそろえてある）。
+   ボタンの枠（クリックできる範囲）は、これまでと同じ。雲や怒りマークは、枠の外にはみ出して見える（クリック判定には入らない）。
+   重ねて置いて、表示する1枚だけ不透明にする：切り替えで、ちらつかない・レイアウトが動かない */
+.mascot-faces {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 298 / 400;
+}
+
+.reset-layout-btn .mascot-face {
+    position: absolute;
+    left: -18.626%;
+    top: -0.642%;
+    width: 130.667%;
+    height: auto;
+    opacity: 0;
+    transform-origin: 52.6% 84.7%;
+}
+
+.reset-layout-btn .mascot-face.is-on {
+    opacity: 1;
+}
+
+/* 切り替わった瞬間：ぷるっ（約1.08倍 → 0.2秒で元の大きさ）。怒りが強いほど、左右に少し震える。
+   拡大は scale、震えは translate（別々のプロパティ）なので、重ねて動かせる。ホバーの拡大（画像側の transform）とも、ぶつからない */
+.mascot-faces.is-pop {
+    animation: mascot-pop 0.2s ease-out;
+}
+
+.mascot-faces.is-shake-2 { animation: mascot-pop 0.2s ease-out, mascot-shake-2 0.22s linear; }
+.mascot-faces.is-shake-3 { animation: mascot-pop 0.2s ease-out, mascot-shake-3 0.28s linear; }
+.mascot-faces.is-shake-4 { animation: mascot-pop 0.2s ease-out, mascot-shake-4 0.34s linear; }
+.mascot-faces.is-shake-5 { animation: mascot-pop 0.2s ease-out, mascot-shake-5 0.5s linear; }   /* 細かく、短時間だけ */
+
+@keyframes mascot-pop {
+    from { scale: 1.08; }
+    to { scale: 1; }
+}
+
+@keyframes mascot-shake-2 {
+    0%, 100% { translate: 0 0; }
+    25% { translate: -1px 0; }
+    75% { translate: 1px 0; }
+}
+
+@keyframes mascot-shake-3 {
+    0%, 100% { translate: 0 0; }
+    20% { translate: -2px 0; }
+    40% { translate: 2px 0; }
+    60% { translate: -2px 0; }
+    80% { translate: 2px 0; }
+}
+
+@keyframes mascot-shake-4 {
+    0%, 100% { translate: 0 0; }
+    15% { translate: -3px 0; }
+    30% { translate: 3px 0; }
+    45% { translate: -3px 0; }
+    60% { translate: 3px 0; }
+    80% { translate: -1.5px 0; }
+}
+
+@keyframes mascot-shake-5 {
+    0%, 100% { translate: 0 0; }
+    8% { translate: -3.5px 0; }
+    16% { translate: 3.5px 0; }
+    24% { translate: -3.5px 0; }
+    32% { translate: 3.5px 0; }
+    40% { translate: -3.5px 0; }
+    48% { translate: 3.5px 0; }
+    56% { translate: -3px 0; }
+    64% { translate: 3px 0; }
+    76% { translate: -2px 0; }
+    88% { translate: 1px 0; }
+}
+
+/* 動きを減らす設定のとき：震えは省く（ぷるっ、だけ） */
+@media (prefers-reduced-motion: reduce) {
+    .mascot-faces.is-shake-2,
+    .mascot-faces.is-shake-3,
+    .mascot-faces.is-shake-4,
+    .mascot-faces.is-shake-5 {
+        animation: mascot-pop 0.2s ease-out;
+    }
+}
