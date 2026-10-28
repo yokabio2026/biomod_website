@@ -748,15 +748,18 @@ function initMemberDrag() {
         glideAmount: 0.8,      // 【減衰】弾かれた直後に、減速が弱まる割合
         springRamp: 1.0,       // 【DNAの引き戻し抑制】弾いたあと、DNAの引き寄せが元の強さに戻るまでの時間(秒)
         trailMinSpeed: 320,    // 【発射の軌跡】写真がこれより遅くなったら、新しい軌跡を出さない(px/秒)
-        trailInterval: 0.07,   // 【発射の軌跡】軌跡を残す間隔(秒)。速さ × この値 ＝ 残す間隔(px)。速いほど、間隔が広がり、数は増えすぎない
-        trailMinSpacing: 46,   // 【発射の軌跡】ゆっくりのときの、最小の間隔(px)
-        trailMaxSpacing: 140,  // 【発射の軌跡】高速のときの、最大の間隔(px)。これ以上は広げない（経路に沿って、点々と残る）
-        trailLifeMin: 0.3,     // 【発射の軌跡】1つが消えるまでの時間(秒)。下限
-        trailLifeMax: 0.5,     // 【発射の軌跡】同じく、上限
-        trailOpacity: 0.75,    // 【発射の軌跡】いちばん濃いときの不透明度（速いほど濃い。遅いときは、この半分ほど）
-        trailPerPhoto: 5,      // 【発射の軌跡】1枚の写真につき、同時に残る小さなDNAの上限
-        trailChainPerPhoto: 2, // 【発射の軌跡】発射した写真にぶつかられて動いた写真の、上限（連鎖の分は、少なめ）
-        trailMax: 36           // 【発射の軌跡】画面全体で、同時に残る小さなDNAの上限
+        trailInterval: 0.045,   // 【発射の軌跡】軌跡を残す間隔(秒)。速さ × この値 ＝ 残す間隔(px)（以前は0.07）。速いほど、間隔が広がる
+        trailMinSpacing: 40,   // 【発射の軌跡】ゆっくりのときの、最小の間隔(px)
+        trailMaxSpacing: 90,   // 【発射の軌跡】高速のときの、最大の間隔(px)。これ以上は広げない（経路に沿って、点々と残る）
+        trailLifeMin: 0.5,     // 【発射の軌跡】1つが消えるまでの時間(秒)。下限（以前は0.3）
+        trailLifeMax: 0.7,     // 【発射の軌跡】同じく、上限（以前は0.5）
+        trailOpacity: 0.95,    // 【発射の軌跡】いちばん濃いときの不透明度（強く発射したとき。弱いときは、この6割ほど）（以前は0.75）
+        trailVivid: 0.55,      // 【発射の軌跡】色の鮮やかさ（0 = ホバーのDNAと同じ淡い色、1 = 引っ張り最大の鮮やかな色）
+        trailLine: 1.5,        // 【発射の軌跡】線の太さ(px)（以前は1.1）
+        trailShrink: 0.45,     // 【発射の軌跡】消えるまでに、小さくなる割合（古いものほど小さく、薄く）
+        trailPerPhoto: 8,      // 【発射の軌跡】1枚の写真につき、同時に残る小さなDNAの上限（以前は5）
+        trailChainPerPhoto: 3, // 【発射の軌跡】発射した写真にぶつかられて動いた写真の、上限（連鎖の分は、少なめ）
+        trailMax: 48           // 【発射の軌跡】画面全体で、同時に残る小さなDNAの上限（以前は36）
     };
     window.teamPhysics = T;
 
@@ -1695,11 +1698,11 @@ function initMemberDrag() {
             ・整列中は出さない（残りは、すばやく消す）。prefers-reduced-motion のときは、出さない */
     const trailG = document.createElementNS(SVG_NS, 'g');
     svg.insertBefore(trailG, svg.firstChild);
-    const TRAIL_SIZES = [10, 13, 16];   // 小さなDNAの長さ(px)
+    const TRAIL_SIZES = [16, 19, 22];   // 小さなDNAの長さ(px)
     const trailPaths = {};              // 長さごとの、二重らせんの形（1.5回転・横棒3本）
     TRAIL_SIZES.forEach((L) => {
-        const a = L * 0.24;
-        const n = Math.max(10, Math.round(L * 1.4));
+        const a = L * 0.27;
+        const n = Math.max(12, Math.round(L * 1.4));
         let s1 = '';
         let s2 = '';
         for (let i = 0; i <= n; i++) {
@@ -1723,7 +1726,7 @@ function initMemberDrag() {
         pr.forEach((key, i) => {
             const st = document.createElementNS(SVG_NS, 'stop');
             st.setAttribute('offset', String(i));
-            st.setAttribute('stop-color', T[key]);
+            st.setAttribute('stop-color', mixColor(T[key], T[key.replace('dnaGrad', 'dnaGradVivid')], T.trailVivid));
             lg.appendChild(st);
         });
         defs.appendChild(lg);
@@ -1741,24 +1744,25 @@ function initMemberDrag() {
         let mine = 0;
         trails.forEach((p) => { if (p.owner === owner) mine++; });
         if (mine >= (chain ? T.trailChainPerPhoto : T.trailPerPhoto)) return;
-        const L = TRAIL_SIZES[Math.floor(Math.random() * TRAIL_SIZES.length)];
+        const fast = clamp((sp - T.trailMinSpeed) / 2500, 0, 1);   // 速いほど、濃く・大きく
+        const r = Math.random();
+        const L = TRAIL_SIZES[fast < 0.3 ? (r < 0.7 ? 0 : 1) : Math.floor(r * TRAIL_SIZES.length)];   // 弱い発射は、小さめ中心
         const el = document.createElementNS(SVG_NS, 'path');
         el.setAttribute('d', trailPaths[L]);
         el.setAttribute('fill', 'none');
         el.setAttribute('stroke', trailGrads[Math.floor(Math.random() * trailGrads.length)]);
-        el.setAttribute('stroke-width', '1.1');
+        el.setAttribute('stroke-width', String(T.trailLine));
         el.setAttribute('stroke-linecap', 'round');
         el.setAttribute('stroke-linejoin', 'round');
         el.setAttribute('opacity', '0');
         trailG.appendChild(el);
-        const fast = clamp((sp - T.trailMinSpeed) / 2500, 0, 1);   // 速いほど、少し濃い
         trails.push({
             el: el, owner: owner, x: x, y: y,
             rot: dirDeg + (Math.random() - 0.5) * 50,          // 進行方向のあたりを向く。少しばらつかせる
             rotV: (Math.random() - 0.5) * 100,                   // 消えるまでに、少しだけ回る（約±20°）
             t0: performance.now(),
             life: (T.trailLifeMin + Math.random() * (T.trailLifeMax - T.trailLifeMin)) * 1000,
-            peak: T.trailOpacity * (0.5 + 0.5 * fast) * (chain ? 0.8 : 1)
+            peak: T.trailOpacity * (0.6 + 0.4 * fast) * (chain ? 0.8 : 1)
         });
         if (!trailRaf) trailRaf = requestAnimationFrame(trailTick);
     }
@@ -1769,8 +1773,9 @@ function initMemberDrag() {
             const age = now - p.t0;
             if (age >= p.life) { p.el.remove(); return false; }   // 消えたら、要素も取りのぞく
             const u = age / p.life;
-            const a = p.peak * Math.pow(1 - u, 1.3) * Math.min(1, age / 50);   // すぐ現れて、古いものから順に、すうっと透明になる
-            p.el.setAttribute('transform', 'translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ') rotate(' + (p.rot + p.rotV * age / 1000).toFixed(1) + ')');
+            const a = p.peak * Math.pow(1 - u, 1.2) * Math.min(1, age / 50);
+            const sc = 1 - T.trailShrink * u;   // 古いものほど、小さくなる   // すぐ現れて、古いものから順に、すうっと透明になる
+            p.el.setAttribute('transform', 'translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ') rotate(' + (p.rot + p.rotV * age / 1000).toFixed(1) + ') scale(' + sc.toFixed(3) + ')');
             p.el.setAttribute('opacity', a.toFixed(3));
             return true;
         });
