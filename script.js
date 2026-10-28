@@ -733,6 +733,7 @@ function initMemberDrag() {
 
     // 動かす前の位置から、「同じ行のとなりどうし」を調べる（画面の幅が変わるたびにやり直す）
     function computePairs() {
+        measureHomes();
         pairs = [];
         const list = Array.from(members);
         for (let i = 0; i + 1 < list.length; i++) {
@@ -905,6 +906,220 @@ function initMemberDrag() {
         })();
     }
 
+    /* ---- ぶつかったら、スライムのようにぷるんと押し出す（かんたんな物理シミュレーション） ----
+            つかんでいる写真が、ほかの写真に当たると、相手は弾かれて少し滑り、ぷるぷる揺れて止まる */
+    const GAP = 8;                      // 写真どうしのすきま(px)
+    const PUSH_KICK = reduceMotion ? 0 : 16;      // めり込んだ量に応じて、弾き出す強さ
+    const RESTITUTION = reduceMotion ? 0 : 0.8;   // 弾み具合
+    const FRICTION = 5;                 // 弾かれたあとの減速（大きいほど早く止まる）
+    const MAX_SPEED = 1500;             // 弾かれる速さの上限(px/秒)
+    const JELLY_K = 260;                // ぷるぷるのバネの強さ
+    const JELLY_C = 12;                 // ぷるぷるの減衰（小さいほど長く揺れる）
+    const body = new Map();             // 写真ごとの、速さ(vx,vy)・ひしゃげ具合(def)・向き(ang)
+    members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1 }));
+    const homes = new Map();            // 写真ごとの、元の位置（中心）
+    const radii = new Map();            // 写真ごとの、円の半径
+    let boundsCache = null;
+    let simId = 0;
+    let lastT = 0;
+
+    function measureHomes() {
+        members.forEach((el) => {
+            const c = photoCenter(el);
+            const o = offsets.get(el);
+            homes.set(el, { x: c.x - o.x, y: c.y - o.y });
+            radii.set(el, el.querySelector('img').offsetWidth / 2);
+        });
+        boundsCache = null;
+    }
+
+    // 写真が動かせる範囲（<main>の中）。offsets（元の位置からのずれ）で表す
+    function memberBounds(el) {
+        const o = offsets.get(el);
+        const r = el.getBoundingClientRect();
+        const mr = main.getBoundingClientRect();
+        const baseLeft = r.left + window.scrollX - o.x;
+        const baseTop = r.top + window.scrollY - o.y;
+        return {
+            minX: -baseLeft,
+            maxX: document.documentElement.clientWidth - r.width - baseLeft,
+            minY: mr.top + window.scrollY - baseTop,
+            maxY: mr.bottom + window.scrollY - r.height - baseTop
+        };
+    }
+
+    function getBounds() {
+        if (!boundsCache) {
+            boundsCache = new Map();
+            members.forEach((el) => boundsCache.set(el, memberBounds(el)));
+        }
+        return boundsCache;
+    }
+
+    function isDragged(el) {
+        return !!(drag && drag.active && drag.el === el);
+    }
+
+    function hit(b, nx, ny, strength) {
+        // ぶつかった向きにつぶれて、そのあと、ぷるぷる揺れ戻る
+        b.defv -= strength * 10;
+        b.ang = Math.atan2(ny, nx);
+    }
+
+    function step(dt) {
+        const list = Array.from(members);
+        const bounds = getBounds();
+
+        // 1) 移動（つかんでいる写真は、動かした速さを、ぶつけるときの勢いとして使う）
+        list.forEach((el) => {
+            const b = body.get(el);
+            const o = offsets.get(el);
+            if (isDragged(el)) {
+                const nvx = (o.x - b.px) / dt;
+                const nvy = (o.y - b.py) / dt;
+                b.vx += (nvx - b.vx) * 0.35;
+                b.vy += (nvy - b.vy) * 0.35;
+            } else {
+                o.x += b.vx * dt;
+                o.y += b.vy * dt;
+                const f = Math.exp(-FRICTION * dt);
+                b.vx *= f;
+                b.vy *= f;
+            }
+            b.px = o.x;
+            b.py = o.y;
+        });
+
+        // 2) ぶつかり：重ならないように押し出し、弾き、ぷるんとさせる
+        for (let pass = 0; pass < 3; pass++) {
+            for (let i = 0; i < list.length; i++) {
+                for (let j = i + 1; j < list.length; j++) {
+                    const A = list[i];
+                    const B = list[j];
+                    const ka = isDragged(A);
+                    const kb = isDragged(B);
+                    if (ka && kb) continue;
+                    const oa = offsets.get(A);
+                    const ob = offsets.get(B);
+                    const ha = homes.get(A);
+                    const hb = homes.get(B);
+                    let dx = (hb.x + ob.x) - (ha.x + oa.x);
+                    let dy = (hb.y + ob.y) - (ha.y + oa.y);
+                    let d = Math.hypot(dx, dy);
+                    const min = radii.get(A) + radii.get(B) + GAP;
+                    if (d >= min) continue;
+                    if (d < 0.01) { dx = 1; dy = 0; d = 1; }
+                    const nx = dx / d;
+                    const ny = dy / d;
+                    const pen = min - d;
+                    const ba = body.get(A);
+                    const bb = body.get(B);
+                    const wa = ka ? 0 : 1 / ba.mass;   // 重いほど、動かされにくい
+                    const wb = kb ? 0 : 1 / bb.mass;
+                    const sum = wa + wb;
+                    // 位置：めり込んだぶんを押し戻す
+                    const corr = pen * 0.8;
+                    oa.x -= nx * corr * wa / sum;
+                    oa.y -= ny * corr * wa / sum;
+                    ob.x += nx * corr * wb / sum;
+                    ob.y += ny * corr * wb / sum;
+                    // 速さ：近づいていたら跳ね返す
+                    const rel = (bb.vx - ba.vx) * nx + (bb.vy - ba.vy) * ny;
+                    if (rel < 0) {
+                        const imp = -(1 + RESTITUTION) * rel / sum;
+                        ba.vx -= nx * imp * wa;
+                        ba.vy -= ny * imp * wa;
+                        bb.vx += nx * imp * wb;
+                        bb.vy += ny * imp * wb;
+                    }
+                    // めり込んだ量に応じて、さらに弾き出す
+                    const kick = pen * PUSH_KICK / sum;
+                    ba.vx -= nx * kick * wa;
+                    ba.vy -= ny * kick * wa;
+                    bb.vx += nx * kick * wb;
+                    bb.vy += ny * kick * wb;
+                    // ぷるん（両方がつぶれる）
+                    if (!reduceMotion) {
+                        const strength = Math.min(1, pen / 40 + Math.abs(rel) / 900);
+                        hit(ba, nx, ny, strength);
+                        hit(bb, -nx, -ny, strength);
+                    }
+                }
+            }
+        }
+
+        // 3) 壁：ページの外には出さない。当たったら少し跳ね返る
+        list.forEach((el) => {
+            if (isDragged(el)) return;
+            const b = body.get(el);
+            const o = offsets.get(el);
+            const bd = bounds.get(el);
+            const nx0 = clamp(o.x, bd.minX, bd.maxX);
+            const ny0 = clamp(o.y, bd.minY, bd.maxY);
+            if (nx0 !== o.x) { b.vx = -b.vx * 0.5; if (!reduceMotion) hit(b, nx0 < o.x ? 1 : -1, 0, 0.3); }
+            if (ny0 !== o.y) { b.vy = -b.vy * 0.5; if (!reduceMotion) hit(b, 0, ny0 < o.y ? 1 : -1, 0.3); }
+            o.x = nx0;
+            o.y = ny0;
+        });
+
+        // 4) 速さの上限と、ぷるぷる（バネ）
+        list.forEach((el) => {
+            const b = body.get(el);
+            const sp = Math.hypot(b.vx, b.vy);
+            if (sp > MAX_SPEED) { b.vx *= MAX_SPEED / sp; b.vy *= MAX_SPEED / sp; }
+            b.mass = 1 + (b.mass - 1) * Math.exp(-2 * dt);   // 離した直後の重さは、少しずつ元に戻る
+            b.defv += (-JELLY_K * b.def - JELLY_C * b.defv) * dt;
+            b.def = clamp(b.def + b.defv * dt, -0.4, 0.4);
+            const img = el.querySelector('img');
+            if (Math.abs(b.def) > 0.003 || Math.abs(b.defv) > 0.05) {
+                const s = 1 + b.def;
+                const deg = (b.ang * 180 / Math.PI).toFixed(1);
+                img.style.transform = 'rotate(' + deg + 'deg) scale(' + s.toFixed(3) + ', ' + (1 / s).toFixed(3) + ') rotate(-' + deg + 'deg)';
+            } else {
+                b.def = 0;
+                b.defv = 0;
+                img.style.transform = '';
+            }
+            if (!isDragged(el)) applyTransform(el, false);
+            else applyTransform(el, true);
+        });
+    }
+
+    function simActive() {
+        if (drag && drag.active) return true;
+        let active = false;
+        members.forEach((el) => {
+            const b = body.get(el);
+            if (Math.hypot(b.vx, b.vy) > 8 || Math.abs(b.def) > 0.003 || Math.abs(b.defv) > 0.05 || b.mass > 1.05) active = true;
+        });
+        return active;
+    }
+
+    function simLoop(now) {
+        const dt = Math.min(0.033, (now - lastT) / 1000) || 0.016;
+        lastT = now;
+        step(dt);
+        drawLinks();
+        simId = simActive() ? requestAnimationFrame(simLoop) : 0;
+    }
+
+    function wake() {
+        if (simId) return;
+        lastT = performance.now();
+        simId = requestAnimationFrame(simLoop);
+    }
+
+    function stopSim() {
+        if (simId) cancelAnimationFrame(simId);
+        simId = 0;
+        members.forEach((el) => {
+            const b = body.get(el);
+            b.vx = 0; b.vy = 0; b.def = 0; b.defv = 0; b.mass = 1;
+            el.querySelector('img').style.transform = '';
+        });
+        boundsCache = null;
+    }
+
     function applyTransform(el, lifted) {
         const o = offsets.get(el);
         if (!o.x && !o.y && !lifted) {
@@ -927,6 +1142,7 @@ function initMemberDrag() {
         o.y = clamp(drag.oy + dy, drag.minY, drag.maxY);
         applyTransform(drag.el, true);
         drawLinks();
+        wake();
     }
 
     function autoScrollLoop() {
@@ -953,6 +1169,9 @@ function initMemberDrag() {
         drag.minY = mr.top + window.scrollY - baseTop;
         drag.maxY = mr.bottom + window.scrollY - r.height - baseTop;
         drag.active = true;
+        const bd = body.get(el);
+        bd.vx = 0; bd.vy = 0; bd.px = o.x; bd.py = o.y;
+        boundsCache = null;
         el.classList.remove('is-returning');
         el.classList.add('is-dragging');
         el.style.zIndex = String(++zTop);
@@ -965,9 +1184,16 @@ function initMemberDrag() {
         clearTimeout(drag.timer);
         cancelAnimationFrame(rafId);
         if (drag.active) {
+            const rel = drag;
             drag.el.classList.remove('is-dragging');
             applyTransform(drag.el, false);
             drawLinks();
+            const bd = body.get(rel.el);
+            bd.vx *= 0.6; bd.vy *= 0.6;
+            bd.mass = 6;
+            drag = null;
+            wake();
+            return;
         }
         drag = null;
     }
@@ -1019,6 +1245,7 @@ function initMemberDrag() {
     // 元の並びに戻す
     function resetLayout() {
         finish();
+        stopSim();
         members.forEach((el) => {
             const o = offsets.get(el);
             if (!o.x && !o.y) return;
@@ -1049,6 +1276,7 @@ function initMemberDrag() {
         if (window.innerWidth === lastWidth) return;
         lastWidth = window.innerWidth;
         finish();
+        stopSim();
         members.forEach((el) => {
             const o = offsets.get(el);
             o.x = 0;
