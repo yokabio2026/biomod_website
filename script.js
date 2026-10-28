@@ -668,6 +668,10 @@ function initMemberDrag() {
         maxPull: 2400,         // 引く力（加速度）の上限
         gap: 8,                // 写真どうしのすきま(px)
         restitution: reduceMotion ? 0 : 0.35,   // 弾み具合（中くらい）
+        maxSubstep: 1 / 120,   // 【安定化】1回の計算の時間刻みの上限(秒)。フレームが遅いときは、細かく分けて計算する（最大4回）
+        solverIterations: 16,  // 【安定化】めり込みを解く反復の回数（写真どうしの判定と、壁の判定を、交互に繰り返す）
+        dragStepFrac: 0.3,     // 【ドラッグ】つかんでいる写真が、1回の計算で進める距離の上限（半径に対する割合）。小さいほど、相手を飛ばしすぎず、すり抜けにくい
+        dragInvMass: 0.06,     // 【ドラッグ】つかんでいる写真の「動かされやすさ」。小さいほど、相手を押しのけ、自分は動かされにくい
         bounceMinSpeed: 20,    // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
         collisionBoost: 1.45,  // 【衝突の強さ】動いている写真どうしが、ぶつかった瞬間の勢いの伝わり方の倍率（1で、ブーストなし）。1回の衝突につき、1度だけ適用
         collisionBoostRamp: 160, // 【衝突の強さ】ぶつかった速さが、この値(px/秒)ぶん遅いほうから速くなるにつれて、ブーストが0→最大に増える（弱い衝突は、控えめのまま）
@@ -706,7 +710,7 @@ function initMemberDrag() {
     const groupOf = new Map();
     members.forEach((el) => groupOf.set(el, el.closest('.content-section') || main));
     const body = new Map();      // 写真ごとの、速さ・ひしゃげ具合・重さ
-    members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1, glide: 0, free: 0 }));
+    members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1, glide: 0, free: 0, sx: 0, sy: 0 }));
     const homes = new Map();     // 写真ごとの、元の位置（中心）
     const radii = new Map();     // 写真ごとの、円の半径
     let zTop = 10;
@@ -1099,137 +1103,273 @@ function initMemberDrag() {
         });
     }
 
-    function step(dt) {
-        const list = Array.from(members);
-        const bounds = getBounds();
+    /* ---- 位置の補正（めり込みを解く）。速さの計算とは分けて、毎回「めり込みゼロ」を目指す ----
+            ・円どうしの中心間距離が、半径の合計＋すきま より短くならないようにする
+            ・壁の判定と、写真どうしの判定を、同じ反復の中で一緒に解く（壁で動けない写真は、動かさない）
+            ・つかんでいる写真は、目標の座標へ向かうが、実際の位置は、ほかの写真・壁にぶつからない範囲に収める */
 
-        // 0) DNAのバネ
-        stepPlucks(dt);
-        applySprings(dt);
+    // 補正で動かしやすさ（質量の逆数）。壁で動けない写真は 0、つかんでいる写真は dragFactor
+    function invMassOf(el, blocked, dragFactor) {
+        if (blocked.has(el)) return 0;
+        if (isDragged(el)) return dragFactor;
+        return 1 / body.get(el).mass;
+    }
 
-        // 1) 移動（つかんでいる写真は、動かした速さを、ぶつけるときの勢いとして使う）
-        list.forEach((el) => {
-            const b = body.get(el);
-            const o = offsets.get(el);
-            if (isDragged(el)) {
-                const nvx = (o.x - b.px) / dt;
-                const nvy = (o.y - b.py) / dt;
-                b.vx += (nvx - b.vx) * 0.35;
-                b.vy += (nvy - b.vy) * 0.35;
-            } else {
-                o.x += b.vx * dt;
-                o.y += b.vy * dt;
-                // ゆっくりのときは弱く、速いときは強く減速する（速く弾かれても、すぐ止まる）
-                const sp = Math.hypot(b.vx, b.vy);
-                const slip = 1 - T.glideAmount * b.glide;   // 弾かれた直後は、減速が弱い
-                const f = Math.exp(-(T.frictionBase + T.frictionQuad * sp) * slip * dt);
-                b.vx *= f;
-                b.vy *= f;
+    // 領域の外へ出ていたら戻す。戻した写真は blocked に入れる（その写真は、壁で動けないものとして扱う）
+    function clampBody(el, bd, blocked) {
+        const o = offsets.get(el);
+        const cx = clamp(o.x, bd.minX, bd.maxX);
+        const cy = clamp(o.y, bd.minY, bd.maxY);
+        if (cx !== o.x || cy !== o.y) blocked.add(el);
+        o.x = cx;
+        o.y = cy;
+    }
+
+    // 2枚が重なっていたら、中心を結ぶ向きに、動かしやすさに応じて分けて、重なりをなくす
+    function pushApart(A, B, blocked, dragFactor) {
+        const oa = offsets.get(A);
+        const ob = offsets.get(B);
+        const ha = homes.get(A);
+        const hb = homes.get(B);
+        let dx = (hb.x + ob.x) - (ha.x + oa.x);
+        let dy = (hb.y + ob.y) - (ha.y + oa.y);
+        let d = Math.hypot(dx, dy);
+        const min = radii.get(A) + radii.get(B) + T.gap;
+        if (d >= min) return;
+        if (d < 0.01) { dx = 1; dy = 0; d = 1; }
+        const wa = invMassOf(A, blocked, dragFactor);
+        const wb = invMassOf(B, blocked, dragFactor);
+        const sum = wa + wb;
+        if (sum === 0) return;
+        const pen = min - d;
+        const nx = dx / d;
+        const ny = dy / d;
+        oa.x -= nx * pen * wa / sum;
+        oa.y -= ny * pen * wa / sum;
+        ob.x += nx * pen * wb / sum;
+        ob.y += ny * pen * wb / sum;
+    }
+
+    // 写真どうし・壁の判定を、n 回、交互に繰り返す。allowDrag が true の最初の6割は、つかんでいる写真も少しだけ押し戻される
+    function runIterations(list, bounds, n, allowDrag) {
+        let blocked = new Set();
+        for (let it = 0; it < n; it++) {
+            const dragFactor = allowDrag && it < n * 0.6 ? T.dragInvMass : 0;
+            for (let i = 0; i < list.length; i++) {
+                for (let j = i + 1; j < list.length; j++) {
+                    if (isDragged(list[i]) && isDragged(list[j])) continue;
+                    pushApart(list[i], list[j], blocked, dragFactor);
+                }
             }
-            b.px = o.x;
-            b.py = o.y;
-        });
+            const next = new Set();
+            list.forEach((el) => clampBody(el, bounds.get(el), next));
+            blocked = next;
+        }
+    }
 
-        // 2) ぶつかり：重ならないように押し出し、ぶつかった速さに応じて弾き、ぷるんとさせる
-        // 「いま触れている組」を覚えておき、新しく触れた瞬間（＝1回の衝突）だけ、ブーストをかける。
-        // 触れたまま押し合っている間や、同じフレームの繰り返し計算では、ブーストをかけない（異常な加速を防ぐ）
+    // いちばん深いめり込み(px)
+    function maxPenetration(list) {
+        let worst = 0;
+        for (let i = 0; i < list.length; i++) {
+            for (let j = i + 1; j < list.length; j++) {
+                const oa = offsets.get(list[i]);
+                const ob = offsets.get(list[j]);
+                const ha = homes.get(list[i]);
+                const hb = homes.get(list[j]);
+                const d = Math.hypot((hb.x + ob.x) - (ha.x + oa.x), (hb.y + ob.y) - (ha.y + oa.y));
+                worst = Math.max(worst, radii.get(list[i]) + radii.get(list[j]) + T.gap - d);
+            }
+        }
+        return worst;
+    }
+
+    // つかんでいる写真を、ほかの写真・壁にぶつからない位置まで戻す（ほかの写真は動かさない）。
+    // これ以上押せない（相手が壁などで動けない）ときは、つかんでいる写真が手前で止まる
+    function projectDragged(list, bounds, dragEl) {
+        const bd = bounds.get(dragEl);
+        const od = offsets.get(dragEl);
+        const hd = homes.get(dragEl);
+        for (let it = 0; it < 12; it++) {
+            list.forEach((other) => {
+                if (other === dragEl) return;
+                const oo = offsets.get(other);
+                const ho = homes.get(other);
+                let dx = (ho.x + oo.x) - (hd.x + od.x);
+                let dy = (ho.y + oo.y) - (hd.y + od.y);
+                let d = Math.hypot(dx, dy);
+                const min = radii.get(dragEl) + radii.get(other) + T.gap;
+                if (d >= min) return;
+                if (d < 0.01) { dx = 1; dy = 0; d = 1; }
+                od.x -= dx / d * (min - d);
+                od.y -= dy / d * (min - d);
+            });
+            clampBody(dragEl, bd, new Set());
+        }
+    }
+
+    function resolvePositions(list, bounds) {
+        const dragEl = drag && drag.active ? drag.el : null;
+        // A) 全員を、壁と写真どうしの判定を交互に何度も繰り返して解く
+        runIterations(list, bounds, T.solverIterations, true);
+        // B) まだ重なりが残っていたら、「つかんでいる写真を戻す」→「ほかの写真だけで解き直す」を、重なりがなくなるまで繰り返す
+        for (let round = 0; round < 4; round++) {
+            if (dragEl) projectDragged(list, bounds, dragEl);
+            if (maxPenetration(list) < 0.3) break;
+            runIterations(list, bounds, 10, false);
+        }
+        if (dragEl) projectDragged(list, bounds, dragEl);
+    }
+
+    // 壁で動けない向きかどうか（その写真に、(nx, ny) の向きの力を加えても、動けないか）
+    function pinned(el, bounds, nx, ny) {
+        const o = offsets.get(el);
+        const bd = bounds.get(el);
+        const e = 0.5;
+        return (nx > 0.2 && o.x >= bd.maxX - e) || (nx < -0.2 && o.x <= bd.minX + e) ||
+               (ny > 0.2 && o.y >= bd.maxY - e) || (ny < -0.2 && o.y <= bd.minY + e);
+    }
+
+    // 速さの計算（位置の補正とは別）：ぶつかった向きと相対速度から、跳ね返りと反動を求める
+    function resolveVelocities(list, bounds) {
         const contactPrev = contactNow;
         contactNow = new Set();
         const boostedNow = new Set();
-        for (let pass = 0; pass < 3; pass++) {
-            for (let i = 0; i < list.length; i++) {
-                for (let j = i + 1; j < list.length; j++) {
-                    const A = list[i];
-                    const B = list[j];
-                    const ka = isDragged(A);
-                    const kb = isDragged(B);
-                    if (ka && kb) continue;
-                    const oa = offsets.get(A);
-                    const ob = offsets.get(B);
-                    const ha = homes.get(A);
-                    const hb = homes.get(B);
-                    let dx = (hb.x + ob.x) - (ha.x + oa.x);
-                    let dy = (hb.y + ob.y) - (ha.y + oa.y);
-                    let d = Math.hypot(dx, dy);
-                    const min = radii.get(A) + radii.get(B) + T.gap;
-                    const key = i * 32 + j;
-                    if (d >= min) {
-                        if (d < min + 3) contactNow.add(key);   // 触れる寸前も「触れている」とみなす
-                        continue;
-                    }
-                    contactNow.add(key);
-                    if (d < 0.01) { dx = 1; dy = 0; d = 1; }
-                    const nx = dx / d;
-                    const ny = dy / d;
-                    const pen = min - d;
-                    const ba = body.get(A);
-                    const bb = body.get(B);
-                    const wa = ka ? 0 : 1 / ba.mass;   // 重いほど、動かされにくい
-                    const wb = kb ? 0 : 1 / bb.mass;
-                    const sum = wa + wb;
-                    // 位置：めり込んだぶんを押し戻す
-                    const corr = pen * 0.8;
-                    oa.x -= nx * corr * wa / sum;
-                    oa.y -= ny * corr * wa / sum;
-                    ob.x += nx * corr * wb / sum;
-                    ob.y += ny * corr * wb / sum;
-                    // 速さ：近づいていたら、ぶつかった速さに応じて跳ね返す（ゆっくりなら、そっと押すだけ）
-                    const rel = (bb.vx - ba.vx) * nx + (bb.vy - ba.vy) * ny;
-                    if (rel < 0) {
-                        const e = -rel > T.bounceMinSpeed ? T.restitution : 0;
-                        // 衝突ブースト：動いている写真どうし（どちらもつかんでいない）が、新しくぶつかったときだけ、1度だけ。
-                        // 弱い衝突ほど控えめ、強い衝突ほど最大まで
-                        let boost = 1;
-                        if (!ka && !kb && !contactPrev.has(key) && !boostedNow.has(key)) {
-                            boost = 1 + (T.collisionBoost - 1) * clamp((-rel - T.bounceMinSpeed) / T.collisionBoostRamp, 0, 1);
-                            boostedNow.add(key);
-                            // ぶつかった2枚とも、しばらく滑りやすく、DNAに引き戻されにくくする
-                            const f = clamp(-rel / 500, 0.4, 1);
-                            ba.glide = Math.max(ba.glide, f);
-                            bb.glide = Math.max(bb.glide, f);
-                            ba.free = Math.max(ba.free, f);
-                            bb.free = Math.max(bb.free, f);
-                        }
-                        // 衝突の向きと、相対速度で計算する。当てた側にも、同じ大きさの反動（逆向き）がかかる
-                        const imp = -(1 + e) * rel / sum * boost;
-                        ba.vx -= nx * imp * wa;
-                        ba.vy -= ny * imp * wa;
-                        bb.vx += nx * imp * wb;
-                        bb.vy += ny * imp * wb;
-                        // ぷるん：ぶつかった瞬間だけ、速さに応じて両方がつぶれる
-                        if (!reduceMotion && -rel > 40) {
-                            const strength = Math.min(1, -rel / 700);
-                            hit(ba, nx, ny, strength);
-                            hit(bb, -nx, -ny, strength);
-                        }
-                    }
+        for (let i = 0; i < list.length; i++) {
+            for (let j = i + 1; j < list.length; j++) {
+                const A = list[i];
+                const B = list[j];
+                const ka = isDragged(A);
+                const kb = isDragged(B);
+                if (ka && kb) continue;
+                const oa = offsets.get(A);
+                const ob = offsets.get(B);
+                const ha = homes.get(A);
+                const hb = homes.get(B);
+                const dx = (hb.x + ob.x) - (ha.x + oa.x);
+                const dy = (hb.y + ob.y) - (ha.y + oa.y);
+                const d = Math.hypot(dx, dy);
+                const min = radii.get(A) + radii.get(B) + T.gap;
+                if (d > min + 1 || d < 0.01) continue;   // 触れていない組は、何もしない
+                const key = i * 32 + j;
+                contactNow.add(key);
+                const nx = dx / d;
+                const ny = dy / d;
+                const ba = body.get(A);
+                const bb = body.get(B);
+                // 壁に押し付けられて動けない写真には、速さも与えない（無理に押し込まない）
+                const wa = ka || pinned(A, bounds, -nx, -ny) ? 0 : 1 / ba.mass;
+                const wb = kb || pinned(B, bounds, nx, ny) ? 0 : 1 / bb.mass;
+                const sum = wa + wb;
+                if (sum === 0) continue;
+                const rel = (bb.vx - ba.vx) * nx + (bb.vy - ba.vy) * ny;
+                if (rel >= 0) continue;   // 離れていく向きなら、何もしない
+                const e = -rel > T.bounceMinSpeed ? T.restitution : 0;
+                // 衝突ブースト：動いている写真どうしが、新しくぶつかったときだけ、1度だけ。弱い衝突ほど控えめ
+                let boost = 1;
+                if (!ka && !kb && !contactPrev.has(key) && !boostedNow.has(key)) {
+                    boost = 1 + (T.collisionBoost - 1) * clamp((-rel - T.bounceMinSpeed) / T.collisionBoostRamp, 0, 1);
+                    boostedNow.add(key);
+                    const f = clamp(-rel / 500, 0.4, 1);
+                    ba.glide = Math.max(ba.glide, f);
+                    bb.glide = Math.max(bb.glide, f);
+                    ba.free = Math.max(ba.free, f);
+                    bb.free = Math.max(bb.free, f);
+                }
+                const imp = -(1 + e) * rel / sum * boost;
+                ba.vx -= nx * imp * wa;
+                ba.vy -= ny * imp * wa;
+                bb.vx += nx * imp * wb;
+                bb.vy += ny * imp * wb;
+                // ぷるん：ぶつかった瞬間だけ、速さに応じて両方がつぶれる
+                if (!reduceMotion && -rel > 40) {
+                    const strength = Math.min(1, -rel / 700);
+                    hit(ba, nx, ny, strength);
+                    hit(bb, -nx, -ny, strength);
                 }
             }
         }
-
-        // 3) 壁（セクションの外には出さない）：当たったら、軽く変形して、柔らかく跳ね返る
+        // 壁：当たったら、軽く変形して、柔らかく跳ね返る（ゆっくりなら、止まる）
         list.forEach((el) => {
             if (isDragged(el)) return;
             const b = body.get(el);
             const o = offsets.get(el);
             const bd = bounds.get(el);
-            const cx = clamp(o.x, bd.minX, bd.maxX);
-            const cy = clamp(o.y, bd.minY, bd.maxY);
-            if (cx !== o.x) {
-                const sp = Math.abs(b.vx);
-                b.vx = -b.vx * T.wallRestitution;
-                if (!reduceMotion && sp > 40) hit(b, cx < o.x ? 1 : -1, 0, Math.min(1, sp / 600));
+            const e = 0.5;
+            const hitWall = (axis, v, side) => {
+                const sp = Math.abs(v);
+                const nv = sp < T.bounceMinSpeed ? 0 : -v * T.wallRestitution;
+                if (!reduceMotion && sp > 40) {
+                    if (axis === 'x') hit(b, side, 0, Math.min(1, sp / 600));
+                    else hit(b, 0, side, Math.min(1, sp / 600));
+                }
+                return nv;
+            };
+            if (o.x >= bd.maxX - e && b.vx > 0) b.vx = hitWall('x', b.vx, 1);
+            else if (o.x <= bd.minX + e && b.vx < 0) b.vx = hitWall('x', b.vx, -1);
+            if (o.y >= bd.maxY - e && b.vy > 0) b.vy = hitWall('y', b.vy, 1);
+            else if (o.y <= bd.minY + e && b.vy < 0) b.vy = hitWall('y', b.vy, -1);
+        });
+    }
+
+    // 固定の細かい時間刻み（サブステップ）で計算する。速く動いても、すり抜けないようにする
+    function substep(h, bounds) {
+        const list = Array.from(members);
+
+        // 0) DNAのバネ（速さだけを変える。位置は、あとの補正で決める）
+        stepPlucks(h);
+        applySprings(h);
+
+        // 1) 移動
+        list.forEach((el) => {
+            const b = body.get(el);
+            const o = offsets.get(el);
+            b.sx = o.x;
+            b.sy = o.y;
+            if (isDragged(el)) {
+                // つかんでいる写真：目標の座標へ向かう。1回に進める距離は、半径の dragStepFrac 倍まで（一気に飛び越さないように）
+                const mx = drag.tx - o.x;
+                const my = drag.ty - o.y;
+                const dist = Math.hypot(mx, my);
+                const maxStep = radii.get(el) * T.dragStepFrac;
+                const k = dist > maxStep ? maxStep / dist : 1;
+                o.x += mx * k;
+                o.y += my * k;
+            } else {
+                o.x += b.vx * h;
+                o.y += b.vy * h;
+                // ゆっくりのときは弱く、速いときは強く減速する（速く弾かれても、すぐ止まる）
+                const sp = Math.hypot(b.vx, b.vy);
+                const slip = 1 - T.glideAmount * b.glide;   // 弾かれた直後は、減速が弱い
+                const f = Math.exp(-(T.frictionBase + T.frictionQuad * sp) * slip * h);
+                b.vx *= f;
+                b.vy *= f;
             }
-            if (cy !== o.y) {
-                const sp = Math.abs(b.vy);
-                b.vy = -b.vy * T.wallRestitution;
-                if (!reduceMotion && sp > 40) hit(b, 0, cy < o.y ? 1 : -1, Math.min(1, sp / 600));
-            }
-            o.x = cx;
-            o.y = cy;
         });
 
-        // 4) 速さの上限と、ぷるぷる（バネ）
+        // 2) 位置の補正：めり込みを、必ずなくす
+        resolvePositions(list, bounds);
+
+        // 3) つかんでいる写真の速さ：実際に動いた距離から求める（目標へ動けなかったぶんは、勢いにしない）
+        if (drag && drag.active) {
+            const b = body.get(drag.el);
+            const o = offsets.get(drag.el);
+            const nvx = (o.x - b.sx) / h;
+            const nvy = (o.y - b.sy) / h;
+            b.vx += (nvx - b.vx) * 0.35;
+            b.vy += (nvy - b.vy) * 0.35;
+        }
+
+        // 4) 速さの計算：衝突の跳ね返り・反動・壁
+        resolveVelocities(list, bounds);
+    }
+
+    function step(dt) {
+        const list = Array.from(members);
+        const bounds = getBounds();
+        const n = clamp(Math.ceil(dt / T.maxSubstep), 1, 4);
+        for (let s = 0; s < n; s++) substep(dt / n, bounds);
+
+        // 速さの上限と、ぷるぷる（バネ）。1フレームに1回
         list.forEach((el) => {
             const b = body.get(el);
             const sp = Math.hypot(b.vx, b.vy);
@@ -1312,27 +1452,25 @@ function initMemberDrag() {
 
     /* ---- ドラッグ ---- */
 
-    // ドラッグ中の位置を更新する（画面が自動スクロールしても、ページ上の位置で計算する）
+    // ドラッグ中の「目標の座標」を更新する（画面が自動スクロールしても、ページ上の位置で計算する）。
+    // 写真の実際の位置は、物理の計算（step）が、ほかの写真・壁にぶつからない範囲で更新する
     function update() {
         const dx = (drag.cx + window.scrollX) - (drag.sx + drag.scx);
         const dy = (drag.cy + window.scrollY) - (drag.sy + drag.scy);
-        const o = offsets.get(drag.el);
         const rx = drag.ox + dx;
         const ry = drag.oy + dy;
-        o.x = clamp(rx, drag.minX, drag.maxX);
-        o.y = clamp(ry, drag.minY, drag.maxY);
+        drag.tx = clamp(rx, drag.minX, drag.maxX);
+        drag.ty = clamp(ry, drag.minY, drag.maxY);
         // つかんだまま壁に当たったときも、勢いに応じて軽くつぶれる
         const b = body.get(drag.el);
-        const wallX = rx !== o.x;
-        const wallY = ry !== o.y;
+        const wallX = rx !== drag.tx;
+        const wallY = ry !== drag.ty;
         if (!reduceMotion) {
-            if (wallX && !drag.wallX && Math.abs(b.vx) > 60) hit(b, rx > o.x ? 1 : -1, 0, Math.min(1, Math.abs(b.vx) / 700));
-            if (wallY && !drag.wallY && Math.abs(b.vy) > 60) hit(b, 0, ry > o.y ? 1 : -1, Math.min(1, Math.abs(b.vy) / 700));
+            if (wallX && !drag.wallX && Math.abs(b.vx) > 60) hit(b, rx > drag.tx ? 1 : -1, 0, Math.min(1, Math.abs(b.vx) / 700));
+            if (wallY && !drag.wallY && Math.abs(b.vy) > 60) hit(b, 0, ry > drag.ty ? 1 : -1, Math.min(1, Math.abs(b.vy) / 700));
         }
         drag.wallX = wallX;
         drag.wallY = wallY;
-        applyTransform(drag.el, true);
-        drawLinks();
         wake();
     }
 
@@ -1357,6 +1495,8 @@ function initMemberDrag() {
         drag.maxY = bd.maxY;
         drag.wallX = false;
         drag.wallY = false;
+        drag.tx = o.x;
+        drag.ty = o.y;
         drag.active = true;
         const b = body.get(el);
         b.vx = 0; b.vy = 0; b.px = o.x; b.py = o.y;
