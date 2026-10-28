@@ -670,8 +670,8 @@ function initMemberDrag() {
         restitution: reduceMotion ? 0 : 0.35,   // 弾み具合（中くらい）
         bounceMinSpeed: 20,    // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
         frictionBase: 1.6,     // 動いている写真の減速（ゆっくり動くとき）
-        frictionQuad: 0.02,    // 速く動くほど、強く減速する度合い
-        maxSpeed: 1300,        // 写真の速さの上限(px/秒)。これを超えると、物理が不安定になるので、必ず頭打ちにする
+        frictionQuad: 0.012,   // 速く動くほど、強く減速する度合い（小さいほど、遠くまで滑る）
+        maxSpeed: 2000,        // 写真の速さの上限(px/秒)。これを超えると、物理が不安定になるので、必ず頭打ちにする
         wallRestitution: 0.4,  // 壁での弾み具合
         jellyK: 300,           // ぷるぷるのバネの強さ
         jellyC: 13,            // ぷるぷるの減衰（約0.4秒でほぼ止まる）
@@ -682,14 +682,16 @@ function initMemberDrag() {
         pluckGain: 1.2,        // たまったエネルギーを、写真の勢いに変える倍率（反発倍率）
         pluckAlong: 0.45,      // DNAに沿った向きに引いても、距離の何割を「のび」として扱うか（のびなしでも弾けるように）
         pluckInward: 0.25,     // 弾くとき、両端の写真に「おたがいへ向かう成分」をどのくらい混ぜるか
-        pluckMaxSpeed: 1300,   // DNAを弾いたときの、写真の速さの上限(px/秒)。なめらかに頭打ちになる
+        pluckMaxSpeed: 2000,   // 【発射の速さ】DNAを弾いたときの、写真の速さの上限(px/秒)。なめらかに頭打ちになる
+        pluckBoost: 0.45,      // 【発射の速さ】強く引くほど、さらに速くする度合い（0で、引いた距離に比例するだけ）
         pluckFullFrac: 0.7,    // 最大距離の何割まで引いたら「最大パワー」とみなすか（色の濃さ・震えの基準）
         pluckShakeStart: 0.9,  // パワーがこの割合を超えたら、DNAがごく小さく震えはじめる
         pluckShakeAmp: 1.4,    // 震えの大きさ(px)
         pluckSnapK: 800,       // 離したあと、DNAが元に戻るバネの強さ（大きいほど速く戻る）
         pluckSnapC: 11,        // 離したあと、DNAの揺れの減衰（小さいほど、ぷるぷるが長く続く）
-        glideTime: 0.4,        // 弾かれた直後に、滑りやすくなる時間(秒)
-        glideAmount: 0.55      // 弾かれた直後に、減速が弱まる割合
+        glideTime: 0.5,        // 【減衰】弾かれた直後に、滑りやすくなる時間(秒)
+        glideAmount: 0.65,     // 【減衰】弾かれた直後に、減速が弱まる割合
+        springRamp: 0.5        // 【DNAの弾性】弾いたあと、DNAの引き寄せが元の強さに戻るまでの時間(秒)
     };
     window.teamPhysics = T;
 
@@ -1012,8 +1014,8 @@ function initMemberDrag() {
     function applySprings(dt) {
         pairs.forEach((pair) => {
             if (pair.pluck && pair.pluck.held) return;   // DNAをつまんでいる間は、写真どうしのバネは休む
-            // 弾いた直後は、弾いた勢いを打ち消さないよう、バネを弱めて、約0.3秒かけて元に戻す
-            const springScale = pair.releasedAt ? clamp((performance.now() - pair.releasedAt) / 300, 0, 1) : 1;
+            // 弾いた直後は、弾いた勢いを打ち消さないよう、バネを弱めて、springRamp 秒かけて元に戻す
+            const springScale = pair.releasedAt ? clamp((performance.now() - pair.releasedAt) / (T.springRamp * 1000), 0, 1) : 1;
             const A = pair.a;
             const B = pair.b;
             const ka = isDragged(A);
@@ -1484,6 +1486,7 @@ function initMemberDrag() {
         const ext = Math.max(0, arc - pair.l0, T.pluckAlong * m);   // 引いた距離に応じたのび
         if (ext < 1) return;
         const energy = 0.5 * T.pluckK * ext * ext;
+        const power = clamp(m / (T.pluckMax * T.pluckFullFrac), 0, 1);   // 引いた距離の割合
         const fx = -pk.dx / m;   // 引っ張った向きの、反対
         const fy = -pk.dy / m;
         [[A, ca, cb], [B, cb, ca]].forEach((it) => {
@@ -1500,12 +1503,13 @@ function initMemberDrag() {
             dy /= dl;
             // 速さ = √(2E / 質量) × 反発倍率。上限つき
             // 軽い引っ張りでは、これまでと同じ（ほぼ比例）。強く引くほど伸びて、上限 pluckMaxSpeed に、なめらかに近づく
-            const raw = Math.sqrt(2 * energy / b.mass) * T.pluckGain;
+            // さらに、引いた距離の割合（0〜1）の2乗に応じて増やす：軽い引っ張りはほぼ変わらず、強く引くほど速くなる
+            const raw = Math.sqrt(2 * energy / b.mass) * T.pluckGain * (1 + T.pluckBoost * power * power);
             const speed = T.pluckMaxSpeed * Math.tanh(raw / T.pluckMaxSpeed);
             b.vx += dx * speed;
             b.vy += dy * speed;
             b.glide = 1;   // 弾かれた直後は、すこし滑りやすくする
-            if (!reduceMotion) hit(b, dx, dy, Math.min(1, speed / 1000) * 0.5);
+            if (!reduceMotion) hit(b, dx, dy, Math.min(1, speed / 1500) * 0.5);
         });
     }
 
