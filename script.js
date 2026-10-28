@@ -683,6 +683,12 @@ function initMemberDrag() {
         dnaHoverK: 260,        // 【DNAのホバー】追従のバネの強さ
         dnaHoverC: 14,         // 【DNAのホバー】追従の減衰（約0.4秒で、ぷるんと元に戻る）
         dnaHoverGlow: 0.6,     // 【DNAのホバー】重ねている間の、紫の濃さ（0〜1。つかんで引っ張ると、最大で1）
+        idleScale: 0.012,      // 【待機】写真の、待機中の伸び縮みの大きさ（約1.2%。縦横で、約1〜2%）
+        idleDnaAmp: 3,         // 【待機】DNAの中央付近が、待機中に揺れる大きさ(px)
+        idleQuietMs: 300,      // 【待機】衝突・発射・ドラッグなどが収まってから、待機に入るまでの時間(ミリ秒)
+        idleTauIn: 0.8,        // 【待機】待機に入るときの、なめらかさ(秒)。大きいほど、ゆっくり入る
+        idleTauOut: 0.25,      // 【待機】操作が始まったときに、待機を止めるなめらかさ(秒)
+        idleDnaFps: 30,        // 【待機】DNAを描き直す回数（毎秒）。軽くするため、写真より少なくする
         freeTime: 0.5,         // 【衝突後】ぶつかったあと、DNAに引き戻されにくくなる時間(秒)
         springRelief: 0.8,     // 【衝突後】ぶつかった直後に、DNAの引き寄せを弱める割合（0〜1）
         frictionBase: 1.3,     // 【減衰】動いている写真の減速（ゆっくり動くとき）。小さいほど、長く滑る（以前は1.6）
@@ -734,6 +740,12 @@ function initMemberDrag() {
     const body = new Map();      // 写真ごとの、速さ・ひしゃげ具合・重さ
     members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1, glide: 0, free: 0, sx: 0, sy: 0,
         cx: 0, cy: 0, cvx: 0, cvy: 0, pmx: 0, pmy: 0 }));   // cx,cy: 押しつけによるつぶれ量（横・縦）／ pmx,pmy: そのフレームの押しつけの強さ(px)
+    Array.from(members).forEach((el, i) => {
+        const b = body.get(el);
+        b.idleW = 0;                                  // 待機の重み（0〜1）。操作中は0へ、なめらかに下がる
+        b.idlePhase = (i * 2.399) % (Math.PI * 2);     // 位相：写真ごとに、ずらす
+        b.idlePeriod = 3 + ((i * 37) % 100) / 100 * 2;  // 周期：3〜5秒。写真ごとに、ずらす
+    });
     const homes = new Map();     // 写真ごとの、元の位置（中心）
     const radii = new Map();     // 写真ごとの、円の半径
     let zTop = 10;
@@ -823,7 +835,8 @@ function initMemberDrag() {
             const visible = Math.max(40, l0 - radii.get(a) - radii.get(b));
             const turns = l0 / DNA_PERIOD + DNA_EXTRA_TURNS * (l0 / visible);
             pairs.push({ a: a, b: b, l0: l0, turns: turns, pluck: null, releasedAt: 0, hit: null, hp: null, glow: 0, glowT: 0, wasHot: false,
-                hov: { u: 0.5, dx: 0, dy: 0, vx: 0, vy: 0, tx: 0, ty: 0, inside: false } });
+                hov: { u: 0.5, dx: 0, dy: 0, vx: 0, vy: 0, tx: 0, ty: 0, inside: false },
+                idleW: 0, idlePhase: pairs.length * 1.7 + 0.9, idlePeriod: 3.4 + ((pairs.length * 53) % 100) / 100 * 1.6 });
         }
         // DNAをつまむための、透明な操作判定領域（見た目は変えない）。写真より奥にあるので、重なる所では写真が優先される
         pairs.forEach((pair) => {
@@ -863,7 +876,16 @@ function initMemberDrag() {
     // つまんでいるときは、つまんだ点を通る曲線（二次ベジェ）になる
     function centerline(pair, ca, cb, shake) {
         // つまんでいる（または、離したあとの揺れの）ときは、そちらの形。そうでなければ、ホバーの、わずかな曲がり
-        const pk = pair.pluck || pair.hov;
+        let pk = pair.pluck || pair.hov;
+        if (!pair.pluck) {
+            // 待機のゆらぎ：ホバーの曲がりに、足す（重みが0のときは、何もしない）
+            const idle = idleDisp(pair, ca, cb);
+            if (idle) {
+                const hv = pair.hov;
+                const hovering = Math.abs(hv.dx) + Math.abs(hv.dy) > 0.3;
+                pk = { u: hovering ? hv.u : 0.5, dx: hv.dx + idle[0], dy: hv.dy + idle[1] };
+            }
+        }
         if (!pk || Math.abs(pk.dx) + Math.abs(pk.dy) < 0.3) return [[ca.x, ca.y], [cb.x, cb.y]];
         const u = pk.u;
         // 震え：つまんだ点だけを、ごく小さく揺らす（両端の写真の位置は動かさない）
@@ -1486,7 +1508,9 @@ function initMemberDrag() {
                 b.def = 0;
                 b.defv = 0;
             }
-            img.style.transform = tf.trim();
+            const ip = idleScale(b, performance.now());
+            const idleStr = ip ? 'scale(' + ip[0].toFixed(4) + ', ' + ip[1].toFixed(4) + ') ' : '';
+            img.style.transform = (idleStr + tf).trim();
             applyTransform(el, isDragged(el));
         });
     }
@@ -1517,6 +1541,7 @@ function initMemberDrag() {
     function simLoop(now) {
         const dt = Math.min(0.033, (now - lastT) / 1000) || 0.016;
         lastT = now;
+        lastSimAt = now;
         step(dt);
         drawLinks();
         simId = simActive() ? requestAnimationFrame(simLoop) : 0;
@@ -1732,10 +1757,12 @@ function initMemberDrag() {
         if (!pluck) return;
         const pair = pluck.pair;
         const prev = pair.pluck;   // 揺れている最中につままれたときは、いまの形から続ける
+        const idleNow = idleDisp(pair, photoCenter(pair.a), photoCenter(pair.b)) || [0, 0];
+        pair.idleW = 0;   // 待機のゆらぎは、引っ張りに引き継いだので、止める
         pair.pluck = {
             u: prev ? prev.u : pluck.u,
             f: prev ? prev.f : pluck.f,
-            dx: prev ? prev.dx : pair.hov.dx, dy: prev ? prev.dy : pair.hov.dy,   // ホバーで曲がっていたぶんから始める（跳ねない）
+            dx: prev ? prev.dx : pair.hov.dx + idleNow[0], dy: prev ? prev.dy : pair.hov.dy + idleNow[1],   // ホバー・待機で曲がっていたぶんから始める（跳ねない）
             vx: 0, vy: 0, held: true
         };
         // ホバーの曲がりは、引っ張りに引き継いだので、リセットする
@@ -2064,6 +2091,107 @@ function initMemberDrag() {
         });
         // ドラッグやDNA操作を始めたときは、ホバーの演出を止める（バネで、なめらかに戻る）
         window.addEventListener('pointerdown', () => { if (!reduceMotion) wakeHover(); });
+    }
+
+    /* ---- 待機アニメーション：操作していないときにも、写真とDNAが、ほんの少し、ゆらゆら動く ----
+            ・写真：スライムのように、ゆっくり伸び縮みする（変形量 約1〜2%、周期 3〜5秒。写真ごとに、周期と位相をずらす）。中心は、動かさない
+            ・DNA：中央付近が、2〜4pxほど、ゆっくり揺れる（両端は、写真の接続位置に固定。写真ごとに、揺れのタイミングを変える）
+            ・見た目だけ。物理の位置・速さには、触れない。写真に力も、加えない
+            ・ホバー・ドラッグ・DNAをつまむ・衝突・発射・マスコットでの復元のあいだは、重みを0へ、なめらかに下げる。
+              それらが収まってから、少し待って、なめらかに戻す
+            ・画面の外にある写真・DNAは、更新しない。ページが隠れている間・prefers-reduced-motion のときは、止める */
+    const visibleMembers = new Set();
+    let idleRaf = 0;
+    let idleLast = 0;
+    let idleDnaLast = 0;
+    let idleDnaDrawn = false;
+    let lastSimAt = 0;
+
+    function idleSuppressed() {
+        return !!((drag && drag.active) || (pluck && pluck.active) || resetting);
+    }
+
+    // 写真の、待機中の伸び縮み（横・縦の倍率）。重みが、ほぼ0なら null
+    function idleScale(b, now) {
+        if (b.idleW < 0.001) return null;
+        const t = now / 1000;
+        const a = T.idleScale * b.idleW;
+        const s1 = Math.sin(t * Math.PI * 2 / b.idlePeriod + b.idlePhase);
+        const s2 = Math.sin(t * Math.PI * 2 / (b.idlePeriod * 1.31) + b.idlePhase * 1.7 + 1.1);   // 縦は、少しずらして、呼吸のような動きにする
+        return [1 + a * s1, 1 + a * 0.8 * s2];
+    }
+
+    // DNAの、待機中の、中央付近のゆらぎ（DNAに直角な向きの、ずれ）。重みが、ほぼ0なら null
+    function idleDisp(pair, ca, cb) {
+        if (pair.idleW < 0.001) return null;
+        const vx = cb.x - ca.x;
+        const vy = cb.y - ca.y;
+        const len = Math.hypot(vx, vy) || 1;
+        const s = Math.sin(performance.now() / 1000 * Math.PI * 2 / pair.idlePeriod + pair.idlePhase);
+        const a = T.idleDnaAmp * pair.idleW * s;
+        return [-vy / len * a, vx / len * a];
+    }
+
+    function idleTick(now) {
+        idleRaf = 0;
+        if (reduceMotion || document.hidden || visibleMembers.size === 0) return;   // 止める（見えたら、また、始める）
+        const dt = Math.min(0.1, (now - idleLast) / 1000) || 0.016;
+        idleLast = now;
+        // 物理・ホバー・ドラッグなどが収まって、少したってから、待機に入る
+        const quiet = !idleSuppressed() && !simId && (now - lastSimAt > T.idleQuietMs);
+        members.forEach((el) => {
+            if (!visibleMembers.has(el)) return;
+            const b = body.get(el);
+            const on = quiet && !hover.get(el).inside;
+            const tau = on ? T.idleTauIn : T.idleTauOut;
+            b.idleW += ((on ? 1 : 0) - b.idleW) * (1 - Math.exp(-dt / tau));
+            if (b.idleW < 0.002 && !on) b.idleW = 0;
+            if (!simId) {
+                // 物理の計算が止まっている間だけ、ここで、変形を書く（動いている間は、step が、同じ倍率を含めて書く）
+                const ip = idleScale(b, now);
+                el.querySelector('img').style.transform = ip ? 'scale(' + ip[0].toFixed(4) + ', ' + ip[1].toFixed(4) + ')' : '';
+            }
+        });
+        let anyDna = false;
+        pairs.forEach((pair) => {
+            const hv = pair.hov;
+            const on = quiet && !hv.inside && !pair.pluck && Math.abs(hv.dx) + Math.abs(hv.dy) < 0.5 && pair.glow < 0.02;
+            const tau = on ? T.idleTauIn : T.idleTauOut;
+            pair.idleW += ((on ? 1 : 0) - pair.idleW) * (1 - Math.exp(-dt / tau));
+            if (pair.idleW < 0.002 && !on) pair.idleW = 0;
+            if (pair.idleW > 0) anyDna = true;
+        });
+        // DNAの描き直しは、軽くするため、毎秒 idleDnaFps 回まで。動いているときの物理の描画とは、別
+        if ((anyDna || idleDnaDrawn) && !simId && now - idleDnaLast > 1000 / T.idleDnaFps) {
+            idleDnaLast = now;
+            drawLinks();
+            idleDnaDrawn = anyDna;
+        }
+        idleRaf = requestAnimationFrame(idleTick);
+    }
+
+    function wakeIdle() {
+        if (idleRaf || reduceMotion || document.hidden || visibleMembers.size === 0) return;
+        idleLast = performance.now();
+        idleRaf = requestAnimationFrame(idleTick);
+    }
+
+    if (!reduceMotion) {
+        // 最初に見えている写真を、すぐに調べる。そのあとは、見え方が変わるたびに、IntersectionObserver で更新する
+        const vh = window.innerHeight;
+        members.forEach((el) => {
+            const q = el.getBoundingClientRect();
+            if (q.bottom > -100 && q.top < vh + 100) visibleMembers.add(el);
+        });
+        if ('IntersectionObserver' in window) {
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach((en) => { if (en.isIntersecting) visibleMembers.add(en.target); else visibleMembers.delete(en.target); });
+                wakeIdle();
+            }, { rootMargin: '100px' });
+            members.forEach((el) => io.observe(el));
+        }
+        document.addEventListener('visibilitychange', wakeIdle);
+        wakeIdle();
     }
 
     /* ---- 元の並びに戻す ---- */
