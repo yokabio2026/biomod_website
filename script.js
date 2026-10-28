@@ -865,9 +865,9 @@ function initMemberDrag() {
     function photoCenter(el) {
         const r = el.querySelector('img').getBoundingClientRect();
         const mr = main.getBoundingClientRect();
-        const hv = hover.get(el);   // ホバー・待機による見た目のずれは、DNAの接続位置には、含めない
+        const hv = hover.get(el);   // ホバー・待機・チュートリアルによる見た目のずれは、DNAの接続位置には、含めない
         const bi = body.get(el);
-        return { x: r.left - mr.left + r.width / 2 - hv.x - bi.idleTx, y: r.top - mr.top + r.height / 2 - hv.y - bi.idleTy, r: r.width / 2 };
+        return { x: r.left - mr.left + r.width / 2 - hv.x - bi.idleTx - (bi.tutX || 0), y: r.top - mr.top + r.height / 2 - hv.y - bi.idleTy - (bi.tutY || 0), r: r.width / 2 };
     }
 
     // 写真ごとの元の位置と半径を測る（画面の幅が変わるたびにやり直す）
@@ -2600,7 +2600,8 @@ function initMemberDrag() {
                 Faculty Mentor … いちばん左の写真（data-member-id="faculty-1"）と、その右隣とをつなぐDNA
               DNAは、「対象の写真が左端（pair.a）になっているDNA」。写真が動いて並びが変わっても、対象は変わらない
             ・そのセクションが画面に見えていて、写真もDNAも操作されないまま約5秒たつと、写真 → DNA → 写真 → … と交互に実演する（1回に1組だけ）
-            ・実際の写真は、動かさない。DNAは、「つまんで引っ張る」見た目だけを、既存の描画に重ねる（写真に力は加えず、発射もしない）。離すと、ぷるんと戻る
+            ・写真は、カーソルといっしょに動いて見える（見た目だけ。.member の個別プロパティ translate / scale を使い、物理の座標・速さは変えない）。
+              DNAは、「つまんで引っ張る」見た目だけを、既存の描画に重ねる（写真に力は加えず、発射もしない）。離すと、ぷるんと戻る
             ・写真・DNAにカーソルを重ねたり、押したりしたら、実演は、すぐ消える（操作済みには、しない。操作がなければ、また出る）。
               実際にドラッグ（写真を8px以上動かす・DNAを8px以上引っ張る）したセクションだけ、完了。このページを開いている間は、もう出さない
             ・文字・吹き出しは出さない。カーソルは pointer-events: none。マウスのある端末だけ。prefers-reduced-motion のときは、出さない */
@@ -2614,7 +2615,8 @@ function initMemberDrag() {
     // 対象の写真（と、DNAなら右隣の写真）が、画面の中に、すっかり見えているか（ナビゲーションバーの下）
     function tutVisible(el) {
         const r = el.querySelector('img').getBoundingClientRect();
-        return r.top >= 70 && r.bottom <= window.innerHeight - 10 && r.left >= 0 && r.right <= window.innerWidth;
+        const ox = body.get(el).tutX || 0;   // 実演で、見た目だけ動かしている分は、引く
+        return r.top >= 70 && r.bottom <= window.innerHeight - 10 && r.left - ox >= 0 && r.right - ox <= window.innerWidth;
     }
 
     function tutPairOf(tgt) {
@@ -2723,8 +2725,15 @@ function initMemberDrag() {
     }
 
     function tutStart(t) {
-        tut.run = { tgt: t, kind: t.kind, t0: performance.now(), pair: t.kind === 'dna' ? tutPairOf(t) : null,
-            clicked: false, released: false, lifted: false };
+        const now = performance.now();
+        tut.run = { tgt: t, kind: t.kind, t0: now, pair: t.kind === 'dna' ? tutPairOf(t) : null,
+            clicked: false, released: false, lifted: false, last: now,
+            ph: { x: 0, v: 0, s: 1, sv: 0 } };   // 写真の見た目：横のずれ・速さ、大きさ・速さ（バネ）
+        if (t.kind === 'photo') {
+            // 縮む・ふくらむ中心は、写真（円）の中心にする（名前の文字ではなく）
+            const img = t.el.querySelector('img');
+            t.el.style.transformOrigin = (img.offsetLeft + img.offsetWidth / 2) + 'px ' + (img.offsetTop + img.offsetHeight / 2) + 'px';
+        }
         tut.cursor.style.opacity = '0';
         tut.raf = requestAnimationFrame(tutFrame);
     }
@@ -2743,7 +2752,16 @@ function initMemberDrag() {
 
     // 実演のDNAの引っ張りと、写真の持ち上げを、元に戻す
     function tutCleanup(run, hard) {
-        run.tgt.el.classList.remove('tut-lift');
+        const el = run.tgt.el;
+        el.classList.remove('tut-lift');
+        if (run.kind === 'photo') {
+            el.style.translate = '';
+            el.style.scale = '';
+            el.style.transformOrigin = '';
+            const b = body.get(el);
+            b.tutX = 0;
+            b.tutY = 0;
+        }
         const pk = run.pair && run.pair.pluck;
         if (pk && pk.demo) {
             if (hard) { run.pair.pluck = null; drawLinks(); } else { pk.held = false; wake(); }   // ふつうは、ぷるんと戻る
@@ -2777,22 +2795,67 @@ function initMemberDrag() {
         let press;
         let dur;
         if (run.kind === 'photo') {
-            // 写真：左上から現れて、写真の左上あたりを押し、少しドラッグして、離す（写真は、動かさない。影で「つかんだ」感じだけを出す）
-            const c = photoCenter(tgt.el);
-            const R = c.r;
+            // 写真：左上から現れて、写真の少し内側へ入り、押す（ぷにっと縮む）→ 右へ約35px → 左へ → 離す（ぷるんと元へ）を、2回くり返す。
+            // 写真も、カーソルと同じ距離・同じ向きに、いっしょに動いて見える。ただし、見た目だけ：
+            // .member の個別プロパティ translate / scale を使う（物理が使う transform・hover/待機が使う img の変形には、触れない）。
+            // 物理の座標・速さ・DNAの接続位置も、変えない（photoCenter は、この見た目のずれを引いて測る）
+            const el = tgt.el;
+            const b = body.get(el);
+            const c = photoCenter(el);
+            const R = radii.get(el);
+            const ph = run.ph;
             const P0 = [c.x - 1.05 * R, c.y - 1.05 * R];
             const P1 = [c.x - 0.45 * R, c.y - 0.45 * R];
-            const P2 = [P1[0] + 0.4 * R, P1[1] + 0.3 * R];
-            dur = 2700;
-            if (t < 1000) { const u = tutEase(tutProg(t, 0, 1000)); x = P0[0] + (P1[0] - P0[0]) * u; y = P0[1] + (P1[1] - P0[1]) * u; }
-            else if (t < 1250) { x = P1[0]; y = P1[1]; }
-            else if (t < 1950) { const u = tutEase(tutProg(t, 1250, 1950)); x = P1[0] + (P2[0] - P1[0]) * u; y = P1[1] + (P2[1] - P1[1]) * u; }
-            else if (t < 2050) { x = P2[0]; y = P2[1]; }
-            else { const u = tutEase(tutProg(t, 2050, 2550)); x = P2[0] + 6 * u; y = P2[1] + 6 * u; }
-            opacity = Math.min(tutProg(t, 0, 350), 1 - tutProg(t, 2300, 2650));
-            press = t >= 1180 && t < 2000;
-            if (press !== run.lifted) { run.lifted = press; tgt.el.classList.toggle('tut-lift', press); }
-            if (press && !run.clicked) { run.clicked = true; tutClick(); }
+            const IN = 700;        // 現れて、写真の内側へ入るまで
+            const CYC = 1800;      // 1回の「押す → 動かす → 離す」の長さ
+            const MOVE = 600;      // 写真が動く時間（約0.6秒）
+            const RIGHT = 35;      // 右へ動かす距離(px)
+            const LEFT = -14;      // 左へ戻すとき、行き着く位置(px)
+            dur = IN + CYC * 2 + 450;
+            let cdx = 0;           // カーソルの、横の動き（P1 からの距離）
+            let pressedNow = false;
+            let tc = -1;
+            if (t < IN) {
+                const u = tutEase(tutProg(t, 0, IN));
+                x = P0[0] + (P1[0] - P0[0]) * u;
+                y = P0[1] + (P1[1] - P0[1]) * u;
+            } else {
+                const k = Math.min(1, Math.floor((t - IN) / CYC));
+                tc = t - IN - k * CYC;
+                if (t >= IN + CYC * 2) tc = CYC;   // 2回終わったあとは、カーソルは P1 に戻っている
+                if (tc < 250) cdx = 0;
+                else if (tc < 250 + MOVE) cdx = RIGHT * tutEase(tutProg(tc, 250, 250 + MOVE));
+                else if (tc < 250 + MOVE * 2) cdx = RIGHT + (LEFT - RIGHT) * tutEase(tutProg(tc, 250 + MOVE, 250 + MOVE * 2));
+                else cdx = LEFT * (1 - tutEase(tutProg(tc, 1450, CYC)));
+                pressedNow = tc >= 100 && tc < 1450;
+                x = P1[0] + cdx;
+                y = P1[1];
+                if (pressedNow && run.cycleClicked !== k) { run.cycleClicked = k; tutClick(); ph.sv -= 1.5; }   // 押した瞬間：ぷにっと縮む
+            }
+            press = pressedNow;
+            if (press !== run.lifted) {
+                run.lifted = press;
+                el.classList.toggle('tut-lift', press);
+                if (!press && run.cycleClicked !== undefined) ph.sv += 2.2;   // 離した瞬間：ぷるんと、少しふくらんで戻る
+            }
+            // 写真の見た目：つかんでいる間は、カーソルに、ほぼぴったり追従。離すと、ぷるんと（バネで少し揺れながら）元の位置へ
+            const sub = 2;
+            const h = Math.min(0.033, (now - run.last) / 1000 || 0.016) / sub;
+            const kx = press ? 1600 : 190;
+            const cx = press ? 70 : 9;
+            const sTarget = press ? (tc < 250 ? 0.86 : 0.93) : 1;
+            for (let i = 0; i < sub; i++) {
+                ph.v += (-kx * (ph.x - (press ? cdx : 0)) - cx * ph.v) * h;
+                ph.x += ph.v * h;
+                ph.sv += (-420 * (ph.s - sTarget) - 18 * ph.sv) * h;
+                ph.s += ph.sv * h;
+            }
+            run.last = now;
+            b.tutX = ph.x;
+            b.tutY = 0;
+            el.style.translate = ph.x.toFixed(2) + 'px 0px';
+            el.style.scale = ph.s.toFixed(4);
+            opacity = Math.min(tutProg(t, 0, 350), 1 - tutProg(t, dur - 450, dur));
         } else {
             // DNA：左上から現れて、中央付近をつかみ、斜め下へ引っ張って、離す。引っ張りの見た目は、既存の「つまんだDNA」の描画をそのまま使う
             const pair = run.pair;
