@@ -2601,10 +2601,12 @@ function initMemberDrag() {
               DNAは、「対象の写真が左端（pair.a）になっているDNA」。写真が動いて並びが変わっても、対象は変わらない
             ・そのセクションが画面に見えていて、写真もDNAも操作されないまま約5秒たつと、写真 → DNA → 写真 → … と交互に実演する（1回に1組だけ）
             ・実際の写真は、動かさない。DNAは、「つまんで引っ張る」見た目だけを、既存の描画に重ねる（写真に力は加えず、発射もしない）。離すと、ぷるんと戻る
-            ・写真かDNAを操作（ホバー・クリック）したら、すぐに消す。クリック（ドラッグ開始）したセクションは、このページを開いている間は、もう出さない
+            ・写真・DNAにカーソルを重ねたり、押したりしたら、実演は、すぐ消える（操作済みには、しない。操作がなければ、また出る）。
+              実際にドラッグ（写真を8px以上動かす・DNAを8px以上引っ張る）したセクションだけ、完了。このページを開いている間は、もう出さない
             ・文字・吹き出しは出さない。カーソルは pointer-events: none。マウスのある端末だけ。prefers-reduced-motion のときは、出さない */
     const TUTORIAL_TARGETS = ['murakami', 'maruyama', 'faculty-1'];
-    const tut = { run: null, raf: 0, cursor: null, tgts: [] };
+    const TUTORIAL_DRAG_PX = 8;   // この距離(px)以上、実際にドラッグ（引っ張り）したら、そのセクションの実演を完了にする
+    const tut = { run: null, raf: 0, cursor: null, tgts: [], pressed: null };
 
     function tutEase(u) { return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; }
     function tutProg(t, a, b) { return clamp((t - a) / (b - a), 0, 1); }
@@ -2675,12 +2677,32 @@ function initMemberDrag() {
             tutAbort(false);
             tut.tgts.forEach((t) => { if (t.sec === sec) t.lastAct = performance.now(); });
         });
+        // 押したとき：実演の見た目は、すぐ片づける（本物の操作を始めるため）。ただし、押しただけ・クリックだけでは、「操作済み」にしない
+        // → 押した位置を覚えておき、実際にドラッグ（下のpointermove）されたときだけ、そのセクションを完了にする
         window.addEventListener('pointerdown', (e) => {
             const sec = sectionOf(e.target);
             if (!sec) return;
             tutAbort(true);
-            tut.tgts.forEach((t) => { if (t.sec === sec) t.dismissed = true; });
+            tut.tgts.forEach((t) => { if (t.sec === sec) t.lastAct = performance.now(); });
+            tut.pressed = { id: e.pointerId, x: e.clientX, y: e.clientY, sec: sec };
         }, true);   // 写真・DNAの操作より先に受けて、実演の見た目を片づけてから、本物の操作を始める
+        // ドラッグの判定：ボタンを押したまま（タッチなら、触れたまま）、押した位置から TUTORIAL_DRAG_PX 以上動かし、
+        // 実際に写真のドラッグ・DNAの引っ張りが始まっているときだけ。ボタンを押していない移動（ホバー）は、数えない。
+        // アプリ本体のpointermoveより「あとに」登録しているので、ここでは、本体の判定（drag.active / pluck.active）が済んでいる
+        window.addEventListener('pointermove', (e) => {
+            const pr = tut.pressed;
+            if (!pr || e.pointerId !== pr.id) return;
+            if (e.pointerType === 'mouse' && !(e.buttons & 1)) return;
+            if (Math.hypot(e.clientX - pr.x, e.clientY - pr.y) < TUTORIAL_DRAG_PX) return;
+            const grabbing = (drag && drag.active && drag.id === pr.id) || (pluck && pluck.active && pluck.id === pr.id);
+            if (!grabbing) return;
+            tut.pressed = null;
+            tutAbort(true);
+            tut.tgts.forEach((t) => { if (t.sec === pr.sec) t.dismissed = true; });   // 完了：このページを開いている間は、もう出さない
+        });
+        const tutRelease = (e) => { if (tut.pressed && e.pointerId === tut.pressed.id) tut.pressed = null; };
+        window.addEventListener('pointerup', tutRelease);
+        window.addEventListener('pointercancel', tutRelease);
 
         setInterval(tutCheck, 500);
     }
