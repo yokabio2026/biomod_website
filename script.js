@@ -675,19 +675,6 @@ function initMemberDrag() {
         bounceMinSpeed: 20,    // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
         collisionBoost: 1.45,  // 【衝突の強さ】動いている写真どうしが、ぶつかった瞬間の勢いの伝わり方の倍率（1で、ブーストなし）。1回の衝突につき、1度だけ適用
         collisionBoostRamp: 160, // 【衝突の強さ】ぶつかった速さが、この値(px/秒)ぶん遅いほうから速くなるにつれて、ブーストが0→最大に増える（弱い衝突は、控えめのまま）
-        impactMinSpeed: 120,   // 【衝突エフェクト】これより弱い衝突(px/秒)では、衝撃線を出さない
-        impactRepeatSpeed: 300, // 【衝突エフェクト】触れたまま、これより強くぶつかり直したとき(px/秒)は、もう一度出す
-        impactDuration: 0.2,   // 【衝突エフェクト】表示時間(秒)
-        impactCooldown: 0.16,  // 【衝突エフェクト】同じ2枚の写真では、この間隔(秒)があくまで、次の衝撃線を出さない
-        impactSize: 1,         // 【衝突エフェクト】大きさの倍率
-        impactMax: 10,         // 【衝突エフェクト】同時に出せる数の上限
-        dnaParticleMin: 2,     // 【飛び散る小さなDNA】弱い衝突での個数
-        dnaParticleMax: 4,     // 【飛び散る小さなDNA】強い衝突での個数
-        dnaParticleSizeMin: 10, // 【飛び散る小さなDNA】大きさ(px)
-        dnaParticleSizeMax: 18,
-        dnaParticleDistMin: 20, // 【飛び散る小さなDNA】飛ぶ距離(px)。強い衝突ほど遠く
-        dnaParticleDistMax: 45,
-        dnaParticleDuration: 0.32, // 【飛び散る小さなDNA】消えるまでの時間(秒)
         freeTime: 0.5,         // 【衝突後】ぶつかったあと、DNAに引き戻されにくくなる時間(秒)
         springRelief: 0.8,     // 【衝突後】ぶつかった直後に、DNAの引き寄せを弱める割合（0〜1）
         frictionBase: 1.6,     // 動いている写真の減速（ゆっくり動くとき）
@@ -741,7 +728,6 @@ function initMemberDrag() {
     let hitEls = [];             // DNAをつまむための、透明な操作判定領域
     let boundsCache = null;
     let contactNow = new Set();  // いま触れている写真の組（衝突を「新しい衝突」かどうか見分けるため）
-    const impactAt = new Map();  // 写真の組ごとの、最後に衝撃線を出した時刻（連続して出さないため）
     let simId = 0;
     let lastT = 0;
     let pairs = [];              // DNAでつなぐ写真の組（同じ行で、となりどうし）。l0 は元の並びでの中心間の距離
@@ -782,165 +768,6 @@ function initMemberDrag() {
         return '#' + ch(0) + ch(1) + ch(2);
     }
     main.insertBefore(svg, main.firstChild);
-
-    // 衝突エフェクト用のレイヤー。写真より手前に重ねる。pointer-events: none なので、操作の邪魔をしない（スタイルは style.css）
-    const fx = document.createElementNS(SVG_NS, 'svg');
-    fx.setAttribute('class', 'fx-layer');
-    fx.setAttribute('aria-hidden', 'true');
-    main.appendChild(fx);
-    let effects = [];            // 表示中の衝撃線 { g: 外側のグループ, inner: 内側のグループ, start: 開始時刻 }
-    let fxId = 0;
-    const IMPACT_COLOR = '#5b21b6';   // DNAの紫（#7a3fd1）より、少し濃い紫
-    const IMPACT_HALO = '#ffffff';    // 暗い写真や、DNAの上でも埋もれないように、線の下に敷く、細い白のふち（発光ではない）
-
-    // 小さな二重らせん（飛び散る用）。長さ size(px)。細すぎない線で、小さくても、二重らせんと分かる形にする
-    function makeMiniDna(size, color) {
-        const g = document.createElementNS(SVG_NS, 'g');
-        const amp = size * 0.24;
-        const turns = 1.5;
-        const steps = 14;
-        let d1 = '';
-        let d2 = '';
-        for (let i = 0; i <= steps; i++) {
-            const f = i / steps;
-            const x = (f - 0.5) * size;
-            const y = amp * Math.sin(Math.PI * 2 * turns * f);
-            d1 += (i ? ' L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
-            d2 += (i ? ' L' : 'M') + x.toFixed(1) + ' ' + (-y).toFixed(1);
-        }
-        // 横棒は、2つのストランドがいちばん離れる位置（f = 1/6, 1/2, 5/6）に
-        let rungs = '';
-        [1 / 6, 1 / 2, 5 / 6].forEach((f) => {
-            const x = (f - 0.5) * size;
-            const y = amp * Math.sin(Math.PI * 2 * turns * f);
-            rungs += 'M' + x.toFixed(1) + ' ' + y.toFixed(1) + ' L' + x.toFixed(1) + ' ' + (-y).toFixed(1);
-        });
-        const add = (d, stroke, width, opacity) => {
-            const p = document.createElementNS(SVG_NS, 'path');
-            p.setAttribute('d', d);
-            p.setAttribute('fill', 'none');
-            p.setAttribute('stroke', stroke);
-            p.setAttribute('stroke-width', String(width));
-            p.setAttribute('stroke-linecap', 'round');
-            p.setAttribute('stroke-linejoin', 'round');
-            p.setAttribute('stroke-opacity', String(opacity));
-            g.appendChild(p);
-        };
-        // 白いふち（薄い色の写真・背景でも形が分かるように）→ 横棒 → ストランド
-        add(d1 + ' ' + d2, IMPACT_HALO, 3.4, 0.7);
-        add(rungs, color, 1.2, 0.9);
-        add(d1, color, 1.5, 1);
-        add(d2, color, 1.5, 1);
-        return g;
-    }
-
-    // 接触点 (x, y) に、衝撃マーク（小さな紫のギザギザ）と、小さなDNAを数個だけ出す。
-    // nx, ny は接触の向き。power は強さ（0〜1）。side は、扇を向ける側（接触の向きに直角な、どちらか1方向）
-    function spawnImpact(x, y, nx, ny, power, side) {
-        if (reduceMotion) return;
-        while (effects.length >= T.impactMax) removeEffect(effects[0]);
-        // 扇の真ん中の向き：接触の向きに直角（2枚のすきまに沿った向き）。片側だけに向ける
-        const center = Math.atan2(nx * side, -ny * side);
-        const g = document.createElementNS(SVG_NS, 'g');
-        g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
-
-        // 1) 衝撃マーク：ギザギザの短い線を3〜4本（花・星にならないよう、片側へ扇形に）
-        const inner = document.createElementNS(SVG_NS, 'g');
-        const count = 3 + Math.round(power);
-        const spread = count === 3 ? 0.9 : 1.2;
-        const rIn = 6;
-        const len = (8 + 8 * power) * T.impactSize;
-        const zig = 2.2;   // ギザギザの振れ幅(px)
-        const marks = [];
-        for (let k = 0; k < count; k++) {
-            const a = center + (k / (count - 1) - 0.5) * spread;
-            const ux = Math.cos(a), uy = Math.sin(a);
-            const px = -uy, py = ux;
-            const pts = [[0, 0], [0.34, 1], [0.66, -1], [1, 0]].map((q) => {
-                const r = rIn + len * q[0];
-                return (ux * r + px * zig * q[1]).toFixed(1) + ',' + (uy * r + py * zig * q[1]).toFixed(1);
-            }).join(' ');
-            marks.push(pts);
-        }
-        const mkLine = (pts, color, width, opacity) => {
-            const pl = document.createElementNS(SVG_NS, 'polyline');
-            pl.setAttribute('points', pts);
-            pl.setAttribute('fill', 'none');
-            pl.setAttribute('stroke', color);
-            pl.setAttribute('stroke-width', String(width));
-            pl.setAttribute('stroke-linecap', 'round');
-            pl.setAttribute('stroke-linejoin', 'miter');
-            pl.setAttribute('stroke-opacity', String(opacity));
-            return pl;
-        };
-        marks.forEach((pts) => inner.appendChild(mkLine(pts, IMPACT_HALO, 4.6, 0.8)));
-        marks.forEach((pts) => inner.appendChild(mkLine(pts, IMPACT_COLOR, 2.4, 1)));
-        g.appendChild(inner);
-
-        // 2) 小さなDNA：2〜4個。それぞれ違う向きへ飛び、少し回転しながら、薄くなって消える（見た目だけ）
-        const n = Math.round(T.dnaParticleMin + (T.dnaParticleMax - T.dnaParticleMin) * power);
-        const colors = ['#b79cf0', '#9b6fe8', '#8a4fe0'];   // 薄紫〜中程度の紫
-        const particles = [];
-        for (let k = 0; k < n; k++) {
-            // 向き：衝撃マークの扇を中心に、広めにばらけさせる（全方向には飛ばさない）
-            const ang = center + ((k + 0.5) / n - 0.5) * 2.6 + (Math.random() - 0.5) * 0.4;
-            const size = T.dnaParticleSizeMin + Math.random() * (T.dnaParticleSizeMax - T.dnaParticleSizeMin);
-            const dist = T.dnaParticleDistMin + (T.dnaParticleDistMax - T.dnaParticleDistMin) * (0.35 * Math.random() + 0.65 * power);
-            const el = document.createElementNS(SVG_NS, 'g');
-            el.appendChild(makeMiniDna(size, colors[Math.floor(Math.random() * colors.length)]));
-            el.setAttribute('opacity', '0');
-            g.appendChild(el);
-            particles.push({ el: el, ang: ang, dist: dist * T.impactSize, rot0: ang * 180 / Math.PI, spin: (Math.random() < 0.5 ? -1 : 1) * (70 + Math.random() * 90) });
-        }
-
-        fx.appendChild(g);
-        effects.push({ g: g, inner: inner, particles: particles, start: performance.now() });
-        tickEffects();
-    }
-
-    function removeEffect(e) {
-        e.g.remove();
-        effects = effects.filter((x) => x !== e);
-    }
-
-    function clearEffects() {
-        effects.forEach((e) => e.g.remove());
-        effects = [];
-    }
-
-    // 衝撃マークと小さなDNAのアニメーション。終わったら、要素を削除する
-    function tickEffects() {
-        if (fxId) return;
-        const loop = () => {
-            const now = performance.now();
-            effects.slice().forEach((e) => {
-                const el = now - e.start;
-                const p = el / (T.impactDuration * 1000);              // 衝撃マーク
-                const pp = el / (T.dnaParticleDuration * 1000);        // 小さなDNA
-                if (p >= 1 && pp >= 1) { removeEffect(e); return; }
-                if (p < 1) {
-                    const ease = 1 - (1 - p) * (1 - p);
-                    e.inner.setAttribute('transform', 'scale(' + (0.75 + 0.5 * ease).toFixed(3) + ')');
-                    // 最初の4割は、はっきり見せて、そのあと、すっと透明になる
-                    e.inner.setAttribute('opacity', (p < 0.4 ? 1 : 1 - (p - 0.4) / 0.6).toFixed(3));
-                } else {
-                    e.inner.setAttribute('opacity', '0');
-                }
-                e.particles.forEach((q) => {
-                    if (pp >= 1) { q.el.setAttribute('opacity', '0'); return; }
-                    const ease = 1 - (1 - pp) * (1 - pp);              // 最初は速く、だんだんゆっくり
-                    const r = 4 + (q.dist - 4) * ease;                 // 接触点の近くから飛び出し、最後に、飛ぶ距離（20〜45px）になる
-                    const px = Math.cos(q.ang) * r;
-                    const py = Math.sin(q.ang) * r;
-                    const rot = q.rot0 + q.spin * pp;                  // 移動しながら、少し回転
-                    q.el.setAttribute('transform', 'translate(' + px.toFixed(1) + ' ' + py.toFixed(1) + ') rotate(' + rot.toFixed(1) + ') scale(' + (1 - 0.15 * pp).toFixed(3) + ')');
-                    q.el.setAttribute('opacity', (pp < 0.35 ? 1 : 1 - (pp - 0.35) / 0.65).toFixed(3));
-                });
-            });
-            fxId = effects.length ? requestAnimationFrame(loop) : 0;
-        };
-        fxId = requestAnimationFrame(loop);
-    }
 
     function photoCenter(el) {
         const r = el.querySelector('img').getBoundingClientRect();
@@ -1477,25 +1304,6 @@ function initMemberDrag() {
                     hit(ba, nx, ny, strength);
                     hit(bb, -nx, -ny, strength);
                 }
-                // 衝撃線：ぷるんと同じ瞬間に、接触点へ。新しい衝突か、触れたまま強くぶつかり直したときだけ。
-                // 静止して触れているだけの状態や、とても弱い接触では出さない。同じ組には、短い間隔をあける
-                if (-rel >= T.impactMinSpeed) {
-                    const nowMs = performance.now();
-                    const last = impactAt.get(key) || 0;
-                    if ((nowMs - last) / 1000 >= T.impactCooldown && (!contactPrev.has(key) || -rel >= T.impactRepeatSpeed)) {
-                        impactAt.set(key, nowMs);
-                        // 接触点＝2つの円の中心を結ぶ線上の、円どうしのすきまの中央（ページ上の位置なので、スクロールでずれない）
-                        const cx = ha.x + oa.x + nx * (radii.get(A) + T.gap / 2);
-                        const cy = ha.y + oa.y + ny * (radii.get(A) + T.gap / 2);
-                        // 扇を向ける側：2枚が横にずれて動いている向き。ほぼ正面からなら、上向き
-                        const tx = -ny;
-                        const ty = nx;
-                        const lateral = (ba.vx + bb.vx) * tx + (ba.vy + bb.vy) * ty;
-                        let side = lateral >= 0 ? 1 : -1;
-                        if (Math.abs(lateral) < 30) side = ty > 0 ? -1 : 1;
-                        spawnImpact(cx, cy, nx, ny, clamp((-rel - T.impactMinSpeed) / 600, 0, 1), side);
-                    }
-                }
             }
         }
         // 壁：当たったら、軽く変形して、柔らかく跳ね返る（ゆっくりなら、止まる）
@@ -1677,7 +1485,6 @@ function initMemberDrag() {
             el.querySelector('img').style.transform = '';
         });
         boundsCache = null;
-        clearEffects();
     }
 
     function applyTransform(el, lifted) {
