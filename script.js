@@ -760,6 +760,8 @@ function initMemberDrag() {
         trailPerPhoto: 8,      // 【発射の軌跡】1枚の写真につき、同時に残る小さなDNAの上限（以前は5）
         trailChainPerPhoto: 3, // 【発射の軌跡】発射した写真にぶつかられて動いた写真の、上限（連鎖の分は、少なめ）
         trailMax: 48,          // 【発射の軌跡】画面全体で、同時に残る小さなDNAの上限（以前は36）
+        dnaPickPx: 10,         // 【DNAの優先】主鎖・横棒から、この距離(px)以内を押したら、写真が重なっていても、DNAをつまむ（マウス）
+        dnaPickTouchPx: 12,    // 【DNAの優先】同じく、タッチ操作のとき
         tutorialIdleMs: 3000,  // 【チュートリアル】（以前は5000）写真・DNAが操作されないまま、この時間(ミリ秒)たつと、実演を始める
         tutorialPhotoGap: 1200, // 【チュートリアル】写真の実演のあと、DNAの実演までの間(ミリ秒)
         tutorialDnaGap: 3500,  // 【チュートリアル】DNAの実演のあと、つぎの写真の実演までの間(ミリ秒)
@@ -1053,6 +1055,13 @@ function initMemberDrag() {
                 cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
             }
             const len = cum[cum.length - 1];
+            // いま描いているDNAの形（主鎖2本・横棒）を覚える：DNAの操作を、写真より優先するときの、距離の計算に使う
+            const hg = pair.hitGeo || (pair.hitGeo = { a: [], b: [], r: [], ca: null, cb: null });
+            hg.a.length = 0;
+            hg.b.length = 0;
+            hg.r.length = 0;
+            hg.ca = ca;
+            hg.cb = cb;
             if (len < 1) return;
             // 操作判定領域も、曲がったDNAに沿わせる
             pair.hit.setAttribute('d', 'M' + pts.map((p) => fmt(p[0], p[1])).join(' L'));
@@ -1114,6 +1123,7 @@ function initMemberDrag() {
                     const f = sign * Math.cos(theta(s)) >= 0;
                     const lv = lvAt(s);
                     const p = strandPoint(s, sign);
+                    (sign === 1 ? hg.a : hg.b).push(p[0], p[1]);
                     if (curF === null) {
                         curF = f;
                         curL = lv;
@@ -1139,6 +1149,7 @@ function initMemberDrag() {
                 const s = (th / (turns * Math.PI * 2)) * len;
                 const p = strandPoint(s, 1);
                 const q = strandPoint(s, -1);
+                hg.r.push(p[0], p[1], q[0], q[1]);
                 put('rungs', lvAt(s), 'M' + fmt(p[0], p[1]) + ' L' + fmt(q[0], q[1]));
             }
         });
@@ -2085,6 +2096,71 @@ function initMemberDrag() {
         }
         if (e.pointerType !== 'touch') e.preventDefault();
     }
+
+    /* ---- DNAの操作を、写真より優先する ----
+            ・DNAは写真より奥（z-index が下）に描くので、DNAが写真の下を通っていると、そこをクリックしても、上にある写真が先にイベントを受けてしまう
+            ・そこで、ポインターを押した瞬間（capture）に、ポインターの位置と「いま描いているDNAの形」を直接くらべる（DOMの重なり順には、頼らない）。
+              2本の主鎖と横棒から dnaPickPx 以内にあれば、いちばん近いDNAを、つまみ始める。写真には、イベントを渡さない（写真のドラッグは始まらない）
+            ・DNAの両端の写真の内側は、対象にしない（写真の顔の上を、いつもどおりドラッグできるように）。DNAから離れた写真の部分も、今までどおり写真が動く
+            ・押した瞬間の結果は、離すまで変わらない（つまんだあとは pointer capture と pluck の状態が決める） */
+    function segDist(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const l2 = dx * dx + dy * dy;
+        const u = l2 > 0 ? clamp(((px - x1) * dx + (py - y1) * dy) / l2, 0, 1) : 0;
+        return Math.hypot(px - (x1 + dx * u), py - (y1 + dy * u));
+    }
+
+    // DNA 1本（hg = drawLinks が覚えている、いまの形）から、点 (x, y) までの、いちばん近い距離。limit より遠ければ limit を返す
+    function dnaDist(hg, x, y, limit) {
+        let best = limit;
+        const ca = hg.ca;
+        const cb = hg.cb;
+        const outside = (mx, my) => Math.hypot(mx - ca.x, my - ca.y) > ca.r * 0.98 && Math.hypot(mx - cb.x, my - cb.y) > cb.r * 0.98;
+        const poly = (arr) => {
+            for (let i = 2; i < arr.length; i += 2) {
+                const x1 = arr[i - 2];
+                const y1 = arr[i - 1];
+                const x2 = arr[i];
+                const y2 = arr[i + 1];
+                if (!outside((x1 + x2) / 2, (y1 + y2) / 2)) continue;
+                const d = segDist(x, y, x1, y1, x2, y2);
+                if (d < best) best = d;
+            }
+        };
+        poly(hg.a);
+        poly(hg.b);
+        for (let i = 0; i + 3 < hg.r.length; i += 4) {
+            if (!outside((hg.r[i] + hg.r[i + 2]) / 2, (hg.r[i + 1] + hg.r[i + 3]) / 2)) continue;
+            const d = segDist(x, y, hg.r[i], hg.r[i + 1], hg.r[i + 2], hg.r[i + 3]);
+            if (d < best) best = d;
+        }
+        return best;
+    }
+
+    // ポインターの位置に、いちばん近いDNA（dnaPickPx 以内）。なければ null
+    function dnaPick(cx, cy, limit) {
+        const pt = mainPoint(cx, cy);
+        let best = null;
+        let bd = limit;
+        pairs.forEach((pair) => {
+            const hg = pair.hitGeo;
+            if (!hg || !hg.ca) return;
+            const d = dnaDist(hg, pt.x, pt.y, bd);
+            if (d < bd) { bd = d; best = pair; }
+        });
+        return best;
+    }
+
+    window.addEventListener('pointerdown', (e) => {
+        if (drag || pluck || resetting) return;
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        if (!main.contains(e.target)) return;
+        const pair = dnaPick(e.clientX, e.clientY, e.pointerType === 'touch' ? T.dnaPickTouchPx : T.dnaPickPx);
+        if (!pair) return;
+        e.stopPropagation();   // 写真の pointerdown（ドラッグ開始）に、渡さない。同じ window の、ほかの capture（チュートリアル）には、届く
+        startPluck(pair, e);
+    }, true);
 
     let pluckTickId = 0;
     // つまんでいる間は、指を止めていても、色の変化と震えが続くように、毎フレーム描き直す
