@@ -683,8 +683,14 @@ function initMemberDrag() {
         dnaHoverK: 260,        // 【DNAのホバー】追従のバネの強さ
         dnaHoverC: 14,         // 【DNAのホバー】追従の減衰（約0.4秒で、ぷるんと元に戻る）
         dnaHoverGlow: 0.6,     // 【DNAのホバー】重ねている間の、紫の濃さ（0〜1。つかんで引っ張ると、最大で1）
-        idleScale: 0.012,      // 【待機】写真の、待機中の伸び縮みの大きさ（約1.2%。縦横で、約1〜2%）
-        idleDnaAmp: 3,         // 【待機】DNAの中央付近が、待機中に揺れる大きさ(px)
+        idleScale: 0.035,      // 【待機】写真の、待機中の伸び縮みの大きさ（約3.5%）
+        idlePos: 3,            // 【待機】写真の見た目の位置の揺れ(px)。ほかの写真・壁に近いときは、自動で小さくする
+        idlePulseMin: 6,       // 【待機】ときどき、少し大きく「ぷるん」と動く間隔の下限(秒)
+        idlePulseMax: 9,       // 【待機】その間隔の上限(秒)。写真ごとに、ずらす
+        idlePulseKick: 1.1,    // 【待機】「ぷるん」の大きさ（約5%）
+        idlePulseK: 240,       // 【待機】「ぷるん」のバネの強さ
+        idlePulseC: 7,         // 【待機】「ぷるん」の減衰（約1秒で収まる）
+        idleDnaAmp: 6.5,       // 【待機】DNAの中央付近が、待機中に揺れる大きさ(px)
         idleQuietMs: 300,      // 【待機】衝突・発射・ドラッグなどが収まってから、待機に入るまでの時間(ミリ秒)
         idleTauIn: 0.8,        // 【待機】待機に入るときの、なめらかさ(秒)。大きいほど、ゆっくり入る
         idleTauOut: 0.25,      // 【待機】操作が始まったときに、待機を止めるなめらかさ(秒)
@@ -744,7 +750,13 @@ function initMemberDrag() {
         const b = body.get(el);
         b.idleW = 0;                                  // 待機の重み（0〜1）。操作中は0へ、なめらかに下がる
         b.idlePhase = (i * 2.399) % (Math.PI * 2);     // 位相：写真ごとに、ずらす
-        b.idlePeriod = 3 + ((i * 37) % 100) / 100 * 2;  // 周期：3〜5秒。写真ごとに、ずらす
+        b.idlePeriod = 2 + ((i * 37) % 100) / 100;      // 周期：2〜3秒。写真ごとに、ずらす
+        b.pu = 0;                                       // 「ぷるん」の大きさと速さ（バネ）
+        b.puv = 0;
+        b.nextPulse = performance.now() + (2 + ((i * 29) % 100) / 100 * 7) * 1000;   // 最初の「ぷるん」：写真ごとに、ずらす
+        b.idleV = null;                                 // いまの待機の変形 [横, 縦, 横ずれ, 縦ずれ]
+        b.idleTx = 0;
+        b.idleTy = 0;
     });
     const homes = new Map();     // 写真ごとの、元の位置（中心）
     const radii = new Map();     // 写真ごとの、円の半径
@@ -801,8 +813,9 @@ function initMemberDrag() {
     function photoCenter(el) {
         const r = el.querySelector('img').getBoundingClientRect();
         const mr = main.getBoundingClientRect();
-        const hv = hover.get(el);   // ホバーによる見た目のずれは、DNAの接続位置には、含めない
-        return { x: r.left - mr.left + r.width / 2 - hv.x, y: r.top - mr.top + r.height / 2 - hv.y, r: r.width / 2 };
+        const hv = hover.get(el);   // ホバー・待機による見た目のずれは、DNAの接続位置には、含めない
+        const bi = body.get(el);
+        return { x: r.left - mr.left + r.width / 2 - hv.x - bi.idleTx, y: r.top - mr.top + r.height / 2 - hv.y - bi.idleTy, r: r.width / 2 };
     }
 
     // 写真ごとの元の位置と半径を測る（画面の幅が変わるたびにやり直す）
@@ -836,7 +849,7 @@ function initMemberDrag() {
             const turns = l0 / DNA_PERIOD + DNA_EXTRA_TURNS * (l0 / visible);
             pairs.push({ a: a, b: b, l0: l0, turns: turns, pluck: null, releasedAt: 0, hit: null, hp: null, glow: 0, glowT: 0, wasHot: false,
                 hov: { u: 0.5, dx: 0, dy: 0, vx: 0, vy: 0, tx: 0, ty: 0, inside: false },
-                idleW: 0, idlePhase: pairs.length * 1.7 + 0.9, idlePeriod: 3.4 + ((pairs.length * 53) % 100) / 100 * 1.6 });
+                idleW: 0, idlePhase: pairs.length * 1.7 + 0.9, idlePeriod: 2 + ((pairs.length * 53) % 100) / 100 });
         }
         // DNAをつまむための、透明な操作判定領域（見た目は変えない）。写真より奥にあるので、重なる所では写真が優先される
         pairs.forEach((pair) => {
@@ -1508,8 +1521,8 @@ function initMemberDrag() {
                 b.def = 0;
                 b.defv = 0;
             }
-            const ip = idleScale(b, performance.now());
-            const idleStr = ip ? 'scale(' + ip[0].toFixed(4) + ', ' + ip[1].toFixed(4) + ') ' : '';
+            const iv = b.idleV;
+            const idleStr = iv ? 'translate(' + iv[2].toFixed(2) + 'px, ' + iv[3].toFixed(2) + 'px) scale(' + iv[0].toFixed(4) + ', ' + iv[1].toFixed(4) + ') ' : '';
             img.style.transform = (idleStr + tf).trim();
             applyTransform(el, isDragged(el));
         });
@@ -1994,8 +2007,9 @@ function initMemberDrag() {
         const r = img.getBoundingClientRect();
         const Ri = img.offsetWidth / 2;
         // ホバーで動いているぶんを引いて、「本来の中心」を求める（目標が、自分の動きに引っ張られないように）
-        const cx = r.left + r.width / 2 - h.x;
-        const cy = r.top + r.height / 2 - h.y;
+        const bi = body.get(el);
+        const cx = r.left + r.width / 2 - h.x - bi.idleTx;
+        const cy = r.top + r.height / 2 - h.y - bi.idleTy;
         let vx = (e.clientX - cx) / Ri;
         let vy = (e.clientY - cy) / Ri;
         const len = Math.hypot(vx, vy);
@@ -2111,23 +2125,56 @@ function initMemberDrag() {
         return !!((drag && drag.active) || (pluck && pluck.active) || resetting);
     }
 
-    // 写真の、待機中の伸び縮み（横・縦の倍率）。重みが、ほぼ0なら null
-    function idleScale(b, now) {
-        if (b.idleW < 0.001) return null;
+    // 待機中の、写真の見た目の変形：[横の倍率, 縦の倍率, 横のずれ(px), 縦のずれ(px)]。
+    // 重みがほぼ0で、ぷるんも収まっているときは null。少し不規則に見えるよう、周期のちがう2つの波を足す
+    function idleVals(b, now, limit) {
+        if (b.idleW < 0.001 && Math.abs(b.pu) < 0.001 && Math.abs(b.puv) < 0.01) return null;
         const t = now / 1000;
-        const a = T.idleScale * b.idleW;
-        const s1 = Math.sin(t * Math.PI * 2 / b.idlePeriod + b.idlePhase);
-        const s2 = Math.sin(t * Math.PI * 2 / (b.idlePeriod * 1.31) + b.idlePhase * 1.7 + 1.1);   // 縦は、少しずらして、呼吸のような動きにする
-        return [1 + a * s1, 1 + a * 0.8 * s2];
+        const w = b.idleW * limit;   // limit：ほかの写真・壁に近いときは、控えめにする（0〜1）
+        const P = b.idlePeriod;
+        const ph = b.idlePhase;
+        const wave = (k, off) => 0.7 * Math.sin(t * Math.PI * 2 / (P * k) + ph * k + off)
+            + 0.3 * Math.sin(t * Math.PI * 2 / (P * k * 1.73) + ph * 2.1 + off + 1);
+        const a = T.idleScale * w;
+        return [
+            1 + a * wave(1, 0) + b.pu * limit,
+            1 + a * 0.8 * wave(1.31, 1.1) - b.pu * 0.8 * limit,
+            T.idlePos * w * wave(1.17, 2.3) + b.pu * 20 * limit,
+            T.idlePos * w * wave(0.89, 4.1) - b.pu * 40 * limit
+        ];
     }
 
-    // DNAの、待機中の、中央付近のゆらぎ（DNAに直角な向きの、ずれ）。重みが、ほぼ0なら null
+    // 写真が、ほかの写真・壁に近いほど、待機の動きを小さくする（重ならない・はみ出さない）。1なら、そのまま
+    function idleLimit(el, bounds) {
+        const R = radii.get(el);
+        const o = offsets.get(el);
+        const h = homes.get(el);
+        const cx = h.x + o.x;
+        const cy = h.y + o.y;
+        let gap = 1e9;
+        members.forEach((other) => {
+            if (other === el) return;
+            const ho = homes.get(other);
+            const oo = offsets.get(other);
+            gap = Math.min(gap, Math.hypot(ho.x + oo.x - cx, ho.y + oo.y - cy) - R - radii.get(other));
+        });
+        // 伸び縮み・ぷるん・ずれに、必要な余裕（px）
+        const need = R * (T.idleScale + 0.07) + T.idlePos + 2;
+        const allowNeighbor = Math.max(0, (gap - 2) / 2);   // おたがいにふくらむので、半分ずつ
+        const bd = bounds.get(el);
+        const slack = Math.min(o.x - bd.minX, bd.maxX - o.x, o.y - bd.minY, bd.maxY - o.y);
+        return Math.min(1, allowNeighbor / need, Math.max(0, slack - 2) / need);
+    }
+
+    // DNAの、待機中の、中央付近のゆらぎ（DNAに直角な向きの、ずれ）。柔らかいゴム紐のように、少し不規則に揺れる。重みがほぼ0なら null
     function idleDisp(pair, ca, cb) {
         if (pair.idleW < 0.001) return null;
         const vx = cb.x - ca.x;
         const vy = cb.y - ca.y;
         const len = Math.hypot(vx, vy) || 1;
-        const s = Math.sin(performance.now() / 1000 * Math.PI * 2 / pair.idlePeriod + pair.idlePhase);
+        const t = performance.now() / 1000;
+        const P = pair.idlePeriod;
+        const s = 0.7 * Math.sin(t * Math.PI * 2 / P + pair.idlePhase) + 0.3 * Math.sin(t * Math.PI * 2 / (P * 1.61) + pair.idlePhase * 2.3 + 1);
         const a = T.idleDnaAmp * pair.idleW * s;
         return [-vy / len * a, vx / len * a];
     }
@@ -2139,6 +2186,7 @@ function initMemberDrag() {
         idleLast = now;
         // 物理・ホバー・ドラッグなどが収まって、少したってから、待機に入る
         const quiet = !idleSuppressed() && !simId && (now - lastSimAt > T.idleQuietMs);
+        const bounds = getBounds();
         members.forEach((el) => {
             if (!visibleMembers.has(el)) return;
             const b = body.get(el);
@@ -2146,10 +2194,23 @@ function initMemberDrag() {
             const tau = on ? T.idleTauIn : T.idleTauOut;
             b.idleW += ((on ? 1 : 0) - b.idleW) * (1 - Math.exp(-dt / tau));
             if (b.idleW < 0.002 && !on) b.idleW = 0;
+            // ときどき、少し大きく「ぷるん」：バネで、自然に収まる。待機に入っている間だけ、きっかけを与える
+            b.puv += (-T.idlePulseK * b.pu - T.idlePulseC * b.puv) * dt;
+            b.pu += b.puv * dt;
+            if (now >= b.nextPulse) {
+                if (on && b.idleW > 0.8) b.puv += (Math.random() < 0.5 ? -1 : 1) * T.idlePulseKick;
+                b.nextPulse = now + (T.idlePulseMin + Math.random() * (T.idlePulseMax - T.idlePulseMin)) * 1000;
+            }
+            const vals = idleVals(b, now, idleLimit(el, bounds));
+            b.idleV = vals;
+            b.idleTx = vals ? vals[2] : 0;   // 見た目のずれ。DNAの接続位置・ホバーの計算からは、引いて考える
+            b.idleTy = vals ? vals[3] : 0;
+            if (!vals) { b.pu = 0; b.puv = 0; }
             if (!simId) {
-                // 物理の計算が止まっている間だけ、ここで、変形を書く（動いている間は、step が、同じ倍率を含めて書く）
-                const ip = idleScale(b, now);
-                el.querySelector('img').style.transform = ip ? 'scale(' + ip[0].toFixed(4) + ', ' + ip[1].toFixed(4) + ')' : '';
+                // 物理の計算が止まっている間だけ、ここで、変形を書く（動いている間は、step が、同じ値を含めて書く）
+                el.querySelector('img').style.transform = vals
+                    ? 'translate(' + vals[2].toFixed(2) + 'px, ' + vals[3].toFixed(2) + 'px) scale(' + vals[0].toFixed(4) + ', ' + vals[1].toFixed(4) + ')'
+                    : '';
             }
         });
         let anyDna = false;
