@@ -760,7 +760,7 @@ function initMemberDrag() {
         trailPerPhoto: 8,      // 【発射の軌跡】1枚の写真につき、同時に残る小さなDNAの上限（以前は5）
         trailChainPerPhoto: 3, // 【発射の軌跡】発射した写真にぶつかられて動いた写真の、上限（連鎖の分は、少なめ）
         trailMax: 48,          // 【発射の軌跡】画面全体で、同時に残る小さなDNAの上限（以前は36）
-        tutorialIdleMs: 5000,  // 【チュートリアル】写真・DNAが操作されないまま、この時間(ミリ秒)たつと、実演を始める
+        tutorialIdleMs: 3000,  // 【チュートリアル】（以前は5000）写真・DNAが操作されないまま、この時間(ミリ秒)たつと、実演を始める
         tutorialPhotoGap: 1200, // 【チュートリアル】写真の実演のあと、DNAの実演までの間(ミリ秒)
         tutorialDnaGap: 3500,  // 【チュートリアル】DNAの実演のあと、つぎの写真の実演までの間(ミリ秒)
         tutorialRounds: 3      // 【チュートリアル】「写真 → DNA」を繰り返す回数の上限（そのあとは、操作されるまで、出さない）
@@ -2599,7 +2599,7 @@ function initMemberDrag() {
                 Mentor      … 丸山さんの写真 と、その右隣とをつなぐDNA
                 Faculty Mentor … いちばん左の写真（data-member-id="faculty-1"）と、その右隣とをつなぐDNA
               DNAは、「対象の写真が左端（pair.a）になっているDNA」。写真が動いて並びが変わっても、対象は変わらない
-            ・そのセクションが画面に見えていて、写真もDNAも操作されないまま約5秒たつと、写真 → DNA → 写真 → … と交互に実演する（1回に1組だけ）
+            ・そのセクションが画面に見えていて、写真もDNAも操作されないまま約3秒たつと、写真 → DNA → 写真 → … と交互に実演する（1回に1組だけ）
             ・写真は、カーソルといっしょに動いて見える（見た目だけ。.member の個別プロパティ translate / scale を使い、物理の座標・速さは変えない）。
               DNAは、「つまんで引っ張る」見た目だけを、既存の描画に重ねる（写真に力は加えず、発射もしない）。離すと、ぷるんと戻る
             ・写真・DNAにカーソルを重ねたり、押したりしたら、実演は、すぐ消える（操作済みには、しない。操作がなければ、また出る）。
@@ -2649,7 +2649,7 @@ function initMemberDrag() {
         });
         if (!tut.tgts.length) return;
 
-        // セクションが画面に見えているか。見えはじめたら、5秒を数え直す。見えなくなったら、実演を止める
+        // セクションが画面に見えているか。見えはじめたら、3秒を数え直す。見えなくなったら、実演を止める
         if ('IntersectionObserver' in window) {
             const io = new IntersectionObserver((entries) => {
                 entries.forEach((en) => {
@@ -2665,7 +2665,7 @@ function initMemberDrag() {
             new Set(tut.tgts.map((t) => t.sec)).forEach((s) => io.observe(s));
         }
 
-        // 操作の検出：写真・DNAにカーソルが重なったら、実演を消して、5秒を数え直す。クリックしたら、そのセクションは、もう出さない
+        // 操作の検出：写真・DNAにカーソルが重なったら、実演を消して、3秒を数え直す。実際にドラッグしたセクションだけ、もう出さない
         const sectionOf = (target) => {
             if (!target || !target.closest) return null;
             const m = target.closest('.member');
@@ -2706,7 +2706,7 @@ function initMemberDrag() {
         window.addEventListener('pointerup', tutRelease);
         window.addEventListener('pointercancel', tutRelease);
 
-        setInterval(tutCheck, 500);
+        setInterval(tutCheck, 250);   // 0.25秒ごとに、始める条件を調べる（約3秒ちょうどで始まるように）
     }
 
     function tutCheck() {
