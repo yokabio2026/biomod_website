@@ -675,6 +675,12 @@ function initMemberDrag() {
         bounceMinSpeed: 20,    // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
         collisionBoost: 1.45,  // 【衝突の強さ】動いている写真どうしが、ぶつかった瞬間の勢いの伝わり方の倍率（1で、ブーストなし）。1回の衝突につき、1度だけ適用
         collisionBoostRamp: 160, // 【衝突の強さ】ぶつかった速さが、この値(px/秒)ぶん遅いほうから速くなるにつれて、ブーストが0→最大に増える（弱い衝突は、控えめのまま）
+        impactMinSpeed: 120,   // 【衝突エフェクト】これより弱い衝突(px/秒)では、衝撃線を出さない
+        impactRepeatSpeed: 300, // 【衝突エフェクト】触れたまま、これより強くぶつかり直したとき(px/秒)は、もう一度出す
+        impactDuration: 0.26,  // 【衝突エフェクト】表示時間(秒)
+        impactCooldown: 0.16,  // 【衝突エフェクト】同じ2枚の写真では、この間隔(秒)があくまで、次の衝撃線を出さない
+        impactSize: 1,         // 【衝突エフェクト】大きさの倍率
+        impactMax: 10,         // 【衝突エフェクト】同時に出せる数の上限
         freeTime: 0.5,         // 【衝突後】ぶつかったあと、DNAに引き戻されにくくなる時間(秒)
         springRelief: 0.8,     // 【衝突後】ぶつかった直後に、DNAの引き寄せを弱める割合（0〜1）
         frictionBase: 1.6,     // 動いている写真の減速（ゆっくり動くとき）
@@ -722,6 +728,7 @@ function initMemberDrag() {
     let hitEls = [];             // DNAをつまむための、透明な操作判定領域
     let boundsCache = null;
     let contactNow = new Set();  // いま触れている写真の組（衝突を「新しい衝突」かどうか見分けるため）
+    const impactAt = new Map();  // 写真の組ごとの、最後に衝撃線を出した時刻（連続して出さないため）
     let simId = 0;
     let lastT = 0;
     let pairs = [];              // DNAでつなぐ写真の組（同じ行で、となりどうし）。l0 は元の並びでの中心間の距離
@@ -762,6 +769,71 @@ function initMemberDrag() {
         return '#' + ch(0) + ch(1) + ch(2);
     }
     main.insertBefore(svg, main.firstChild);
+
+    // 衝突エフェクト用のレイヤー。写真より手前に重ねる。pointer-events: none なので、操作の邪魔をしない（スタイルは style.css）
+    const fx = document.createElementNS(SVG_NS, 'svg');
+    fx.setAttribute('class', 'fx-layer');
+    fx.setAttribute('aria-hidden', 'true');
+    main.appendChild(fx);
+    let effects = [];            // 表示中の衝撃線 { g: 外側のグループ, inner: 内側のグループ, start: 開始時刻 }
+    let fxId = 0;
+    const IMPACT_COLOR = '#8a4fe0';   // サイトの紫（細い線。暗い写真の上でも見えるよう、少し明るめ）
+
+    // 接触点 (x, y) に、小さな衝撃線を出す。nx, ny は、接触の向き。power は強さ（0〜1）
+    function spawnImpact(x, y, nx, ny, power) {
+        if (reduceMotion) return;
+        while (effects.length >= T.impactMax) removeEffect(effects[0]);
+        const tangent = Math.atan2(ny, nx) + Math.PI / 2;   // 接触の向きに、線の向きをそろえる
+        const count = 3 + Math.round(2 * power);            // 弱い→3本、強い→5本
+        const rIn = 4;
+        const rOut = (11 + 15 * power) * T.impactSize;      // 写真の直径(約235px)に比べて、ずっと小さい
+        const g = document.createElementNS(SVG_NS, 'g');
+        g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
+        const inner = document.createElementNS(SVG_NS, 'g');
+        for (let k = 0; k < count; k++) {
+            const a = tangent + Math.PI * 2 * (k + 0.5) / count;
+            const line = document.createElementNS(SVG_NS, 'line');
+            line.setAttribute('x1', (Math.cos(a) * rIn).toFixed(1));
+            line.setAttribute('y1', (Math.sin(a) * rIn).toFixed(1));
+            line.setAttribute('x2', (Math.cos(a) * rOut).toFixed(1));
+            line.setAttribute('y2', (Math.sin(a) * rOut).toFixed(1));
+            line.setAttribute('stroke', IMPACT_COLOR);
+            line.setAttribute('stroke-width', '1.5');
+            line.setAttribute('stroke-linecap', 'round');
+            inner.appendChild(line);
+        }
+        g.appendChild(inner);
+        fx.appendChild(g);
+        effects.push({ g: g, inner: inner, start: performance.now() });
+        tickEffects();
+    }
+
+    function removeEffect(e) {
+        e.g.remove();
+        effects = effects.filter((x) => x !== e);
+    }
+
+    function clearEffects() {
+        effects.forEach((e) => e.g.remove());
+        effects = [];
+    }
+
+    // 衝撃線のアニメーション：外側へ少し広がりながら、すぐ透明になって消える。終わったら、要素を削除する
+    function tickEffects() {
+        if (fxId) return;
+        const loop = () => {
+            const now = performance.now();
+            effects.slice().forEach((e) => {
+                const p = (now - e.start) / (T.impactDuration * 1000);
+                if (p >= 1) { removeEffect(e); return; }
+                const ease = 1 - (1 - p) * (1 - p);
+                e.inner.setAttribute('transform', 'scale(' + (0.55 + 0.8 * ease).toFixed(3) + ')');
+                e.inner.setAttribute('opacity', (0.9 * (1 - p)).toFixed(3));
+            });
+            fxId = effects.length ? requestAnimationFrame(loop) : 0;
+        };
+        fxId = requestAnimationFrame(loop);
+    }
 
     function photoCenter(el) {
         const r = el.querySelector('img').getBoundingClientRect();
@@ -1286,6 +1358,19 @@ function initMemberDrag() {
                     hit(ba, nx, ny, strength);
                     hit(bb, -nx, -ny, strength);
                 }
+                // 衝撃線：ぷるんと同じ瞬間に、接触点へ。新しい衝突か、触れたまま強くぶつかり直したときだけ。
+                // 静止して触れているだけの状態や、とても弱い接触では出さない。同じ組には、短い間隔をあける
+                if (-rel >= T.impactMinSpeed) {
+                    const nowMs = performance.now();
+                    const last = impactAt.get(key) || 0;
+                    if ((nowMs - last) / 1000 >= T.impactCooldown && (!contactPrev.has(key) || -rel >= T.impactRepeatSpeed)) {
+                        impactAt.set(key, nowMs);
+                        // 接触点＝2つの円の中心を結ぶ線上の、円どうしのすきまの中央（ページ上の位置なので、スクロールでずれない）
+                        const cx = ha.x + oa.x + nx * (radii.get(A) + T.gap / 2);
+                        const cy = ha.y + oa.y + ny * (radii.get(A) + T.gap / 2);
+                        spawnImpact(cx, cy, nx, ny, clamp((-rel - T.impactMinSpeed) / 600, 0, 1));
+                    }
+                }
             }
         }
         // 壁：当たったら、軽く変形して、柔らかく跳ね返る（ゆっくりなら、止まる）
@@ -1439,6 +1524,7 @@ function initMemberDrag() {
             el.querySelector('img').style.transform = '';
         });
         boundsCache = null;
+        clearEffects();
     }
 
     function applyTransform(el, lifted) {
