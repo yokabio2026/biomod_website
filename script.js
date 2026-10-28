@@ -689,7 +689,8 @@ function initMemberDrag() {
         squashK: 260,          // 【押しつけ】つぶれ・復元のバネの強さ（大きいほど、速く戻る）
         squashC: 11,           // 【押しつけ】つぶれ・復元の減衰（小さいほど、ぷるぷるが長く続く。今は2〜3回揺れる）
         pairSquash: 0.5,       // 【押しつけ】写真どうしを押しつけたときの、つぶれ方の割合（壁を1としたとき）
-        jellyHit: 1.6,         // 最大の勢いでぶつかったときの、つぶれの強さ
+        jellyHit: 1.6,         // 最大の勢いでぶつかったときの、つぶれの強さ（弱い衝突は、この値に比例）
+        jellyStrongBoost: 0.95,// 強い衝突ほど、さらに大きくつぶす度合い（0で、衝突の強さに比例するだけ。弱い衝突には、ほとんど効かない）
         pluckMax: 330,         // DNAをつまんで引っ張れる最大の距離(px)。（以前は220。約1.5倍）
         pluckK: 10,            // 引っ張ってたまる弾性エネルギー ½·k·（のび）² の、バネ定数
         pluckGain: 1.2,        // たまったエネルギーを、写真の勢いに変える倍率（反発倍率）
@@ -1036,7 +1037,8 @@ function initMemberDrag() {
 
     // ぶつかった向きにつぶれて、そのあと、ぷるぷる揺れ戻る
     function hit(b, nx, ny, strength) {
-        b.defv -= strength * T.jellyHit;
+        // 弱い衝突は、これまでと同じ。強い衝突ほど、強さの2乗に応じて、さらにつぶす（最大で約11%。jellyMax の12%が上限。つぶれ量の最大は、約 jellyHit × (1 + jellyStrongBoost) ÷ 27 ）
+        b.defv -= strength * T.jellyHit * (1 + T.jellyStrongBoost * strength * strength);
         b.ang = Math.atan2(ny, nx);
     }
 
@@ -1300,7 +1302,8 @@ function initMemberDrag() {
                 bb.vy += ny * imp * wb;
                 // ぷるん：ぶつかった瞬間だけ、速さに応じて両方がつぶれる
                 if (!reduceMotion && -rel > 40) {
-                    const strength = Math.min(1, -rel / 700);
+                    // 強さ（0〜1）：300px/秒までは、これまでと同じ（速さに比例）。それより強い衝突は、500px/秒で最大になる
+                    const strength = clamp(-rel / 700 + Math.max(0, -rel - 300) / 600, 0, 1);
                     hit(ba, nx, ny, strength);
                     hit(bb, -nx, -ny, strength);
                 }
