@@ -671,18 +671,21 @@ function initMemberDrag() {
         bounceMinSpeed: 20,    // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
         frictionBase: 1.6,     // 動いている写真の減速（ゆっくり動くとき）
         frictionQuad: 0.02,    // 速く動くほど、強く減速する度合い
-        maxSpeed: 800,         // 弾かれる速さの上限(px/秒)
+        maxSpeed: 1300,        // 写真の速さの上限(px/秒)。これを超えると、物理が不安定になるので、必ず頭打ちにする
         wallRestitution: 0.4,  // 壁での弾み具合
         jellyK: 300,           // ぷるぷるのバネの強さ
         jellyC: 13,            // ぷるぷるの減衰（約0.4秒でほぼ止まる）
         jellyMax: 0.12,        // つぶれる量の上限（12%）
         jellyHit: 1.6,         // 最大の勢いでぶつかったときの、つぶれの強さ
-        pluckMax: 220,         // DNAをつまんで引っ張れる最大の距離(px)
+        pluckMax: 330,         // DNAをつまんで引っ張れる最大の距離(px)。（以前は220。約1.5倍）
         pluckK: 10,            // 引っ張ってたまる弾性エネルギー ½·k·（のび）² の、バネ定数
         pluckGain: 1.2,        // たまったエネルギーを、写真の勢いに変える倍率（反発倍率）
         pluckAlong: 0.45,      // DNAに沿った向きに引いても、距離の何割を「のび」として扱うか（のびなしでも弾けるように）
         pluckInward: 0.25,     // 弾くとき、両端の写真に「おたがいへ向かう成分」をどのくらい混ぜるか
-        pluckMaxSpeed: 800,    // DNAを弾いたときの、写真の最大の速さ(px/秒)
+        pluckMaxSpeed: 1300,   // DNAを弾いたときの、写真の速さの上限(px/秒)。なめらかに頭打ちになる
+        pluckFullFrac: 0.7,    // 最大距離の何割まで引いたら「最大パワー」とみなすか（色の濃さ・震えの基準）
+        pluckShakeStart: 0.9,  // パワーがこの割合を超えたら、DNAがごく小さく震えはじめる
+        pluckShakeAmp: 1.4,    // 震えの大きさ(px)
         pluckSnapK: 800,       // 離したあと、DNAが元に戻るバネの強さ（大きいほど速く戻る）
         pluckSnapC: 11,        // 離したあと、DNAの揺れの減衰（小さいほど、ぷるぷるが長く続く）
         glideTime: 0.4,        // 弾かれた直後に、滑りやすくなる時間(秒)
@@ -715,8 +718,11 @@ function initMemberDrag() {
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const DNA_PERIOD = 90;        // 元の並びのとき、らせん1回転ぶんの長さ(px)
     const DNA_AMPLITUDE = 22;     // らせんの振れ幅(px)
+    const DNA_EXTRA_TURNS = 1;    // 写真のあいだに見える部分に、追加する二重らせんの周期（節）の数
     const DNA_RUNGS_PER_TURN = 5; // 1回転あたりの横棒（塩基対）の数
     const DNA_COLOR = '#7a3fd1';  // ストランド（サイトの紫）
+    const DNA_COLOR_MAX = '#2b1055';       // 最大パワーのときの、サイトのテーマカラーの濃い紫
+    const DNA_RUNG_COLOR_MAX = '#4b2e8c';
     const DNA_RUNG_COLOR = '#a98bea';
 
     const svg = document.createElementNS(SVG_NS, 'svg');
@@ -737,11 +743,12 @@ function initMemberDrag() {
     const pathBack = addPath(DNA_COLOR, 1.4, 0.28);
     const pathRungs = addPath(DNA_RUNG_COLOR, 1.1, 0.5);
     const pathFront = addPath(DNA_COLOR, 1.8, 0.6);
-    // つまんでいる間・揺れている間は、少し濃くして、反応が分かるようにする
-    const DNA_HOT = '#5b21b6';
-    const pathBackH = addPath(DNA_HOT, 1.6, 0.4);
-    const pathRungsH = addPath(DNA_HOT, 1.3, 0.65);
-    const pathFrontH = addPath(DNA_HOT, 2.1, 0.9);
+    // 色の混ぜ合わせ（t=0 で c1、t=1 で c2）
+    function mixColor(c1, c2, t) {
+        const p = (c, i) => parseInt(c.slice(1 + i * 2, 3 + i * 2), 16);
+        const ch = (i) => Math.round(p(c1, i) + (p(c2, i) - p(c1, i)) * t).toString(16).padStart(2, '0');
+        return '#' + ch(0) + ch(1) + ch(2);
+    }
     main.insertBefore(svg, main.firstChild);
 
     function photoCenter(el) {
@@ -775,10 +782,17 @@ function initMemberDrag() {
             const ha = homes.get(a);
             const hb = homes.get(b);
             if (Math.abs(ha.y - hb.y) > 4 || hb.x <= ha.x) continue;   // 行が変わるところはつなげない
-            pairs.push({ a: a, b: b, l0: Math.hypot(hb.x - ha.x, hb.y - ha.y), pluck: null, releasedAt: 0, hit: null });
+            const l0 = Math.hypot(hb.x - ha.x, hb.y - ha.y);
+            // 写真のあいだに見える部分（円と円のすきま）に、もとの量＋DNA_EXTRA_TURNS 節ぶんのらせんが入るようにする
+            const visible = Math.max(40, l0 - radii.get(a) - radii.get(b));
+            const turns = l0 / DNA_PERIOD + DNA_EXTRA_TURNS * (l0 / visible);
+            pairs.push({ a: a, b: b, l0: l0, turns: turns, pluck: null, releasedAt: 0, hit: null, hp: null, glow: 0, glowT: 0, wasHot: false });
         }
         // DNAをつまむための、透明な操作判定領域（見た目は変えない）。写真より奥にあるので、重なる所では写真が優先される
         pairs.forEach((pair) => {
+            // つまんでいる間だけ使う、色が変わるパス（そのDNAだけに適用する）
+            pair.hp = { back: addPath(DNA_COLOR, 1.4, 0.28), rungs: addPath(DNA_RUNG_COLOR, 1.1, 0.5), front: addPath(DNA_COLOR, 1.8, 0.6) };
+            hitEls.push(pair.hp.back, pair.hp.rungs, pair.hp.front);
             const h = document.createElementNS(SVG_NS, 'path');
             h.setAttribute('class', 'dna-hit');
             h.setAttribute('fill', 'none');
@@ -798,12 +812,17 @@ function initMemberDrag() {
 
     // 2つの写真の中心をむすぶDNAの中心線を、点の列で返す。
     // つまんでいるときは、つまんだ点を通る曲線（二次ベジェ）になる
-    function centerline(pair, ca, cb) {
+    function centerline(pair, ca, cb, shake) {
         const pk = pair.pluck;
         if (!pk || Math.abs(pk.dx) + Math.abs(pk.dy) < 0.3) return [[ca.x, ca.y], [cb.x, cb.y]];
         const u = pk.u;
-        const gx = ca.x + (cb.x - ca.x) * u + pk.dx;
-        const gy = ca.y + (cb.y - ca.y) * u + pk.dy;
+        // 震え：つまんだ点だけを、ごく小さく揺らす（両端の写真の位置は動かさない）
+        const now = performance.now();
+        const a = T.pluckShakeAmp * shake;
+        const jx = a * (Math.sin(now * 0.071) + 0.6 * Math.sin(now * 0.131));
+        const jy = a * (Math.cos(now * 0.083) + 0.6 * Math.sin(now * 0.117));
+        const gx = ca.x + (cb.x - ca.x) * u + pk.dx + jx;
+        const gy = ca.y + (cb.y - ca.y) * u + pk.dy + jy;
         const den = 2 * u * (1 - u);
         const qx = (gx - (1 - u) * (1 - u) * ca.x - u * u * cb.x) / den;
         const qy = (gy - (1 - u) * (1 - u) * ca.y - u * u * cb.y) / den;
@@ -822,12 +841,22 @@ function initMemberDrag() {
     function drawLinks() {
         const out = {
             n: { back: '', rungs: '', front: '' },   // ふだんのDNA
-            h: { back: '', rungs: '', front: '' }    // つまんでいる間・揺れている間のDNA（少し濃い）
+            h: null
         };
         pairs.forEach((pair) => {
             const ca = photoCenter(pair.a);
             const cb = photoCenter(pair.b);
-            const pts = centerline(pair, ca, cb);
+            // 引っ張りのパワー（0〜1）。最大距離の pluckFullFrac 割で 1。つまんでいるDNAだけ、色の濃さと震えが変わる
+            const pk0 = pair.pluck;
+            const power = pk0 && pk0.held ? clamp(Math.hypot(pk0.dx, pk0.dy) / (T.pluckMax * T.pluckFullFrac), 0, 1) : 0;
+            const nowMs = performance.now();
+            const dtg = pair.glowT ? Math.min(0.1, (nowMs - pair.glowT) / 1000) : 0;
+            pair.glowT = nowMs;
+            pair.glow += (power - pair.glow) * (1 - Math.exp(-dtg * 10));   // 色は、なめらかに変える
+            if (power === 0 && pair.glow < 0.015) pair.glow = 0;
+            const hot = pair.glow > 0;
+            const shake = power > T.pluckShakeStart ? (power - T.pluckShakeStart) / (1 - T.pluckShakeStart) : 0;
+            const pts = centerline(pair, ca, cb, shake);
             // 中心線の長さ（弧長）。のびるほど長くなる
             const cum = [0];
             for (let i = 1; i < pts.length; i++) {
@@ -838,7 +867,8 @@ function initMemberDrag() {
             // 操作判定領域も、曲がったDNAに沿わせる
             pair.hit.setAttribute('d', 'M' + pts.map((p) => fmt(p[0], p[1])).join(' L'));
             const pk = pair.pluck;
-            const o = pk && (pk.held || Math.hypot(pk.dx, pk.dy) > 6) ? out.h : out.n;
+            const o = hot ? { back: '', rungs: '', front: '' } : out.n;
+            pair.hotStrings = hot ? o : null;
             // 弧長 s の位置の、点と向き
             const pointAt = (s) => {
                 let i = 1;
@@ -849,7 +879,7 @@ function initMemberDrag() {
                 const ty = (pts[i][1] - pts[i - 1][1]) / seg;
                 return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * f, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * f, tx, ty];
             };
-            const turns = Math.max(1.5, pair.l0 / DNA_PERIOD);   // 回転数は一定。のびると間隔が広がる
+            const turns = pair.turns;   // 回転数は一定。のびると間隔が広がる
             const amp = DNA_AMPLITUDE * clamp(pair.l0 / len, 0.5, 1.15); // のびると、すこし細くなる
             const s0 = ca.r * 0.5;            // 写真の下に隠れる部分は描かない
             const s1 = len - cb.r * 0.5;
@@ -895,12 +925,32 @@ function initMemberDrag() {
                 o.rungs += 'M' + fmt(p[0], p[1]) + ' L' + fmt(q[0], q[1]);
             }
         });
+        pairs.forEach((pair) => {
+            const g = pair.glow;
+            const hp = pair.hp;
+            if (!hp) return;
+            if (g > 0 && pair.hotStrings) {
+                const s = pair.hotStrings;
+                hp.back.setAttribute('d', s.back);
+                hp.rungs.setAttribute('d', s.rungs);
+                hp.front.setAttribute('d', s.front);
+                hp.back.setAttribute('stroke', mixColor(DNA_COLOR, DNA_COLOR_MAX, g));
+                hp.back.setAttribute('stroke-opacity', String(0.28 + (0.55 - 0.28) * g));
+                hp.rungs.setAttribute('stroke', mixColor(DNA_RUNG_COLOR, DNA_RUNG_COLOR_MAX, g));
+                hp.rungs.setAttribute('stroke-opacity', String(0.5 + (0.85 - 0.5) * g));
+                hp.front.setAttribute('stroke', mixColor(DNA_COLOR, DNA_COLOR_MAX, g));
+                hp.front.setAttribute('stroke-opacity', String(0.6 + (0.95 - 0.6) * g));
+                pair.wasHot = true;
+            } else if (pair.wasHot) {
+                hp.back.setAttribute('d', '');
+                hp.rungs.setAttribute('d', '');
+                hp.front.setAttribute('d', '');
+                pair.wasHot = false;
+            }
+        });
         pathBack.setAttribute('d', out.n.back);
         pathRungs.setAttribute('d', out.n.rungs);
         pathFront.setAttribute('d', out.n.front);
-        pathBackH.setAttribute('d', out.h.back);
-        pathRungsH.setAttribute('d', out.h.rungs);
-        pathFrontH.setAttribute('d', out.h.front);
     }
 
     // 元の位置に戻るアニメーションの間、毎フレームDNAを描き直す
@@ -1174,7 +1224,7 @@ function initMemberDrag() {
                 if (d - pair.l0 > 1) active = true;
             });
         }
-        if (!active && pairs.some((p) => p.pluck && !p.pluck.held)) active = true;
+        if (!active && pairs.some((p) => (p.pluck && !p.pluck.held) || p.glow > 0.02)) active = true;
         return active;
     }
 
@@ -1367,6 +1417,21 @@ function initMemberDrag() {
         if (e.pointerType !== 'touch') e.preventDefault();
     }
 
+    let pluckTickId = 0;
+    // つまんでいる間は、指を止めていても、色の変化と震えが続くように、毎フレーム描き直す
+    function pluckTick() {
+        if (pluckTickId) return;
+        const loop = () => {
+            if (pluck && pluck.active) {
+                drawLinks();
+                pluckTickId = requestAnimationFrame(loop);
+            } else {
+                pluckTickId = 0;
+            }
+        };
+        pluckTickId = requestAnimationFrame(loop);
+    }
+
     function beginPluck() {
         if (!pluck) return;
         const pair = pluck.pair;
@@ -1387,6 +1452,7 @@ function initMemberDrag() {
         try { pair.hit.setPointerCapture(pluck.id); } catch (e) { /* 対応していなければ何もしない */ }
         pair.hit.style.cursor = 'grabbing';
         drawLinks();
+        pluckTick();
     }
 
     function updatePluck() {
@@ -1433,11 +1499,13 @@ function initMemberDrag() {
             dx /= dl;
             dy /= dl;
             // 速さ = √(2E / 質量) × 反発倍率。上限つき
-            const speed = Math.min(T.pluckMaxSpeed, Math.sqrt(2 * energy / b.mass) * T.pluckGain);
+            // 軽い引っ張りでは、これまでと同じ（ほぼ比例）。強く引くほど伸びて、上限 pluckMaxSpeed に、なめらかに近づく
+            const raw = Math.sqrt(2 * energy / b.mass) * T.pluckGain;
+            const speed = T.pluckMaxSpeed * Math.tanh(raw / T.pluckMaxSpeed);
             b.vx += dx * speed;
             b.vy += dy * speed;
             b.glide = 1;   // 弾かれた直後は、すこし滑りやすくする
-            if (!reduceMotion) hit(b, dx, dy, Math.min(1, speed / 800) * 0.5);
+            if (!reduceMotion) hit(b, dx, dy, Math.min(1, speed / 1000) * 0.5);
         });
     }
 
@@ -1452,6 +1520,7 @@ function initMemberDrag() {
         pair.pluck.held = false;
         if (!release) {
             pair.pluck = null;
+            pair.glow = 0;
             drawLinks();
             return;
         }
@@ -1486,7 +1555,7 @@ function initMemberDrag() {
     function resetLayout() {
         finish();
         finishPluck(false);
-        pairs.forEach((p) => { p.pluck = null; });
+        pairs.forEach((p) => { p.pluck = null; p.glow = 0; });
         stopSim();               // 物理をいったん止める（速さもゼロにする）
         resetting = true;
         clearTimeout(resetTimer);
