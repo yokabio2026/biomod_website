@@ -669,6 +669,10 @@ function initMemberDrag() {
         gap: 8,                // 写真どうしのすきま(px)
         restitution: reduceMotion ? 0 : 0.35,   // 弾み具合（中くらい）
         bounceMinSpeed: 20,    // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
+        collisionBoost: 1.45,  // 【衝突の強さ】動いている写真どうしが、ぶつかった瞬間の勢いの伝わり方の倍率（1で、ブーストなし）。1回の衝突につき、1度だけ適用
+        collisionBoostRamp: 160, // 【衝突の強さ】ぶつかった速さが、この値(px/秒)ぶん遅いほうから速くなるにつれて、ブーストが0→最大に増える（弱い衝突は、控えめのまま）
+        freeTime: 0.5,         // 【衝突後】ぶつかったあと、DNAに引き戻されにくくなる時間(秒)
+        springRelief: 0.8,     // 【衝突後】ぶつかった直後に、DNAの引き寄せを弱める割合（0〜1）
         frictionBase: 1.6,     // 動いている写真の減速（ゆっくり動くとき）
         frictionQuad: 0.012,   // 速く動くほど、強く減速する度合い（小さいほど、遠くまで滑る）
         maxSpeed: 2000,        // 写真の速さの上限(px/秒)。これを超えると、物理が不安定になるので、必ず頭打ちにする
@@ -702,7 +706,7 @@ function initMemberDrag() {
     const groupOf = new Map();
     members.forEach((el) => groupOf.set(el, el.closest('.content-section') || main));
     const body = new Map();      // 写真ごとの、速さ・ひしゃげ具合・重さ
-    members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1, glide: 0 }));
+    members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1, glide: 0, free: 0 }));
     const homes = new Map();     // 写真ごとの、元の位置（中心）
     const radii = new Map();     // 写真ごとの、円の半径
     let zTop = 10;
@@ -713,6 +717,7 @@ function initMemberDrag() {
     let pluck = null;            // いま、DNAをつまんで引っ張っている操作
     let hitEls = [];             // DNAをつまむための、透明な操作判定領域
     let boundsCache = null;
+    let contactNow = new Set();  // いま触れている写真の組（衝突を「新しい衝突」かどうか見分けるため）
     let simId = 0;
     let lastT = 0;
     let pairs = [];              // DNAでつなぐ写真の組（同じ行で、となりどうし）。l0 は元の並びでの中心間の距離
@@ -1068,7 +1073,8 @@ function initMemberDrag() {
             // ダンパー：離れていく速さに応じてブレーキ（揺れを抑える）
             const rel = (bb.vx - ba.vx) * nx + (bb.vy - ba.vy) * ny;
             pull += T.springC * rel;
-            pull = clamp(pull, 0, T.maxPull) * springScale;   // 押す方向には、決してはたらかせない
+            const relief = 1 - T.springRelief * Math.max(ba.free, bb.free);   // ぶつかった直後は、引き寄せを弱める
+            pull = clamp(pull, 0, T.maxPull) * springScale * relief;   // 押す方向には、決してはたらかせない
             ba.vx += nx * pull * wa * dt;
             ba.vy += ny * pull * wa * dt;
             bb.vx -= nx * pull * wb * dt;
@@ -1125,6 +1131,11 @@ function initMemberDrag() {
         });
 
         // 2) ぶつかり：重ならないように押し出し、ぶつかった速さに応じて弾き、ぷるんとさせる
+        // 「いま触れている組」を覚えておき、新しく触れた瞬間（＝1回の衝突）だけ、ブーストをかける。
+        // 触れたまま押し合っている間や、同じフレームの繰り返し計算では、ブーストをかけない（異常な加速を防ぐ）
+        const contactPrev = contactNow;
+        contactNow = new Set();
+        const boostedNow = new Set();
         for (let pass = 0; pass < 3; pass++) {
             for (let i = 0; i < list.length; i++) {
                 for (let j = i + 1; j < list.length; j++) {
@@ -1141,7 +1152,12 @@ function initMemberDrag() {
                     let dy = (hb.y + ob.y) - (ha.y + oa.y);
                     let d = Math.hypot(dx, dy);
                     const min = radii.get(A) + radii.get(B) + T.gap;
-                    if (d >= min) continue;
+                    const key = i * 32 + j;
+                    if (d >= min) {
+                        if (d < min + 3) contactNow.add(key);   // 触れる寸前も「触れている」とみなす
+                        continue;
+                    }
+                    contactNow.add(key);
                     if (d < 0.01) { dx = 1; dy = 0; d = 1; }
                     const nx = dx / d;
                     const ny = dy / d;
@@ -1161,7 +1177,21 @@ function initMemberDrag() {
                     const rel = (bb.vx - ba.vx) * nx + (bb.vy - ba.vy) * ny;
                     if (rel < 0) {
                         const e = -rel > T.bounceMinSpeed ? T.restitution : 0;
-                        const imp = -(1 + e) * rel / sum;
+                        // 衝突ブースト：動いている写真どうし（どちらもつかんでいない）が、新しくぶつかったときだけ、1度だけ。
+                        // 弱い衝突ほど控えめ、強い衝突ほど最大まで
+                        let boost = 1;
+                        if (!ka && !kb && !contactPrev.has(key) && !boostedNow.has(key)) {
+                            boost = 1 + (T.collisionBoost - 1) * clamp((-rel - T.bounceMinSpeed) / T.collisionBoostRamp, 0, 1);
+                            boostedNow.add(key);
+                            // ぶつかった2枚とも、しばらく滑りやすく、DNAに引き戻されにくくする
+                            const f = clamp(-rel / 500, 0.4, 1);
+                            ba.glide = Math.max(ba.glide, f);
+                            bb.glide = Math.max(bb.glide, f);
+                            ba.free = Math.max(ba.free, f);
+                            bb.free = Math.max(bb.free, f);
+                        }
+                        // 衝突の向きと、相対速度で計算する。当てた側にも、同じ大きさの反動（逆向き）がかかる
+                        const imp = -(1 + e) * rel / sum * boost;
                         ba.vx -= nx * imp * wa;
                         ba.vy -= ny * imp * wa;
                         bb.vx += nx * imp * wb;
@@ -1206,6 +1236,7 @@ function initMemberDrag() {
             if (sp > T.maxSpeed) { b.vx *= T.maxSpeed / sp; b.vy *= T.maxSpeed / sp; }
             b.mass = 1 + (b.mass - 1) * Math.exp(-2 * dt);   // 離した直後の重さは、少しずつ元に戻る
             b.glide *= Math.exp(-3 * dt / T.glideTime);
+            b.free *= Math.exp(-dt / T.freeTime);
             b.defv += (-T.jellyK * b.def - T.jellyC * b.defv) * dt;
             b.def = clamp(b.def + b.defv * dt, -T.jellyMax, T.jellyMax);
             const img = el.querySelector('img');
@@ -1264,7 +1295,7 @@ function initMemberDrag() {
         simId = 0;
         members.forEach((el) => {
             const b = body.get(el);
-            b.vx = 0; b.vy = 0; b.def = 0; b.defv = 0; b.mass = 1; b.glide = 0;
+            b.vx = 0; b.vy = 0; b.def = 0; b.defv = 0; b.mass = 1; b.glide = 0; b.free = 0;
             el.querySelector('img').style.transform = '';
         });
         boundsCache = null;
