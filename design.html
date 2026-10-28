@@ -50,6 +50,11 @@
             <h2 class="section-title">What is the ALiGN</h2>
             <div class="content-space">
                 <div class="section-text">
+                    <figure>
+                        <video src="videos/design-align-overview.mp4" autoplay loop muted playsinline></video>
+                        <figcaption>Movie 1 An overview of ALiGN. Three GUVs are connected as GUV1–GUV2–GUV3, and the labels show where each of the four elements appears: the DNA between two GUVs chooses the partner (1), the DNA on the surface sets how many partners a GUV takes (2), the pores between connected membranes let the contents move (3), and TRIMEB keeps the other pores closed (4).</figcaption>
+                    </figure>
+
                     <p>
                         ALiGN (Accurately Linkable GUV Network) is our technology for building networks of GUVs.
                         Its goal is controlled communication between GUVs: to connect GUVs in an intended pattern and with an intended number of partners, and to exchange materials between the connected GUVs.
@@ -75,6 +80,7 @@
                         3. Exchange through pores: α-hemolysin forms pores so that connected GUVs can exchange their contents.<br>
                         4. Blocking leakage: TRIMEB acts as a lid on the pores, so that GUVs that are not connected do not leak their contents.
                     </p>
+
                 </div>
             </div>
         </div>
@@ -100,7 +106,7 @@
 
                     <figure>
                         <video src="videos/design-specific-binding.mp4" autoplay loop muted playsinline></video>
-                        <figcaption>Movie 1 DNA with different sequences lets GUV1 bind GUV2 and GUV2 bind GUV3, while GUV1 and GUV3 stay apart.</figcaption>
+                        <figcaption>Movie 2 DNA with different sequences lets GUV1 bind GUV2 and GUV2 bind GUV3, while GUV1 and GUV3 stay apart.</figcaption>
                     </figure>
 
                     <h3 class="sub-title">Weak Binding</h3>
@@ -122,7 +128,7 @@
 
                     <figure>
                         <video src="videos/design-weak-binding.mp4" autoplay loop muted playsinline></video>
-                        <figcaption>Movie 2 A long duplex holds two membranes together on its own. A single short duplex comes apart, but many short duplexes together keep the connection.</figcaption>
+                        <figcaption>Movie 3 A long duplex holds two membranes together on its own. A single short duplex comes apart, but many short duplexes together keep the connection.</figcaption>
                     </figure>
                 </div>
             </div>
@@ -146,7 +152,7 @@
 
                     <figure>
                         <video src="videos/design-pore-exchange.mp4" autoplay loop muted playsinline></video>
-                        <figcaption>Movie 3 When the membranes are brought together by DNA, the pores open and the contents move between the two GUVs.</figcaption>
+                        <figcaption>Movie 4 When the membranes are brought together by DNA, the pores open and the contents move between the two GUVs.</figcaption>
                     </figure>
 
                     <h3 class="sub-title">TRIMEB as a Lid</h3>
@@ -161,7 +167,7 @@
 
                     <figure>
                         <video src="videos/design-trimeb-lid.mp4" autoplay loop muted playsinline></video>
-                        <figcaption>Movie 4 On a membrane that is not connected to a partner, TRIMEB blocks the pores and the contents stay inside.</figcaption>
+                        <figcaption>Movie 5 On a membrane that is not connected to a partner, TRIMEB blocks the pores and the contents stay inside.</figcaption>
                     </figure>
                 </div>
             </div>
@@ -183,7 +189,7 @@
 
                     <figure>
                         <video src="videos/design-dna-6nt.mp4" autoplay loop muted playsinline></video>
-                        <figcaption>Movie 5 Weak binding by 6-nt DNA. Three GUVs come together and connect; the close-up shows the gap between GUV1 and GUV2, where a connection holds only when many strands bind at the same time.</figcaption>
+                        <figcaption>Movie 6 Weak binding by 6-nt DNA. Three GUVs come together and connect; the close-up shows the gap between GUV1 and GUV2, where a connection holds only when many strands bind at the same time.</figcaption>
                     </figure>
                     <p>
                         <strong>Pair 1 (GUV1 – GUV2)</strong><br>
@@ -202,9 +208,19 @@
                         SH is at the 3′ end on the L side and at the 5′ end on the R side.
                     </p>
 
+                    <p>
+                        We make these strands long because a 23-bp duplex is strong and hardly comes apart, so a single duplex is enough to hold two GUVs together.
+                        With such strong binding the number of partners is no longer controlled, and a GUV keeps taking new partners. That is acceptable here, because the purpose of this experiment is only to confirm that the choice of partner can be controlled by the sequence.
+                    </p>
+
+                    <p>
+                        The way the two strands are joined also matters. A duplex is about 0.34 nm long per base pair, so a 23-bp duplex standing between the two membranes would hold them about 8 nm apart, which makes the exchange of contents through α-hemolysin harder.
+                        We therefore anchor one strand at its 3′ end and the other at its 5′ end, so that the two strands pair side by side starting from the point where the membranes touch, and the duplex extends outwards along the membranes instead of standing between them. The two membranes can then come close to each other.
+                    </p>
+
                     <figure>
                         <video src="videos/design-dna-23bp.mp4" autoplay loop muted playsinline></video>
-                        <figcaption>Movie 6 Strong binding by 23-bp DNA. A single duplex is enough to hold two GUVs together.</figcaption>
+                        <figcaption>Movie 7 Strong binding by 23-bp DNA. A single duplex is enough to hold two GUVs together, and because the binding is strong, further GUVs keep attaching: the number of partners is not controlled.</figcaption>
                     </figure>
                     <p>
                         <strong>Pair 1 (GUV1 – GUV2)</strong><br>
@@ -234,6 +250,38 @@
                     <p>
                         Conn6_R2X: 5′-<code style="word-break: break-all;">CTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTAGTCCATTGTAACGAAGGCCA</code>-3′<br>
                         (binds Conn23_R2 on GUV3; the CT repeat gathers Conn6_L2 on GUV2)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">References for the Design</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        Papers we used for the design on this page. They are also listed, under Design, in the reference list for the whole site on the <a href="index.html">Home</a> page.
+                    </p>
+
+                    <p>
+                        [1] Guntas, G., Hallett, R. A., Zimmerman, S. P., Williams, T., Yumerefendi, H., Bear, J. E. &amp; Kuhlman, B.
+                        Engineering an improved light-induced dimer (iLID) for controlling the localization and activity of signaling proteins.
+                        <em>Proc. Natl. Acad. Sci. U.S.A.</em> <strong>112</strong>, 112–117 (2015).
+                        <a href="https://doi.org/10.1073/pnas.1417910112">https://doi.org/10.1073/pnas.1417910112</a>
+                    </p>
+
+                    <p>
+                        [2] Chakraborty, T., Bartelt, S. M., Steinkühler, J., Dimova, R. &amp; Wegner, S. V.
+                        Light controlled cell-to-cell adhesion and chemical communication in minimal synthetic cells.
+                        <em>Chem. Commun.</em> <strong>55</strong>, 9448–9451 (2019).
+                        <a href="https://doi.org/10.1039/C9CC04768A">https://doi.org/10.1039/C9CC04768A</a>
+                    </p>
+
+                    <p>
+                        [3] Thomas, J. M., Friddin, M. S., Ces, O. &amp; Elani, Y.
+                        Programming membrane permeability using integrated membrane pores and blockers as molecular regulators.
+                        <em>Chem. Commun.</em> <strong>53</strong>, 12282–12285 (2017).
+                        <a href="https://doi.org/10.1039/C7CC05423H">https://doi.org/10.1039/C7CC05423H</a>
                     </p>
                 </div>
             </div>
