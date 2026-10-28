@@ -690,6 +690,11 @@ function initMemberDrag() {
         jellyK: 300,           // ぷるぷるのバネの強さ
         jellyC: 13,            // ぷるぷるの減衰（約0.4秒でほぼ止まる）
         jellyMax: 0.12,        // つぶれる量の上限（12%）
+        squashMax: 0.09,       // 【押しつけ】壁や写真に押しつけられている間の、つぶれ量の上限（9%）
+        squashRange: 120,      // 【押しつけ】この距離(px)ぶん押しつけると、つぶれ量が上限になる（小さいほど、少し押しただけで大きくつぶれる）
+        squashK: 260,          // 【押しつけ】つぶれ・復元のバネの強さ（大きいほど、速く戻る）
+        squashC: 11,           // 【押しつけ】つぶれ・復元の減衰（小さいほど、ぷるぷるが長く続く。今は2〜3回揺れる）
+        pairSquash: 0.5,       // 【押しつけ】写真どうしを押しつけたときの、つぶれ方の割合（壁を1としたとき）
         jellyHit: 1.6,         // 最大の勢いでぶつかったときの、つぶれの強さ
         pluckMax: 330,         // DNAをつまんで引っ張れる最大の距離(px)。（以前は220。約1.5倍）
         pluckK: 10,            // 引っ張ってたまる弾性エネルギー ½·k·（のび）² の、バネ定数
@@ -716,7 +721,8 @@ function initMemberDrag() {
     const groupOf = new Map();
     members.forEach((el) => groupOf.set(el, el.closest('.content-section') || main));
     const body = new Map();      // 写真ごとの、速さ・ひしゃげ具合・重さ
-    members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1, glide: 0, free: 0, sx: 0, sy: 0 }));
+    members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1, glide: 0, free: 0, sx: 0, sy: 0,
+        cx: 0, cy: 0, cvx: 0, cvy: 0, pmx: 0, pmy: 0 }));   // cx,cy: 押しつけによるつぶれ量（横・縦）／ pmx,pmy: そのフレームの押しつけの強さ(px)
     const homes = new Map();     // 写真ごとの、元の位置（中心）
     const radii = new Map();     // 写真ごとの、円の半径
     let zTop = 10;
@@ -1193,6 +1199,10 @@ function initMemberDrag() {
         const cx = clamp(o.x, bd.minX, bd.maxX);
         const cy = clamp(o.y, bd.minY, bd.maxY);
         if (cx !== o.x || cy !== o.y) blocked.add(el);
+        // 壁に押し戻した量＝壁への押しつけの強さ（見た目のつぶれにだけ使う）
+        const bb = body.get(el);
+        bb.pmx = Math.max(bb.pmx, Math.abs(cx - o.x));
+        bb.pmy = Math.max(bb.pmy, Math.abs(cy - o.y));
         o.x = cx;
         o.y = cy;
     }
@@ -1216,6 +1226,14 @@ function initMemberDrag() {
         const pen = min - d;
         const nx = dx / d;
         const ny = dy / d;
+        // 写真どうしを押しつけた量＝押しつけの強さ（見た目のつぶれにだけ使う）
+        const ba = body.get(A);
+        const bb = body.get(B);
+        const sq = T.pairSquash;
+        ba.pmx = Math.max(ba.pmx, pen * Math.abs(nx) * sq);
+        ba.pmy = Math.max(ba.pmy, pen * Math.abs(ny) * sq);
+        bb.pmx = Math.max(bb.pmx, pen * Math.abs(nx) * sq);
+        bb.pmy = Math.max(bb.pmy, pen * Math.abs(ny) * sq);
         oa.x -= nx * pen * wa / sum;
         oa.y -= ny * pen * wa / sum;
         ob.x += nx * pen * wb / sum;
@@ -1452,7 +1470,14 @@ function initMemberDrag() {
         const list = Array.from(members);
         const bounds = getBounds();
         const n = clamp(Math.ceil(dt / T.maxSubstep), 1, 4);
+        list.forEach((el) => { const b = body.get(el); b.pmx = 0; b.pmy = 0; });
         for (let s = 0; s < n; s++) substep(dt / n, bounds);
+        // つかんでいる写真が、壁の向こうへ押しこもうとしているぶんも、押しつけの強さにする
+        if (drag && drag.active) {
+            const b = body.get(drag.el);
+            b.pmx = Math.max(b.pmx, drag.overX);
+            b.pmy = Math.max(b.pmy, drag.overY);
+        }
 
         // 速さの上限と、ぷるぷる（バネ）。1フレームに1回
         list.forEach((el) => {
@@ -1464,16 +1489,35 @@ function initMemberDrag() {
             b.free *= Math.exp(-dt / T.freeTime);
             b.defv += (-T.jellyK * b.def - T.jellyC * b.defv) * dt;
             b.def = clamp(b.def + b.defv * dt, -T.jellyMax, T.jellyMax);
+            // 押しつけによるつぶれ：押しつけられている間は、少しつぶれた状態を保ち、離れると、バネでぷるぷる戻る
+            // （見た目だけの変形。物理の位置・半径は変えないので、貫通防止には影響しない）
+            const tx = reduceMotion ? 0 : clamp(b.pmx / T.squashRange, 0, 1) * T.squashMax;
+            const ty = reduceMotion ? 0 : clamp(b.pmy / T.squashRange, 0, 1) * T.squashMax;
+            b.cvx += (-T.squashK * (b.cx - tx) - T.squashC * b.cvx) * dt;
+            b.cvy += (-T.squashK * (b.cy - ty) - T.squashC * b.cvy) * dt;
+            b.cx = clamp(b.cx + b.cvx * dt, -T.squashMax * 0.6, T.squashMax * 1.15);   // 反対側へののびは、つぶれ量の6割まで
+            b.cy = clamp(b.cy + b.cvy * dt, -T.squashMax * 0.6, T.squashMax * 1.15);
             const img = el.querySelector('img');
-            if (Math.abs(b.def) > 0.003 || Math.abs(b.defv) > 0.05) {
+            const impactOn = Math.abs(b.def) > 0.003 || Math.abs(b.defv) > 0.05;
+            const squashOn = Math.abs(b.cx) > 0.002 || Math.abs(b.cy) > 0.002 || Math.abs(b.cvx) > 0.05 || Math.abs(b.cvy) > 0.05;
+            let tf = '';
+            if (squashOn) {
+                // つぶれた方向に、少しだけ反対側がふくらむ（縦と横の変形）
+                const sx = 1 - b.cx + 0.4 * b.cy;
+                const sy = 1 - b.cy + 0.4 * b.cx;
+                tf += 'scale(' + sx.toFixed(3) + ', ' + sy.toFixed(3) + ') ';
+            } else {
+                b.cx = 0; b.cy = 0; b.cvx = 0; b.cvy = 0;
+            }
+            if (impactOn) {
                 const s = 1 + b.def;
                 const deg = (b.ang * 180 / Math.PI).toFixed(1);
-                img.style.transform = 'rotate(' + deg + 'deg) scale(' + s.toFixed(3) + ', ' + (1 / s).toFixed(3) + ') rotate(-' + deg + 'deg)';
+                tf += 'rotate(' + deg + 'deg) scale(' + s.toFixed(3) + ', ' + (1 / s).toFixed(3) + ') rotate(-' + deg + 'deg)';
             } else {
                 b.def = 0;
                 b.defv = 0;
-                img.style.transform = '';
             }
+            img.style.transform = tf.trim();
             applyTransform(el, isDragged(el));
         });
     }
@@ -1484,7 +1528,8 @@ function initMemberDrag() {
         let active = false;
         members.forEach((el) => {
             const b = body.get(el);
-            if (Math.hypot(b.vx, b.vy) > 6 || Math.abs(b.def) > 0.003 || Math.abs(b.defv) > 0.05 || b.mass > 1.05) active = true;
+            if (Math.hypot(b.vx, b.vy) > 6 || Math.abs(b.def) > 0.003 || Math.abs(b.defv) > 0.05 || b.mass > 1.05 ||
+                Math.abs(b.cx) > 0.002 || Math.abs(b.cy) > 0.002 || Math.abs(b.cvx) > 0.05 || Math.abs(b.cvy) > 0.05 || b.pmx > 0.5 || b.pmy > 0.5) active = true;
         });
         if (!active) {
             pairs.forEach((pair) => {
@@ -1521,6 +1566,7 @@ function initMemberDrag() {
         members.forEach((el) => {
             const b = body.get(el);
             b.vx = 0; b.vy = 0; b.def = 0; b.defv = 0; b.mass = 1; b.glide = 0; b.free = 0;
+            b.cx = 0; b.cy = 0; b.cvx = 0; b.cvy = 0; b.pmx = 0; b.pmy = 0;
             el.querySelector('img').style.transform = '';
         });
         boundsCache = null;
@@ -1557,6 +1603,8 @@ function initMemberDrag() {
         }
         drag.wallX = wallX;
         drag.wallY = wallY;
+        drag.overX = Math.abs(rx - drag.tx);   // 壁の向こうへ押しこもうとしている距離＝壁への押しつけの強さ
+        drag.overY = Math.abs(ry - drag.ty);
         wake();
     }
 
@@ -1583,6 +1631,8 @@ function initMemberDrag() {
         drag.wallY = false;
         drag.tx = o.x;
         drag.ty = o.y;
+        drag.overX = 0;
+        drag.overY = 0;
         drag.active = true;
         const b = body.get(el);
         b.vx = 0; b.vy = 0; b.px = o.x; b.py = o.y;
