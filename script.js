@@ -2602,8 +2602,12 @@ function initMemberDrag() {
             ・そのセクションが画面に見えていて、写真もDNAも操作されないまま約3秒たつと、写真 → DNA → 写真 → … と交互に実演する（1回に1組だけ）
             ・写真は、カーソルといっしょに動いて見える（見た目だけ。.member の個別プロパティ translate / scale を使い、物理の座標・速さは変えない）。
               DNAは、「つまんで引っ張る」見た目だけを、既存の描画に重ねる（写真に力は加えず、発射もしない）。離すと、ぷるんと戻る
-            ・写真・DNAにカーソルを重ねたり、押したりしたら、実演は、すぐ消える（操作済みには、しない。操作がなければ、また出る）。
-              実際にドラッグ（写真を8px以上動かす・DNAを8px以上引っ張る）したセクションだけ、完了。このページを開いている間は、もう出さない
+            ・状態は3つ（セクションごと）：
+                playing = 再生中 / paused = 一時停止中（画面の外に出た・押された。操作がなければ、また出る）/ done = 完了（このページを開いている間は、もう出さない）
+            ・本物のカーソルが、写真・DNAに重なっただけ（hover）では、何も変えない。再生は続き、3秒のタイマーも、数え直さない
+              （実演で写真が動くと、止まっているカーソルの下を、写真が通りすぎて、重なる／はなれるイベントが出ることがあるため）。
+            ・押したとき（pointerdown）は、実演の見た目だけを、すぐ片づける（paused）。押しただけ・クリックだけ・8px未満では、done にしない
+            ・実際にドラッグ（写真を8px以上動かす・DNAを8px以上引っ張る）したセクションだけ、done
             ・文字・吹き出しは出さない。カーソルは pointer-events: none。マウスのある端末だけ。prefers-reduced-motion のときは、出さない */
     const TUTORIAL_TARGETS = ['murakami', 'maruyama', 'faculty-1'];
     const TUTORIAL_DRAG_PX = 8;   // この距離(px)以上、実際にドラッグ（引っ張り）したら、そのセクションの実演を完了にする
@@ -2613,9 +2617,16 @@ function initMemberDrag() {
     function tutProg(t, a, b) { return clamp((t - a) / (b - a), 0, 1); }
 
     // 対象の写真（と、DNAなら右隣の写真）が、画面の中に、すっかり見えているか（ナビゲーションバーの下）
-    function tutVisible(el) {
+    // loose = 再生中の判定。始めるときは、すっかり見えていること、始めたあとは、写真の中心が見えていればよい
+    // （ホバーで写真が少し動いた・縮んだだけで、境目で、途中で止まらないように）
+    function tutVisible(el, loose) {
         const r = el.querySelector('img').getBoundingClientRect();
         const ox = body.get(el).tutX || 0;   // 実演で、見た目だけ動かしている分は、引く
+        if (loose) {
+            const cx = r.left + r.width / 2 - ox;
+            const cy = r.top + r.height / 2;
+            return cy >= 60 && cy <= window.innerHeight && cx >= 0 && cx <= window.innerWidth;
+        }
         return r.top >= 70 && r.bottom <= window.innerHeight - 10 && r.left - ox >= 0 && r.right - ox <= window.innerWidth;
     }
 
@@ -2623,11 +2634,11 @@ function initMemberDrag() {
         return pairs.find((p) => p.a === tgt.el) || null;
     }
 
-    function tutGeometryOk(tgt, kind) {
-        if (!tutVisible(tgt.el)) return false;
+    function tutGeometryOk(tgt, kind, loose) {
+        if (!tutVisible(tgt.el, loose)) return false;
         if (kind !== 'dna') return true;
         const pair = tutPairOf(tgt);
-        return !!pair && tutVisible(pair.b);
+        return !!pair && tutVisible(pair.b, loose);
     }
 
     function tutSetup() {
@@ -2644,7 +2655,7 @@ function initMemberDrag() {
         TUTORIAL_TARGETS.forEach((id) => {
             const el = list.find((m) => m.dataset.memberId === id);
             if (!el) return;
-            tut.tgts.push({ id: id, el: el, sec: groupOf.get(el), inView: false, since: 0, lastAct: 0, dismissed: false,
+            tut.tgts.push({ id: id, el: el, sec: groupOf.get(el), inView: false, since: 0, lastAct: 0, state: 'paused',   // state: playing / paused / done
                 kind: 'photo', nextAt: 0, rounds: 0 });
         });
         if (!tut.tgts.length) return;
@@ -2665,7 +2676,7 @@ function initMemberDrag() {
             new Set(tut.tgts.map((t) => t.sec)).forEach((s) => io.observe(s));
         }
 
-        // 操作の検出：写真・DNAにカーソルが重なったら、実演を消して、3秒を数え直す。実際にドラッグしたセクションだけ、もう出さない
+        // 操作の検出：押した・ドラッグした、だけを見る（カーソルが重なっただけの hover は、見ない）。実際にドラッグしたセクションだけ、もう出さない
         const sectionOf = (target) => {
             if (!target || !target.closest) return null;
             const m = target.closest('.member');
@@ -2673,12 +2684,6 @@ function initMemberDrag() {
             const pr = pairs.find((p) => p.hit === target);
             return pr ? groupOf.get(pr.a) || null : null;
         };
-        main.addEventListener('pointerover', (e) => {
-            const sec = sectionOf(e.target);
-            if (!sec) return;
-            tutAbort(false);
-            tut.tgts.forEach((t) => { if (t.sec === sec) t.lastAct = performance.now(); });
-        });
         // 押したとき：実演の見た目は、すぐ片づける（本物の操作を始めるため）。ただし、押しただけ・クリックだけでは、「操作済み」にしない
         // → 押した位置を覚えておき、実際にドラッグ（下のpointermove）されたときだけ、そのセクションを完了にする
         window.addEventListener('pointerdown', (e) => {
@@ -2700,7 +2705,7 @@ function initMemberDrag() {
             if (!grabbing) return;
             tut.pressed = null;
             tutAbort(true);
-            tut.tgts.forEach((t) => { if (t.sec === pr.sec) t.dismissed = true; });   // 完了：このページを開いている間は、もう出さない
+            tut.tgts.forEach((t) => { if (t.sec === pr.sec) t.state = 'done'; });   // 完了：このページを開いている間は、もう出さない
         });
         const tutRelease = (e) => { if (tut.pressed && e.pointerId === tut.pressed.id) tut.pressed = null; };
         window.addEventListener('pointerup', tutRelease);
@@ -2714,7 +2719,7 @@ function initMemberDrag() {
         const now = performance.now();
         for (let i = 0; i < tut.tgts.length; i++) {
             const t = tut.tgts[i];
-            if (t.dismissed || !t.inView || t.rounds >= T.tutorialRounds || now < t.nextAt) continue;
+            if (t.state === 'done' || !t.inView || t.rounds >= T.tutorialRounds || now < t.nextAt) continue;
             if (now - Math.max(t.since, t.lastAct) < T.tutorialIdleMs) continue;
             if (!tutGeometryOk(t, t.kind)) continue;
             if (hover.get(t.el).inside) continue;
@@ -2726,6 +2731,7 @@ function initMemberDrag() {
 
     function tutStart(t) {
         const now = performance.now();
+        t.state = 'playing';
         tut.run = { tgt: t, kind: t.kind, t0: now, pair: t.kind === 'dna' ? tutPairOf(t) : null,
             clicked: false, released: false, lifted: false, last: now,
             ph: { x: 0, v: 0, s: 1, sv: 0 } };   // 写真の見た目：横のずれ・速さ、大きさ・速さ（バネ）
@@ -2745,6 +2751,7 @@ function initMemberDrag() {
         cancelAnimationFrame(tut.raf);
         tut.raf = 0;
         tut.run = null;
+        if (run.tgt.state === 'playing') run.tgt.state = 'paused';   // done は、そのまま。再生中だったものだけ、一時停止にする
         tutCleanup(run, hard);
         tut.cursor.style.opacity = '0';
         tut.cursor.classList.remove('is-press');
@@ -2776,6 +2783,7 @@ function initMemberDrag() {
         tut.cursor.style.opacity = '0';
         tut.cursor.classList.remove('is-press');
         const t = run.tgt;
+        if (t.state === 'playing') t.state = 'paused';   // 1回の実演が終わった。つぎの実演を待つ（完了ではない）
         const now = performance.now();
         if (run.kind === 'photo') { t.kind = 'dna'; t.nextAt = now + T.tutorialPhotoGap; }
         else { t.kind = 'photo'; t.rounds++; t.nextAt = now + T.tutorialDnaGap; }
@@ -2787,7 +2795,7 @@ function initMemberDrag() {
         const t = now - run.t0;
         const tgt = run.tgt;
         // 実演の途中で、状況が変わったら、すぐ止める（スクロールで見えなくなった・ほかの操作・整列など）
-        if (document.hidden || drag || pluck || resetting || !tgt.inView || !tutGeometryOk(tgt, run.kind)) { tutAbort(false); return; }
+        if (document.hidden || drag || pluck || resetting || !tgt.inView || !tutGeometryOk(tgt, run.kind, true)) { tutAbort(false); return; }
         const cur = tut.cursor;
         let x;
         let y;
