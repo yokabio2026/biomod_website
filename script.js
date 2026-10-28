@@ -682,7 +682,10 @@ function initMemberDrag() {
         dnaHoverMax: 10,       // 【DNAのホバー】カーソルを重ねたとき、DNAがカーソルの方向へ曲がる量(px)。見た目だけ
         dnaHoverK: 260,        // 【DNAのホバー】追従のバネの強さ
         dnaHoverC: 14,         // 【DNAのホバー】追従の減衰（約0.4秒で、ぷるんと元に戻る）
-        dnaHoverGlow: 0.6,     // 【DNAのホバー】重ねている間の、紫の濃さ（0〜1。つかんで引っ張ると、最大で1）
+        dnaHoverColor: '#8650BD',  // 【DNAのホバー】重ねている間の、DNA全体の色（ふだんの薄紫より、はっきり濃い）。つかんで引っ張ると、引いた距離に応じて、さらに濃くなる
+        dnaHoverOpacity: 0.95,     // 【DNAのホバー】重ねている間の、手前側の線の不透明度（ふだんは 0.6）。奥側・横棒も、同じ割合で上げる
+        dnaHoverIn: 0.2,           // 【DNAのホバー】ふだんの色から、ホバーの色へ変わるまでの時間(秒)
+        dnaHoverOut: 0.3,          // 【DNAのホバー】離したあと、ふだんの色へ戻るまでの時間(秒)
         idleScale: 0.035,      // 【待機】写真の、待機中の伸び縮みの大きさ（約3.5%）
         idlePos: 3,            // 【待機】写真の見た目の位置の揺れ(px)。ほかの写真・壁に近いときは、自動で小さくする
         idlePulseMin: 6,       // 【待機】ときどき、少し大きく「ぷるん」と動く間隔の下限(秒)
@@ -847,7 +850,7 @@ function initMemberDrag() {
             // 写真のあいだに見える部分（円と円のすきま）に、もとの量＋DNA_EXTRA_TURNS 節ぶんのらせんが入るようにする
             const visible = Math.max(40, l0 - radii.get(a) - radii.get(b));
             const turns = l0 / DNA_PERIOD + DNA_EXTRA_TURNS * (l0 / visible);
-            pairs.push({ a: a, b: b, l0: l0, turns: turns, pluck: null, releasedAt: 0, hit: null, hp: null, glow: 0, glowT: 0, wasHot: false,
+            pairs.push({ a: a, b: b, l0: l0, turns: turns, pluck: null, releasedAt: 0, hit: null, hp: null, glow: 0, hovG: 0, glowT: 0, wasHot: false,
                 hov: { u: 0.5, dx: 0, dy: 0, vx: 0, vy: 0, tx: 0, ty: 0, inside: false },
                 idleW: 0, idlePhase: pairs.length * 1.7 + 0.9, idlePeriod: 2 + ((pairs.length * 53) % 100) / 100 });
         }
@@ -950,14 +953,19 @@ function initMemberDrag() {
             // 引っ張りのパワー（0〜1）。最大距離の pluckFullFrac 割で 1。つまんでいるDNAだけ、色の濃さと震えが変わる
             const pk0 = pair.pluck;
             const pluckPower = pk0 && pk0.held ? clamp(Math.hypot(pk0.dx, pk0.dy) / (T.pluckMax * T.pluckFullFrac), 0, 1) : 0;
-            // ホバー中だけ、紫を少し濃くする（つかんでいないときだけ）
-            const power = Math.max(pluckPower, !pk0 && pair.hov && pair.hov.inside ? T.dnaHoverGlow : 0);
+            // 色は、2段階：①ホバー（重ねている間、つかんでいる間）= ふだんの薄紫 → #8650BD。②引っ張り = その色から、引いた距離に応じて、さらに濃く
+            // つかんだ瞬間に、ホバーの色が薄く戻らないよう、つかんでいる間も、ホバーの色のまま保つ
+            const power = pluckPower;
+            const hovTarget = (pair.hov && pair.hov.inside) || (pk0 && pk0.held) ? 1 : 0;
             const nowMs = performance.now();
             const dtg = pair.glowT ? Math.min(0.1, (nowMs - pair.glowT) / 1000) : 0;
             pair.glowT = nowMs;
             pair.glow += (power - pair.glow) * (1 - Math.exp(-dtg * 10));   // 色は、なめらかに変える
             if (power === 0 && pair.glow < 0.015) pair.glow = 0;
-            const hot = pair.glow > 0;
+            // 約95%変わるまでの時間が、dnaHoverIn / dnaHoverOut 秒になるように（時定数 = 時間 / 3）
+            pair.hovG += (hovTarget - pair.hovG) * (1 - Math.exp(-dtg * 3 / (hovTarget ? T.dnaHoverIn : T.dnaHoverOut)));
+            if (hovTarget === 0 && pair.hovG < 0.01) pair.hovG = 0;
+            const hot = pair.glow > 0 || pair.hovG > 0;
             const shake = power > T.pluckShakeStart ? (power - T.pluckShakeStart) / (1 - T.pluckShakeStart) : 0;
             const pts = centerline(pair, ca, cb, shake);
             // 中心線の長さ（弧長）。のびるほど長くなる
@@ -1034,17 +1042,29 @@ function initMemberDrag() {
             const g = pair.glow;
             const hp = pair.hp;
             if (!hp) return;
-            if (g > 0 && pair.hotStrings) {
+            if ((g > 0 || pair.hovG > 0) && pair.hotStrings) {
                 const s = pair.hotStrings;
+                const hg = pair.hovG;
                 hp.back.setAttribute('d', s.back);
                 hp.rungs.setAttribute('d', s.rungs);
                 hp.front.setAttribute('d', s.front);
-                hp.back.setAttribute('stroke', mixColor(DNA_COLOR, DNA_COLOR_MAX, g));
-                hp.back.setAttribute('stroke-opacity', String(0.28 + (0.55 - 0.28) * g));
-                hp.rungs.setAttribute('stroke', mixColor(DNA_RUNG_COLOR, DNA_RUNG_COLOR_MAX, g));
-                hp.rungs.setAttribute('stroke-opacity', String(0.5 + (0.85 - 0.5) * g));
-                hp.front.setAttribute('stroke', mixColor(DNA_COLOR, DNA_COLOR_MAX, g));
-                hp.front.setAttribute('stroke-opacity', String(0.6 + (0.95 - 0.6) * g));
+                // 色・不透明度：ふだん →（ホバー hg）→（引っ張り g）の順に、混ぜる。線の太さ・形は、変えない
+                const hov = T.dnaHoverColor;
+                const lerp = (a, b, t) => a + (b - a) * t;
+                // [色, 不透明度] = ふだん → ホバー → 引っ張り最大
+                const tone = (baseCol, baseOp, hovOp, maxCol, maxOp) => [
+                    mixColor(mixColor(baseCol, hov, hg), maxCol, g),
+                    lerp(lerp(baseOp, hovOp, hg), maxOp, g)
+                ];
+                const cb = tone(DNA_COLOR, 0.28, T.dnaHoverOpacity * 0.75, DNA_COLOR_MAX, 0.85);
+                const cr = tone(DNA_RUNG_COLOR, 0.5, T.dnaHoverOpacity * 0.85, DNA_RUNG_COLOR_MAX, 0.95);
+                const cf = tone(DNA_COLOR, 0.6, T.dnaHoverOpacity, DNA_COLOR_MAX, 1);
+                hp.back.setAttribute('stroke', cb[0]);
+                hp.back.setAttribute('stroke-opacity', String(cb[1]));
+                hp.rungs.setAttribute('stroke', cr[0]);
+                hp.rungs.setAttribute('stroke-opacity', String(cr[1]));
+                hp.front.setAttribute('stroke', cf[0]);
+                hp.front.setAttribute('stroke-opacity', String(cf[1]));
                 pair.wasHot = true;
             } else if (pair.wasHot) {
                 hp.back.setAttribute('d', '');
@@ -1862,6 +1882,7 @@ function initMemberDrag() {
         const p = pluck;
         pluck = null;
         p.pair.hit.style.cursor = 'grab';
+        wakeHover();   // 色が、ふだんの色へ戻るまで、描き直す
         if (!p.active) return;
         const pair = p.pair;
         pair.pluck.held = false;
@@ -1961,7 +1982,7 @@ function initMemberDrag() {
             v.dy += v.vy * dt;
             const moving = Math.abs(v.dx - tx) > 0.03 || Math.abs(v.dy - ty) > 0.03 || Math.abs(v.vx) > 0.1 || Math.abs(v.vy) > 0.1;
             if (!moving && !on) { v.dx = 0; v.dy = 0; v.vx = 0; v.vy = 0; }
-            if (moving || on || pair.glow > 0.02) dnaMoving = true;
+            if (moving || on || pair.glow > 0.02 || pair.hovG > 0.005) dnaMoving = true;
         });
         if (dnaMoving) { drawLinks(); active = true; }
         hoverRaf = active ? requestAnimationFrame(hoverTick) : 0;
@@ -2216,7 +2237,7 @@ function initMemberDrag() {
         let anyDna = false;
         pairs.forEach((pair) => {
             const hv = pair.hov;
-            const on = quiet && !hv.inside && !pair.pluck && Math.abs(hv.dx) + Math.abs(hv.dy) < 0.5 && pair.glow < 0.02;
+            const on = quiet && !hv.inside && !pair.pluck && Math.abs(hv.dx) + Math.abs(hv.dy) < 0.5 && pair.glow < 0.02 && pair.hovG < 0.02;
             const tau = on ? T.idleTauIn : T.idleTauOut;
             pair.idleW += ((on ? 1 : 0) - pair.idleW) * (1 - Math.exp(-dt / tau));
             if (pair.idleW < 0.002 && !on) pair.idleW = 0;
@@ -2259,7 +2280,7 @@ function initMemberDrag() {
     function resetLayout() {
         finish();
         finishPluck(false);
-        pairs.forEach((p) => { p.pluck = null; p.glow = 0; });
+        pairs.forEach((p) => { p.pluck = null; p.glow = 0; p.hovG = 0; });
         stopSim();               // 物理をいったん止める（速さもゼロにする）
         resetting = true;
         clearTimeout(resetTimer);
