@@ -397,6 +397,9 @@ a.search-result-item:hover {
 .member {
     position: relative;
     z-index: 2;
+    /* 当たり判定は、中の「円の画像」と「名前・役割の文字」だけにする。
+       四角い枠の角や、円の外にあるDNAの上では、写真ではなくDNAが反応する */
+    pointer-events: none;
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
@@ -417,8 +420,13 @@ a.search-result-item:hover {
     transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+.member img,
+.member-name,
+.member-role {
+    pointer-events: auto;
+}
+
 .member img {
-    pointer-events: none;
     -webkit-user-drag: none;
     display: block;
     width: 100%;

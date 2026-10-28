@@ -695,6 +695,9 @@ function initMemberDrag() {
         pluckK: 10,            // 引っ張ってたまる弾性エネルギー ½·k·（のび）² の、バネ定数
         pluckGain: 1.2,        // たまったエネルギーを、写真の勢いに変える倍率（反発倍率）
         pluckAlong: 0.45,      // DNAに沿った向きに引いても、距離の何割を「のび」として扱うか（のびなしでも弾けるように）
+        pluckGrabMin: 0.12,    // 【DNAをつかむ】つかめる位置の端の余白（0〜1）。端に近すぎると、接続点が外れるので、この割合だけ内側に制限する
+        pluckBias: 0.2,        // 【DNAをつかむ】つかんだ位置による、両端の写真への力の偏り（0で、左右同じ）。左をつかむと左の写真が、右をつかむと右の写真が、やや強く飛ぶ
+        hitPad: 26,            // 【DNAをつかむ】DNAの操作領域（透明）の余白(px)。らせんの幅＋この値が、操作領域の太さ
         pluckInward: 0.25,     // 弾くとき、両端の写真に「おたがいへ向かう成分」をどのくらい混ぜるか
         pluckMaxSpeed: 2000,   // 【発射の速さ】DNAを弾いたときの、写真の速さの上限(px/秒)。なめらかに頭打ちになる
         pluckBoost: 0.45,      // 【発射の速さ】強く引くほど、さらに速くする度合い（0で、引いた距離に比例するだけ）
@@ -818,6 +821,7 @@ function initMemberDrag() {
             h.setAttribute('stroke', 'transparent');
             h.setAttribute('stroke-width', '30');
             h.setAttribute('stroke-linecap', 'round');
+            h.setAttribute('stroke-linejoin', 'round');
             h.style.pointerEvents = 'stroke';
             h.style.cursor = 'grab';
             h.addEventListener('pointerdown', (e) => startPluck(pair, e));
@@ -842,18 +846,34 @@ function initMemberDrag() {
         const jy = a * (Math.cos(now * 0.083) + 0.6 * Math.sin(now * 0.117));
         const gx = ca.x + (cb.x - ca.x) * u + pk.dx + jx;
         const gy = ca.y + (cb.y - ca.y) * u + pk.dy + jy;
-        const den = 2 * u * (1 - u);
-        const qx = (gx - (1 - u) * (1 - u) * ca.x - u * u * cb.x) / den;
-        const qy = (gy - (1 - u) * (1 - u) * ca.y - u * u * cb.y) / den;
+        // つかんだ点 G を、いちばん曲がる（chordから、いちばん離れる）場所にする。
+        // 左の写真 A → G → 右の写真 B を、なめらかにつなぐ曲線（エルミート補間を、前半・後半に分けて使う）。
+        // G での向きは、A→B の向きにそろえるので、G が山のてっぺんになる。つかむ位置によって、曲がる場所が左右に移る
+        const cdx = cb.x - ca.x;
+        const cdy = cb.y - ca.y;
+        const cl = Math.hypot(cdx, cdy) || 1;
+        const ux = cdx / cl;
+        const uy = cdy / cl;
         const pts = [];
-        const n = 48;
-        for (let i = 0; i <= n; i++) {
-            const t = i / n;
-            const a = (1 - t) * (1 - t);
-            const b = 2 * t * (1 - t);
-            const c = t * t;
-            pts.push([a * ca.x + b * qx + c * cb.x, a * ca.y + b * qy + c * cb.y]);
-        }
+        const n = 24;   // 前半・後半、それぞれの分割数
+        const hermite = (px, py, qx, qy, m0x, m0y, m1x, m1y, from) => {
+            for (let i = from; i <= n; i++) {
+                const s = i / n;
+                const s2 = s * s;
+                const s3 = s2 * s;
+                const h00 = 2 * s3 - 3 * s2 + 1;
+                const h10 = s3 - 2 * s2 + s;
+                const h01 = -2 * s3 + 3 * s2;
+                const h11 = s3 - s2;
+                pts.push([h00 * px + h10 * m0x + h01 * qx + h11 * m1x, h00 * py + h10 * m0y + h01 * qy + h11 * m1y]);
+            }
+        };
+        const l1 = Math.hypot(gx - ca.x, gy - ca.y);
+        const l2 = Math.hypot(cb.x - gx, cb.y - gy);
+        // 前半：A → G（Aでは G の向き、G では A→B の向き）
+        hermite(ca.x, ca.y, gx, gy, gx - ca.x, gy - ca.y, ux * l1, uy * l1, 0);
+        // 後半：G → B（G では A→B の向き、B では B へ向かう向き）
+        hermite(gx, gy, cb.x, cb.y, ux * l2, uy * l2, cb.x - gx, cb.y - gy, 1);
         return pts;
     }
 
@@ -900,6 +920,8 @@ function initMemberDrag() {
             };
             const turns = pair.turns;   // 回転数は一定。のびると間隔が広がる
             const amp = DNA_AMPLITUDE * clamp(pair.l0 / len, 0.5, 1.15); // のびると、すこし細くなる
+            // 操作領域（透明）の太さ：2本のらせんと、そのあいだ全体を含む。見えているDNAの幅に、いつも合わせる
+            pair.hit.setAttribute('stroke-width', String(Math.round(2 * amp + T.hitPad)));
             const s0 = ca.r * 0.5;            // 写真の下に隠れる部分は描かない
             const s1 = len - cb.r * 0.5;
             if (s1 <= s0) return;
@@ -1582,7 +1604,7 @@ function initMemberDrag() {
 
     members.forEach((el) => {
         el.addEventListener('pointerdown', (e) => {
-            if (drag || resetting) return;
+            if (drag || pluck || resetting) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             const o = offsets.get(el);
             drag = {
@@ -1643,13 +1665,18 @@ function initMemberDrag() {
         const pt = mainPoint(e.clientX, e.clientY);
         const vx = cb.x - ca.x;
         const vy = cb.y - ca.y;
-        // つまんだ位置が、2つの写真のあいだの、どのあたりか（0〜1）。両端に近すぎないようにする
-        const u = clamp(((pt.x - ca.x) * vx + (pt.y - ca.y) * vy) / (vx * vx + vy * vy || 1), 0.2, 0.8);
+        // つまんだ位置が、見えているDNA（左の写真の縁〜右の写真の縁）の、どのあたりか。f: 0＝左（接続元）、0.5＝中央、1＝右（接続先）
+        // 端に近すぎると接続点が外れるので、pluckGrabMin の割合だけ内側に制限する
+        const dist = Math.hypot(vx, vy) || 1;
+        const visible = Math.max(10, dist - ca.r - cb.r);
+        const proj = ((pt.x - ca.x) * vx + (pt.y - ca.y) * vy) / dist;   // 左の写真の中心から、つまんだ位置までの距離
+        const f = clamp((proj - ca.r) / visible, T.pluckGrabMin, 1 - T.pluckGrabMin);
+        const u = (ca.r + f * visible) / dist;   // 中心どうしを結ぶ線上での割合。曲がる場所は、ここ
         pluck = {
             pair: pair, id: e.pointerId, type: e.pointerType,
             x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY,
             sx0: window.scrollX, sy0: window.scrollY,
-            u: u, baseX: 0, baseY: 0, active: false, timer: 0
+            u: u, f: f, baseX: 0, baseY: 0, active: false, timer: 0
         };
         if (e.pointerType === 'touch') {
             pluck.timer = setTimeout(beginPluck, LONG_PRESS_MS);
@@ -1678,6 +1705,7 @@ function initMemberDrag() {
         const prev = pair.pluck;   // 揺れている最中につままれたときは、いまの形から続ける
         pair.pluck = {
             u: prev ? prev.u : pluck.u,
+            f: prev ? prev.f : pluck.f,
             dx: prev ? prev.dx : 0, dy: prev ? prev.dy : 0,
             vx: 0, vy: 0, held: true
         };
@@ -1727,7 +1755,9 @@ function initMemberDrag() {
         const power = clamp(m / (T.pluckMax * T.pluckFullFrac), 0, 1);   // 引いた距離の割合
         const fx = -pk.dx / m;   // 引っ張った向きの、反対
         const fy = -pk.dy / m;
-        [[A, ca, cb], [B, cb, ca]].forEach((it) => {
+        // つかんだ位置による力の偏り：左をつかむと、左の写真（A）がやや強く、右をつかむと、右の写真（B）がやや強く。中央は同じ
+        const bias = T.pluckBias * (1 - 2 * pk.f);
+        [[A, ca, cb, 1 + bias], [B, cb, ca, 1 - bias]].forEach((it) => {
             const b = body.get(it[0]);
             let ix = it[2].x - it[1].x;
             let iy = it[2].y - it[1].y;
@@ -1742,7 +1772,7 @@ function initMemberDrag() {
             // 速さ = √(2E / 質量) × 反発倍率。上限つき
             // 軽い引っ張りでは、これまでと同じ（ほぼ比例）。強く引くほど伸びて、上限 pluckMaxSpeed に、なめらかに近づく
             // さらに、引いた距離の割合（0〜1）の2乗に応じて増やす：軽い引っ張りはほぼ変わらず、強く引くほど速くなる
-            const raw = Math.sqrt(2 * energy / b.mass) * T.pluckGain * (1 + T.pluckBoost * power * power);
+            const raw = Math.sqrt(2 * energy / b.mass) * T.pluckGain * (1 + T.pluckBoost * power * power) * it[3];
             const speed = T.pluckMaxSpeed * Math.tanh(raw / T.pluckMaxSpeed);
             b.vx += dx * speed;
             b.vy += dy * speed;
