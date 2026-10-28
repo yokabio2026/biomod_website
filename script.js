@@ -689,8 +689,10 @@ function initMemberDrag() {
         dnaGradVividB: '#3E9BF0',  // 【DNAの引っ張り】少し鮮やかな青
         dnaGradVividC: '#EB5FA3',  // 【DNAの引っ張り】少し鮮やかなピンク
         dnaGradPeriod: 4,          // 【DNAのホバー】グラデーションが、1周して元の位置に戻る時間(秒)。色は、流れ続ける
-        dnaBulge: 0.2,             // 【DNAのホバー】触れた付近の、二重らせんの幅の増え方（0.2 = 約1.2倍）。見た目だけ
-        dnaBulgeRadius: 110,       // 【DNAのホバー】膨らみが、ゆるやかに消えるまでの、長さ方向の広がり(px)
+        dnaThick: 1.85,            // 【DNAのホバー】触れた付近の、線の太さの倍率（約1.7〜2倍）。2本の主鎖・横棒とも。ふだんの太さは、変わらない
+        dnaThickRadius: 150,       // 【DNAのホバー】太さが、ゆるやかにふだんへ戻るまでの、長さ方向の広がり(px)。変わる速さは、dnaHoverIn / dnaHoverOut と同じ
+        dnaBulge: 0,               // 【DNAのホバー】触れた付近の、二重らせんの「幅」の増え方（0 = 広げない。0.2 で約1.2倍）。線の太さとは、別
+        dnaBulgeRadius: 110,       // 【DNAのホバー】らせんの幅が広がる場合の、長さ方向の広がり(px)
         dnaBulgeFollow: 0.08,      // 【DNAのホバー】カーソルを動かしたとき、膨らみが、少し遅れて追いかける時間(秒)。大きいほど、遅れる
         dnaBulgeK: 260,            // 【DNAのホバー】膨らみの「ぷにっ」のバネの強さ
         dnaBulgeC: 14,             // 【DNAのホバー】膨らみの減衰（小さいほど、ぷるぷるが長い）
@@ -797,6 +799,7 @@ function initMemberDrag() {
     const DNA_COLOR_MAX = '#2b1055';       // 最大パワーのときの、サイトのテーマカラーの濃い紫
     const DNA_RUNG_COLOR_MAX = '#4b2e8c';
     const DNA_RUNG_COLOR = '#a98bea';
+    const THICK_LEVELS = 8;       // ホバー中の、線の太さの段階の数（段の差は、約0.1px。つなぎ目は見えない）
 
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('class', 'dna-links');
@@ -887,8 +890,10 @@ function initMemberDrag() {
         // DNAをつまむための、透明な操作判定領域（見た目は変えない）。写真より奥にあるので、重なる所では写真が優先される
         pairs.forEach((pair) => {
             // つまんでいる間だけ使う、色が変わるパス（そのDNAだけに適用する）
-            pair.hp = { back: addPath(DNA_COLOR, 1.4, 0.28), rungs: addPath(DNA_RUNG_COLOR, 1.1, 0.5), front: addPath(DNA_COLOR, 1.8, 0.6) };
-            hitEls.push(pair.hp.back, pair.hp.rungs, pair.hp.front);
+            // 線の太さの段階ごとに、1本ずつ持つ（段階 k の太さは、更新のたびに決める）
+            const lvPaths = (color, width, opacity) => Array.from({ length: THICK_LEVELS }, () => addPath(color, width, opacity));
+            pair.hp = { back: lvPaths(DNA_COLOR, 1.4, 0.28), rungs: lvPaths(DNA_RUNG_COLOR, 1.1, 0.5), front: lvPaths(DNA_COLOR, 1.8, 0.6) };
+            hitEls.push(...pair.hp.back, ...pair.hp.rungs, ...pair.hp.front);
             pair.gs = makeGradient();   // 線用
             pair.gr = makeGradient();   // 横棒用（ふだんの色が、線と少しちがうため、別に持つ）
             hitEls.push(pair.gs.el, pair.gr.el);
@@ -1035,8 +1040,11 @@ function initMemberDrag() {
             // 操作判定領域も、曲がったDNAに沿わせる
             pair.hit.setAttribute('d', 'M' + pts.map((p) => fmt(p[0], p[1])).join(' L'));
             const pk = pair.pluck;
-            const o = hot ? { back: '', rungs: '', front: '' } : out.n;
-            pair.hotStrings = hot ? o : null;
+            // ホバー中のDNAは、線の太さごとに、THICK_LEVELS 本ずつのパスに分けて描く（太さは、パスごとに1つしか決められないため）。
+            // ふだんのDNAは、今までどおり、太さが1種類のパスにまとめる
+            const hotB = hot ? { back: Array(THICK_LEVELS).fill(''), rungs: Array(THICK_LEVELS).fill(''), front: Array(THICK_LEVELS).fill('') } : null;
+            const put = (kind, lv, str) => { if (hotB) hotB[kind][lv] += str; else out.n[kind] += str; };
+            pair.hotStrings = hotB;
             // 弧長 s の位置の、点と向き
             const pointAt = (s) => {
                 let i = 1;
@@ -1068,27 +1076,42 @@ function initMemberDrag() {
                 const w = sign * ampAt(s) * Math.sin(theta(s));
                 return [p[0] - p[3] * w, p[1] + p[2] * w];
             };
-            // ストランドを、奥側・手前側に分けて折れ線にする
+            // 線の太さの段階（0 = ふだん 〜 THICK_LEVELS-1 = 最大）：触れた付近が最も太く、なめらかに（余弦の形で）ふだんの太さへ戻る。
+            // 写真とのつなぎ目の近くでは、不自然に太くならないよう、写真のふちから離れるにつれて、太くなる
+            const thickC = bl.u * len;
+            const lvAt = (s) => {
+                if (!hotB || pair.hovG < 0.002) return 0;
+                const d = Math.abs(s - thickC);
+                if (d >= T.dnaThickRadius) return 0;
+                const edge = clamp(Math.min(s - ca.r, len - cb.r - s) / 36, 0, 1);
+                const k = pair.hovG * 0.5 * (1 + Math.cos(Math.PI * d / T.dnaThickRadius)) * edge;
+                return Math.round(k * (THICK_LEVELS - 1));
+            };
+            // ストランドを、奥側・手前側、太さの段階ごとに分けて折れ線にする（つなぎ目は、丸い端でつなぐので、目立たない）
             [1, -1].forEach((sign) => {
-                let isFrontSeg = null;
+                let curF = null;
+                let curL = 0;
                 let seg = '';
                 for (let i = 0; i <= steps; i++) {
                     const s = s0 + (s1 - s0) * (i / steps);
                     const f = sign * Math.cos(theta(s)) >= 0;
+                    const lv = lvAt(s);
                     const p = strandPoint(s, sign);
-                    if (isFrontSeg === null) {
-                        isFrontSeg = f;
+                    if (curF === null) {
+                        curF = f;
+                        curL = lv;
                         seg = 'M' + fmt(p[0], p[1]);
-                    } else if (f !== isFrontSeg) {
+                    } else if (f !== curF || lv !== curL) {
                         seg += ' L' + fmt(p[0], p[1]);
-                        if (isFrontSeg) o.front += seg; else o.back += seg;
-                        isFrontSeg = f;
+                        put(curF ? 'front' : 'back', curL, seg);
+                        curF = f;
+                        curL = lv;
                         seg = 'M' + fmt(p[0], p[1]);
                     } else {
                         seg += ' L' + fmt(p[0], p[1]);
                     }
                 }
-                if (isFrontSeg) o.front += seg; else o.back += seg;
+                put(curF ? 'front' : 'back', curL, seg);
             });
             // 横棒
             const rungStep = Math.PI * 2 / DNA_RUNGS_PER_TURN;
@@ -1099,7 +1122,7 @@ function initMemberDrag() {
                 const s = (th / (turns * Math.PI * 2)) * len;
                 const p = strandPoint(s, 1);
                 const q = strandPoint(s, -1);
-                o.rungs += 'M' + fmt(p[0], p[1]) + ' L' + fmt(q[0], q[1]);
+                put('rungs', lvAt(s), 'M' + fmt(p[0], p[1]) + ' L' + fmt(q[0], q[1]));
             }
         });
         pairs.forEach((pair) => {
@@ -1109,9 +1132,6 @@ function initMemberDrag() {
             if ((g > 0 || pair.hovG > 0 || pair.bul.w > 0) && pair.hotStrings) {
                 const s = pair.hotStrings;
                 const hg = pair.hovG;
-                hp.back.setAttribute('d', s.back);
-                hp.rungs.setAttribute('d', s.rungs);
-                hp.front.setAttribute('d', s.front);
                 // 色：ふだんの薄紫 →（ホバー hg）紫・青・ピンクのグラデーション →（引っ張り g）少し鮮やかに。
                 // 引っ張りは、グラデーションを残したまま、鮮やかさと不透明度で表す（ホバーの色と、競合しない）。線の太さ・形は、変えない
                 const grad = [T.dnaGradA, T.dnaGradB, T.dnaGradC];
@@ -1129,17 +1149,29 @@ function initMemberDrag() {
                 });
                 const lerp = (a, b, t) => a + (b - a) * t;
                 const op = (baseOp, hovOp, maxOp) => String(lerp(lerp(baseOp, hovOp, hg), maxOp, g));
-                hp.back.setAttribute('stroke', pair.gs.ref);
-                hp.back.setAttribute('stroke-opacity', op(0.28, T.dnaHoverOpacity * 0.75, 0.85));
-                hp.rungs.setAttribute('stroke', pair.gr.ref);
-                hp.rungs.setAttribute('stroke-opacity', op(0.5, T.dnaHoverOpacity * 0.85, 0.95));
-                hp.front.setAttribute('stroke', pair.gs.ref);
-                hp.front.setAttribute('stroke-opacity', op(0.6, T.dnaHoverOpacity, 1));
+                // 線の太さ：段階 k のパスの太さ = ふだんの太さ × (1 〜 dnaThick)。2本の主鎖（奥・手前）も横棒も、同じ倍率で、自然に太くなる
+                const kinds = [
+                    ['back', 1.4, pair.gs.ref, op(0.28, T.dnaHoverOpacity * 0.75, 0.85)],
+                    ['rungs', 1.1, pair.gr.ref, op(0.5, T.dnaHoverOpacity * 0.85, 0.95)],
+                    ['front', 1.8, pair.gs.ref, op(0.6, T.dnaHoverOpacity, 1)]
+                ];
+                kinds.forEach((kd) => {
+                    for (let k = 0; k < THICK_LEVELS; k++) {
+                        const el = hp[kd[0]][k];
+                        const str = s[kd[0]][k];
+                        if (!str) {
+                            if (el.getAttribute('d')) el.setAttribute('d', '');
+                            continue;
+                        }
+                        el.setAttribute('d', str);
+                        el.setAttribute('stroke', kd[2]);
+                        el.setAttribute('stroke-opacity', kd[3]);
+                        el.setAttribute('stroke-width', (kd[1] * (1 + (T.dnaThick - 1) * k / (THICK_LEVELS - 1))).toFixed(2));
+                    }
+                });
                 pair.wasHot = true;
             } else if (pair.wasHot) {
-                hp.back.setAttribute('d', '');
-                hp.rungs.setAttribute('d', '');
-                hp.front.setAttribute('d', '');
+                ['back', 'rungs', 'front'].forEach((kind) => hp[kind].forEach((el) => el.setAttribute('d', '')));
                 pair.wasHot = false;
             }
         });
