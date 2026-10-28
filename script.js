@@ -657,73 +657,75 @@ function initMemberDrag() {
     const EDGE_SCROLL_ZONE = 80; // 画面の上下端からこの距離(px)以内で自動スクロール
     const EDGE_SCROLL_STEP = 12;
 
+    /* ---- 調整できる数値 ----
+       ブラウザのコンソールで、たとえば  teamPhysics.springK = 12  のように書き換えても、すぐ反映される */
+    const T = {
+        springK: 8,            // DNAのバネ定数：大きいほど強く引き寄せる
+        springK2: 0.012,       // のびるほど、引く力が少しずつ強くなる度合い
+        springC: 1.0,          // DNAの減衰係数：大きいほど、揺れが早くおさまる
+        springDeadzone: 0.5,   // このくらいののびには力をかけない（初期配置で勝手に動かないように）
+        springBrake: 10,       // 自然長より近づいたとき、近づく勢いだけを弱めるブレーキ（押し返しはしない）
+        maxPull: 2400,         // 引く力（加速度）の上限
+        gap: 8,                // 写真どうしのすきま(px)
+        restitution: reduceMotion ? 0 : 0.35,   // 弾み具合（中くらい）
+        bounceMinSpeed: 20,    // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
+        frictionBase: 1.6,     // 動いている写真の減速（ゆっくり動くとき）
+        frictionQuad: 0.02,    // 速く動くほど、強く減速する度合い
+        maxSpeed: 800,         // 弾かれる速さの上限(px/秒)
+        wallRestitution: 0.4,  // 壁での弾み具合
+        jellyK: 300,           // ぷるぷるのバネの強さ
+        jellyC: 13,            // ぷるぷるの減衰（約0.4秒でほぼ止まる）
+        jellyMax: 0.12,        // つぶれる量の上限（12%）
+        jellyHit: 1.6          // 最大の勢いでぶつかったときの、つぶれの強さ
+    };
+    window.teamPhysics = T;
+
     const offsets = new Map();   // 各写真の「元の位置からのずれ」(px)
     members.forEach((el) => offsets.set(el, { x: 0, y: 0 }));
+    // 写真ごとの、動ける場所＝その写真が属するセクション（Team Member / Mentor / Faculty Mentor）
+    const groupOf = new Map();
+    members.forEach((el) => groupOf.set(el, el.closest('.content-section') || main));
+    const body = new Map();      // 写真ごとの、速さ・ひしゃげ具合・重さ
+    members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1 }));
+    const homes = new Map();     // 写真ごとの、元の位置（中心）
+    const radii = new Map();     // 写真ごとの、円の半径
     let zTop = 10;
     let drag = null;
     let rafId = 0;
+    let resetting = false;       // 「元の位置に戻す」アニメーション中は、物理を止める
+    let resetTimer = 0;
+    let boundsCache = null;
+    let simId = 0;
+    let lastT = 0;
+    let pairs = [];              // DNAでつなぐ写真の組（同じ行で、となりどうし）。l0 は元の並びでの中心間の距離
 
-    /* ---- 写真どうしをつなぐDNA（SVG）。手描きの水彩風。
-            絵の具を何層か重ねて、縁のにじみ・色の濃淡・筆のかすれを出す。
-            写真を動かすと、のびたり縮んだりしてつながったままになる ---- */
+    /* ---- 写真どうしをつなぐDNA（SVG）。細い紫の線画。写真より奥に描く ---- */
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const DNA_PERIOD = 90;        // 元の並びのとき、らせん1回転ぶんの長さ(px)
-    const DNA_AMPLITUDE = 28;     // らせんの振れ幅(px)
+    const DNA_AMPLITUDE = 22;     // らせんの振れ幅(px)
     const DNA_RUNGS_PER_TURN = 5; // 1回転あたりの横棒（塩基対）の数
-    const DNA_RIBBON_WIDTH = 21;  // ストランド（リボン）の太さ(px)
-    // 色：A=ピンク、B=青。base=薄い下塗り、mid=中間、deep=濃いところ、pale=絵の具が薄くなったところ
-    const PALETTE = {
-        A: { base: '#f393b1', mid: '#e46a90', deep: '#bd356a', pale: '#fcd3df' },
-        B: { base: '#80b7ee', mid: '#4f93de', deep: '#2a60bb', pale: '#d2e6fb' }
-    };
+    const DNA_COLOR = '#7a3fd1';  // ストランド（サイトの紫）
+    const DNA_RUNG_COLOR = '#a98bea';
 
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('class', 'dna-links');
     svg.setAttribute('aria-hidden', 'true');
-    // 塗りつぶし用（fill）・線用（stroke）のパスを作る。multiply は、重なったところが透けて混ざって見える水彩の効果
-    function addPath(opts) {
+    function addPath(color, width, opacity) {
         const p = document.createElementNS(SVG_NS, 'path');
-        p.setAttribute('fill', opts.fill || 'none');
-        p.setAttribute('stroke', opts.stroke || 'none');
-        if (opts.width) p.setAttribute('stroke-width', String(opts.width));
+        p.setAttribute('fill', 'none');
+        p.setAttribute('stroke', color);
+        p.setAttribute('stroke-width', String(width));
         p.setAttribute('stroke-linecap', 'round');
         p.setAttribute('stroke-linejoin', 'round');
-        p.setAttribute('opacity', String(opts.opacity));
-        if (opts.dash) p.setAttribute('stroke-dasharray', opts.dash);
-        if (opts.multiply) p.style.mixBlendMode = 'multiply';
-        if (opts.blur) p.style.filter = 'blur(' + opts.blur + 'px)';
+        p.setAttribute('stroke-opacity', String(opacity));
         svg.appendChild(p);
         return p;
     }
-    // 描く順番＝奥から手前。同じ層は、ピンクと青をまとめて描く
-    const P = { A: {}, B: {} };
-    const pathRungsA = addPath({ fill: PALETTE.A.mid, opacity: 0.8, multiply: true });
-    const pathRungsB = addPath({ fill: PALETTE.B.mid, opacity: 0.8, multiply: true });
-    [
-        ['base', (c) => ({ fill: c.base, opacity: 0.62, multiply: true })],
-        ['mid', (c) => ({ fill: c.mid, opacity: 0.5, multiply: true })],
-        ['pale', (c) => ({ stroke: c.pale, width: 7, opacity: 0.5 })],
-        ['deep', (c) => ({ stroke: c.deep, width: 10, opacity: 0.38, multiply: true, blur: 1.6 })],
-        ['streak', (c) => ({ stroke: c.deep, width: 1.6, opacity: 0.32, multiply: true })],
-        ['chalk', () => ({ stroke: '#ffffff', width: 1, opacity: 0.55, dash: '10 7 3 9 18 6' })]
-    ].forEach((layer) => {
-        ['A', 'B'].forEach((k) => { P[k][layer[0]] = addPath(layer[1](PALETTE[k])); });
-    });
+    // 描く順番＝奥から手前。奥側のストランド → 横棒 → 手前側のストランド
+    const pathBack = addPath(DNA_COLOR, 1.4, 0.28);
+    const pathRungs = addPath(DNA_RUNG_COLOR, 1.1, 0.5);
+    const pathFront = addPath(DNA_COLOR, 1.8, 0.6);
     main.insertBefore(svg, main.firstChild);
-
-    // なめらかな乱数（手描きのゆらぎ用）。同じ入力には同じ値を返すので、動かしてもちらつかない
-    function hash(i, seed) {
-        const x = Math.sin(i * 127.1 + seed * 311.7) * 43758.5453;
-        return x - Math.floor(x);
-    }
-    function noise(x, seed) {
-        const i = Math.floor(x);
-        const f = x - i;
-        const u = f * f * (3 - 2 * f);
-        return hash(i, seed) * (1 - u) + hash(i + 1, seed) * u;   // 0〜1
-    }
-
-    let pairs = [];   // つなぐ写真の組（同じ行で、となりどうし）。l0 は元の並びでの中心間の距離
 
     function photoCenter(el) {
         const r = el.querySelector('img').getBoundingClientRect();
@@ -731,7 +733,18 @@ function initMemberDrag() {
         return { x: r.left - mr.left + r.width / 2, y: r.top - mr.top + r.height / 2, r: r.width / 2 };
     }
 
-    // 動かす前の位置から、「同じ行のとなりどうし」を調べる（画面の幅が変わるたびにやり直す）
+    // 写真ごとの元の位置と半径を測る（画面の幅が変わるたびにやり直す）
+    function measureHomes() {
+        members.forEach((el) => {
+            const c = photoCenter(el);
+            const o = offsets.get(el);
+            homes.set(el, { x: c.x - o.x, y: c.y - o.y });
+            radii.set(el, el.querySelector('img').offsetWidth / 2);
+        });
+        boundsCache = null;
+    }
+
+    // 動かす前の位置から、「同じ行のとなりどうし」を調べる。バネの自然長は、このときの距離
     function computePairs() {
         measureHomes();
         pairs = [];
@@ -739,24 +752,20 @@ function initMemberDrag() {
         for (let i = 0; i + 1 < list.length; i++) {
             const a = list[i];
             const b = list[i + 1];
-            const oa = offsets.get(a);
-            const ob = offsets.get(b);
-            const ca = photoCenter(a);
-            const cb = photoCenter(b);
-            const ax = ca.x - oa.x, ay = ca.y - oa.y;
-            const bx = cb.x - ob.x, by = cb.y - ob.y;
-            if (Math.abs(ay - by) > 4 || bx <= ax) continue;   // 行が変わるところはつなげない
-            pairs.push({ a: a, b: b, l0: Math.hypot(bx - ax, by - ay), seed: pairs.length + 1 });
+            if (groupOf.get(a) !== groupOf.get(b)) continue;
+            const ha = homes.get(a);
+            const hb = homes.get(b);
+            if (Math.abs(ha.y - hb.y) > 4 || hb.x <= ha.x) continue;   // 行が変わるところはつなげない
+            pairs.push({ a: a, b: b, l0: Math.hypot(hb.x - ha.x, hb.y - ha.y) });
         }
     }
 
     const fmt = (x, y) => x.toFixed(1) + ' ' + y.toFixed(1);
 
     function drawLinks() {
-        const layers = ['base', 'mid', 'pale', 'deep', 'streak', 'chalk'];
-        const d = { A: {}, B: {}, rungsA: '', rungsB: '' };
-        ['A', 'B'].forEach((k) => layers.forEach((l) => { d[k][l] = ''; }));
-
+        let back = '';
+        let front = '';
+        let rungs = '';
         pairs.forEach((pair) => {
             const ca = photoCenter(pair.a);
             const cb = photoCenter(pair.b);
@@ -766,135 +775,54 @@ function initMemberDrag() {
             if (len < 1) return;
             const ux = dx / len, uy = dy / len;
             const nx = -uy, ny = ux;
-            const seed = pair.seed;
-            const turns = Math.max(1.5, pair.l0 / DNA_PERIOD);   // 回転数は一定。のばすと間隔が広がる
-            const amp = DNA_AMPLITUDE * Math.min(1.2, Math.max(0.55, pair.l0 / len)); // のばすと、すこし細くなる
-            const s0 = ca.r * 0.4;            // 写真の下に隠れる部分も、すこし描く
-            const s1 = len - cb.r * 0.4;
+            const turns = Math.max(1.5, pair.l0 / DNA_PERIOD);   // 回転数は一定。のびると間隔が広がる
+            const amp = DNA_AMPLITUDE * Math.min(1.15, Math.max(0.5, pair.l0 / len)); // のびると、すこし細くなる
+            const s0 = ca.r * 0.5;            // 写真の下に隠れる部分は描かない
+            const s1 = len - cb.r * 0.5;
             if (s1 <= s0) return;
+            const steps = Math.min(400, Math.max(16, Math.ceil((s1 - s0) / 4)));
             const theta = (s) => (s / len) * turns * Math.PI * 2;
-            const center = (s, sign) => {
+            const point = (s, sign) => {
                 const w = sign * amp * Math.sin(theta(s));
                 return [ca.x + ux * s + nx * w, ca.y + uy * s + ny * w];
             };
-            // ゆらぎの座標：元の並びでの位置で決める（のばしても、模様が一緒にのびる）
-            const noiseX = (s) => (s / len) * pair.l0;
-            const steps = Math.min(300, Math.max(24, Math.ceil((s1 - s0) / 3)));
-
+            // ストランドを、奥側・手前側に分けて折れ線にする
             [1, -1].forEach((sign) => {
-                const key = sign === 1 ? 'A' : 'B';
-                const sd = seed * 10 + (sign > 0 ? 1 : 2);
-                // 筆の通り道：中心の点と、太さ（手前ほど太く、さらに手描きのむら）
-                const mid = [];
+                let isFrontSeg = null;
+                let seg = '';
                 for (let i = 0; i <= steps; i++) {
                     const s = s0 + (s1 - s0) * (i / steps);
-                    const c = center(s, sign);
-                    const c2 = center(s + 1.5, sign);
-                    let tx = c2[0] - c[0], ty = c2[1] - c[1];
-                    const tl = Math.hypot(tx, ty) || 1;
-                    tx /= tl; ty /= tl;
-                    const x = noiseX(s);
-                    const wob = 1 + 0.45 * (noise(x / 34, sd + 3) - 0.5);
-                    const w = DNA_RIBBON_WIDTH * (0.78 + 0.3 * Math.abs(Math.cos(theta(s)))) * wob;
-                    mid.push({ c: c, px: -ty, py: tx, w: w, x: x });
+                    const f = sign * Math.cos(theta(s)) >= 0;
+                    const p = point(s, sign);
+                    if (isFrontSeg === null) {
+                        isFrontSeg = f;
+                        seg = 'M' + fmt(p[0], p[1]);
+                    } else if (f !== isFrontSeg) {
+                        seg += ' L' + fmt(p[0], p[1]);
+                        if (isFrontSeg) front += seg; else back += seg;
+                        isFrontSeg = f;
+                        seg = 'M' + fmt(p[0], p[1]);
+                    } else {
+                        seg += ' L' + fmt(p[0], p[1]);
+                    }
                 }
-                // 縁のゆらぎをつけた帯（層ごとに、太さとゆらぎの種を変えて、にじみを出す）
-                const band = (scale, off, ampE) => {
-                    const left = [];
-                    const right = [];
-                    mid.forEach((m) => {
-                        const el = m.w * scale / 2 * (1 + ampE * (noise(m.x / 11, sd + 7 + off) - 0.5) + ampE * 0.45 * (noise(m.x / 3.2, sd + 9 + off) - 0.5));
-                        const er = m.w * scale / 2 * (1 + ampE * (noise(m.x / 11, sd + 13 + off) - 0.5) + ampE * 0.45 * (noise(m.x / 3.2, sd + 15 + off) - 0.5));
-                        left.push([m.c[0] + m.px * el, m.c[1] + m.py * el]);
-                        right.push([m.c[0] - m.px * er, m.c[1] - m.py * er]);
-                    });
-                    let poly = 'M' + fmt(left[0][0], left[0][1]);
-                    for (let i = 1; i < left.length; i++) poly += ' L' + fmt(left[i][0], left[i][1]);
-                    for (let i = right.length - 1; i >= 0; i--) poly += ' L' + fmt(right[i][0], right[i][1]);
-                    return poly + ' Z';
-                };
-                d[key].base += band(1.0, 0, 0.55);
-                d[key].mid += band(0.8, 100, 0.7);
-
-                // 帯の中心からずらした位置の点（lateral は太さに対する割合）
-                const at = (m, lateral) => [m.c[0] + m.px * m.w * lateral, m.c[1] + m.py * m.w * lateral];
-
-                // 濃いところ／薄いところ：場所によってむらがある
-                let inDeep = false;
-                let inPale = false;
-                mid.forEach((m) => {
-                    const dk = noise(m.x / 26, sd + 21);
-                    const pl = noise(m.x / 20, sd + 31);
-                    const shift = (noise(m.x / 30, sd + 41) - 0.5) * 0.45;
-                    if (dk > 0.5) {
-                        const p = at(m, shift);
-                        d[key].deep += (inDeep ? ' L' : ' M') + fmt(p[0], p[1]);
-                        inDeep = true;
-                    } else {
-                        inDeep = false;
-                    }
-                    if (pl < 0.3) {
-                        const p = at(m, -shift);
-                        d[key].pale += (inPale ? ' L' : ' M') + fmt(p[0], p[1]);
-                        inPale = true;
-                    } else {
-                        inPale = false;
-                    }
-                });
-                // 筆のかすれ：リボンに沿った細い線を、とぎれとぎれに引く
-                [-0.3, 0.02, 0.28].forEach((off, n) => {
-                    let inStreak = false;
-                    mid.forEach((m) => {
-                        if (noise(m.x / 16, sd + 51 + n * 5) > 0.45) {
-                            const p = at(m, off + (noise(m.x / 40, sd + 61 + n) - 0.5) * 0.14);
-                            d[key].streak += (inStreak ? ' L' : ' M') + fmt(p[0], p[1]);
-                            inStreak = true;
-                        } else {
-                            inStreak = false;
-                        }
-                    });
-                });
-                // 縁の内側の、白いかすれた細い破線（両側）
-                [-0.34, 0.34].forEach((off) => {
-                    mid.forEach((m, i) => {
-                        const p = at(m, off);
-                        d[key].chalk += (i ? ' L' : ' M') + fmt(p[0], p[1]);
-                    });
-                });
+                if (isFrontSeg) front += seg; else back += seg;
             });
-
-            // 横棒：片側はピンク、反対側は青。まん中で重なって混ざる。すこし斜めで、太さもばらばら
+            // 横棒
             const rungStep = Math.PI * 2 / DNA_RUNGS_PER_TURN;
             const th0 = theta(s0);
             const th1 = theta(s1);
             for (let th = Math.ceil(th0 / rungStep) * rungStep + rungStep / 2; th < th1; th += rungStep) {
-                if (Math.abs(Math.sin(th)) < 0.3) continue;   // 交差のところは、リボンのうしろなので描かない
-                const k = Math.round(th / rungStep);
-                const s = (th / (turns * Math.PI * 2)) * len + (hash(k, seed) - 0.5) * 6;
-                const p = center(s, 1);
-                const q = center(s, -1);
-                const rx = q[0] - p[0], ry = q[1] - p[1];
-                const rl = Math.hypot(rx, ry) || 1;
-                const rnx = -ry / rl, rny = rx / rl;
-                const half = (6 + 4 * hash(k + 50, seed)) / 2;   // 横棒の太さの半分
-                const j = (n) => (hash(k * 7 + n, seed) - 0.5) * 3;
-                const mk = (a, b, n0) => {
-                    // a から b へ向かう細長い四角形。角を少しずつずらして、手描きっぽくする
-                    const c1 = [a[0] + rnx * (half + j(n0)), a[1] + rny * (half + j(n0 + 1))];
-                    const c2 = [b[0] + rnx * (half + j(n0 + 2)), b[1] + rny * (half + j(n0 + 3))];
-                    const c3 = [b[0] - rnx * (half + j(n0 + 4)), b[1] - rny * (half + j(n0 + 5))];
-                    const c4 = [a[0] - rnx * (half + j(n0 + 6)), a[1] - rny * (half + j(n0 + 7))];
-                    return 'M' + fmt(c1[0], c1[1]) + ' L' + fmt(c2[0], c2[1]) + ' L' + fmt(c3[0], c3[1]) + ' L' + fmt(c4[0], c4[1]) + ' Z';
-                };
-                const m1 = [p[0] + rx * 0.58, p[1] + ry * 0.58];
-                const m2 = [p[0] + rx * 0.42, p[1] + ry * 0.42];
-                d.rungsA += mk(p, m1, 0);
-                d.rungsB += mk(q, m2, 10);
+                if (Math.abs(Math.sin(th)) < 0.25) continue;   // 交差のところは描かない
+                const s = (th / (turns * Math.PI * 2)) * len;
+                const p = point(s, 1);
+                const q = point(s, -1);
+                rungs += 'M' + fmt(p[0], p[1]) + ' L' + fmt(q[0], q[1]);
             }
         });
-        pathRungsA.setAttribute('d', d.rungsA);
-        pathRungsB.setAttribute('d', d.rungsB);
-        ['A', 'B'].forEach((k) => layers.forEach((l) => P[k][l].setAttribute('d', d[k][l])));
+        pathBack.setAttribute('d', back);
+        pathRungs.setAttribute('d', rungs);
+        pathFront.setAttribute('d', front);
     }
 
     // 元の位置に戻るアニメーションの間、毎フレームDNAを描き直す
@@ -906,48 +834,31 @@ function initMemberDrag() {
         })();
     }
 
-    /* ---- ぶつかったら、ゼリーのように軽く変形して弾く（かんたんな物理シミュレーション） ----
-            ・押す速さに応じて、弾かれ方が変わる（ゆっくり→少しだけ、速く→大きく）
-            ・ぶつかった瞬間に、ぶつかった向きへ5〜10%つぶれ、約0.4秒でぷるんと戻る */
-    const GAP = 8;                      // 写真どうしのすきま(px)
-    const RESTITUTION = reduceMotion ? 0 : 0.35;  // 弾み具合（中くらい）
-    const BOUNCE_MIN_SPEED = 20;        // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
-    const FRICTION = 8;                 // 弾かれたあとの減速（大きいほど早く止まる）
-    const MAX_SPEED = 800;              // 弾かれる速さの上限(px/秒)
-    const JELLY_K = 300;                // ぷるぷるのバネの強さ
-    const JELLY_C = 13;                 // ぷるぷるの減衰（約0.4秒でほぼ止まる）
-    const JELLY_MAX = 0.12;             // つぶれる量の上限（12%）
-    const JELLY_HIT = 1.6;              // 最大の勢いでぶつかったときの、つぶれの強さ
-    const body = new Map();             // 写真ごとの、速さ(vx,vy)・ひしゃげ具合(def)・向き(ang)
-    members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1 }));
-    const homes = new Map();            // 写真ごとの、元の位置（中心）
-    const radii = new Map();            // 写真ごとの、円の半径
-    let boundsCache = null;
-    let simId = 0;
-    let lastT = 0;
-
-    function measureHomes() {
-        members.forEach((el) => {
-            const c = photoCenter(el);
-            const o = offsets.get(el);
-            homes.set(el, { x: c.x - o.x, y: c.y - o.y });
-            radii.set(el, el.querySelector('img').offsetWidth / 2);
-        });
-        boundsCache = null;
+    function clamp(v, min, max) {
+        return Math.min(Math.max(v, min), max);
     }
 
-    // 写真が動かせる範囲（<main>の中）。offsets（元の位置からのずれ）で表す
+    /* ---- 物理：ぶつかったら、ゼリーのように軽く変形して弾く。DNAは、のびたときだけ引っ張るゴム ----
+            ・押す速さに応じて、弾かれ方が変わる（ゆっくり→少しだけ、速く→大きく）
+            ・ぶつかった瞬間に、ぶつかった向きへ5〜10%つぶれ、約0.4秒でぷるんと戻る
+            ・DNAは、自然長（元の距離）よりのびたときだけ、バネとダンパーで引き寄せる */
+
+    // 写真が動かせる範囲＝その写真が属するセクションの中。offsets（元の位置からのずれ）で表す
     function memberBounds(el) {
         const o = offsets.get(el);
         const r = el.getBoundingClientRect();
-        const mr = main.getBoundingClientRect();
+        const g = groupOf.get(el).getBoundingClientRect();
         const baseLeft = r.left + window.scrollX - o.x;
         const baseTop = r.top + window.scrollY - o.y;
+        const regLeft = Math.max(0, g.left + window.scrollX - 30);
+        const regRight = Math.min(document.documentElement.clientWidth, g.right + window.scrollX + 30);
+        const regTop = g.top + window.scrollY;
+        const regBottom = g.bottom + window.scrollY;
         return {
-            minX: -baseLeft,
-            maxX: document.documentElement.clientWidth - r.width - baseLeft,
-            minY: mr.top + window.scrollY - baseTop,
-            maxY: mr.bottom + window.scrollY - r.height - baseTop
+            minX: regLeft - baseLeft,
+            maxX: regRight - r.width - baseLeft,
+            minY: regTop - baseTop,
+            maxY: regBottom - r.height - baseTop
         };
     }
 
@@ -963,15 +874,66 @@ function initMemberDrag() {
         return !!(drag && drag.active && drag.el === el);
     }
 
+    // ぶつかった向きにつぶれて、そのあと、ぷるぷる揺れ戻る
     function hit(b, nx, ny, strength) {
-        // ぶつかった向きにつぶれて、そのあと、ぷるぷる揺れ戻る
-        b.defv -= strength * JELLY_HIT;
+        b.defv -= strength * T.jellyHit;
         b.ang = Math.atan2(ny, nx);
+    }
+
+    // DNAのバネ：のびたときだけ引く（縮んだときは押し返さない）。つかんでいる写真は動かさない
+    function applySprings(dt) {
+        pairs.forEach((pair) => {
+            const A = pair.a;
+            const B = pair.b;
+            const ka = isDragged(A);
+            const kb = isDragged(B);
+            if (ka && kb) return;
+            const oa = offsets.get(A);
+            const ob = offsets.get(B);
+            const ha = homes.get(A);
+            const hb = homes.get(B);
+            const dx = (hb.x + ob.x) - (ha.x + oa.x);
+            const dy = (hb.y + ob.y) - (ha.y + oa.y);
+            const d = Math.hypot(dx, dy);
+            const ext = d - pair.l0 - T.springDeadzone;
+            if (d < 0.01) return;
+            const nx = dx / d;
+            const ny = dy / d;
+            const ba = body.get(A);
+            const bb = body.get(B);
+            const wa = ka ? 0 : 1 / ba.mass;
+            const wb = kb ? 0 : 1 / bb.mass;
+            if (ext <= 0) {
+                // 縮んでいる間は、DNAは押し返さない。ただし、近づく勢いだけは弱める（行きすぎを防ぐ）
+                const approach = (bb.vx - ba.vx) * nx + (bb.vy - ba.vy) * ny;
+                if (approach < 0 && !ka && !kb) {   // つかんでいる写真が近づいてくるときは、相手を押しのけない
+                    const dv = -approach * Math.min(1, T.springBrake * dt);
+                    ba.vx -= nx * dv * wa / (wa + wb);
+                    ba.vy -= ny * dv * wa / (wa + wb);
+                    bb.vx += nx * dv * wb / (wa + wb);
+                    bb.vy += ny * dv * wb / (wa + wb);
+                }
+                return;
+            }
+            // 引く力：のびるほど少しずつ強くなる
+            let pull = T.springK * ext + T.springK2 * ext * ext;
+            // ダンパー：離れていく速さに応じてブレーキ（揺れを抑える）
+            const rel = (bb.vx - ba.vx) * nx + (bb.vy - ba.vy) * ny;
+            pull += T.springC * rel;
+            pull = clamp(pull, 0, T.maxPull);   // 押す方向には、決してはたらかせない
+            ba.vx += nx * pull * wa * dt;
+            ba.vy += ny * pull * wa * dt;
+            bb.vx -= nx * pull * wb * dt;
+            bb.vy -= ny * pull * wb * dt;
+        });
     }
 
     function step(dt) {
         const list = Array.from(members);
         const bounds = getBounds();
+
+        // 0) DNAのバネ
+        applySprings(dt);
 
         // 1) 移動（つかんでいる写真は、動かした速さを、ぶつけるときの勢いとして使う）
         list.forEach((el) => {
@@ -985,7 +947,9 @@ function initMemberDrag() {
             } else {
                 o.x += b.vx * dt;
                 o.y += b.vy * dt;
-                const f = Math.exp(-FRICTION * dt);
+                // ゆっくりのときは弱く、速いときは強く減速する（速く弾かれても、すぐ止まる）
+                const sp = Math.hypot(b.vx, b.vy);
+                const f = Math.exp(-(T.frictionBase + T.frictionQuad * sp) * dt);
                 b.vx *= f;
                 b.vy *= f;
             }
@@ -993,12 +957,13 @@ function initMemberDrag() {
             b.py = o.y;
         });
 
-        // 2) ぶつかり：重ならないように押し出し、弾き、ぷるんとさせる
+        // 2) ぶつかり：重ならないように押し出し、ぶつかった速さに応じて弾き、ぷるんとさせる
         for (let pass = 0; pass < 3; pass++) {
             for (let i = 0; i < list.length; i++) {
                 for (let j = i + 1; j < list.length; j++) {
                     const A = list[i];
                     const B = list[j];
+                    if (groupOf.get(A) !== groupOf.get(B)) continue;   // 別のセクションの写真とは、ぶつからない
                     const ka = isDragged(A);
                     const kb = isDragged(B);
                     if (ka && kb) continue;
@@ -1009,7 +974,7 @@ function initMemberDrag() {
                     let dx = (hb.x + ob.x) - (ha.x + oa.x);
                     let dy = (hb.y + ob.y) - (ha.y + oa.y);
                     let d = Math.hypot(dx, dy);
-                    const min = radii.get(A) + radii.get(B) + GAP;
+                    const min = radii.get(A) + radii.get(B) + T.gap;
                     if (d >= min) continue;
                     if (d < 0.01) { dx = 1; dy = 0; d = 1; }
                     const nx = dx / d;
@@ -1029,7 +994,7 @@ function initMemberDrag() {
                     // 速さ：近づいていたら、ぶつかった速さに応じて跳ね返す（ゆっくりなら、そっと押すだけ）
                     const rel = (bb.vx - ba.vx) * nx + (bb.vy - ba.vy) * ny;
                     if (rel < 0) {
-                        const e = -rel > BOUNCE_MIN_SPEED ? RESTITUTION : 0;
+                        const e = -rel > T.bounceMinSpeed ? T.restitution : 0;
                         const imp = -(1 + e) * rel / sum;
                         ba.vx -= nx * imp * wa;
                         ba.vy -= ny * imp * wa;
@@ -1046,28 +1011,36 @@ function initMemberDrag() {
             }
         }
 
-        // 3) 壁：ページの外には出さない。当たったら少し跳ね返る
+        // 3) 壁（セクションの外には出さない）：当たったら、軽く変形して、柔らかく跳ね返る
         list.forEach((el) => {
             if (isDragged(el)) return;
             const b = body.get(el);
             const o = offsets.get(el);
             const bd = bounds.get(el);
-            const nx0 = clamp(o.x, bd.minX, bd.maxX);
-            const ny0 = clamp(o.y, bd.minY, bd.maxY);
-            if (nx0 !== o.x) { b.vx = -b.vx * 0.5; if (!reduceMotion) hit(b, nx0 < o.x ? 1 : -1, 0, 0.3); }
-            if (ny0 !== o.y) { b.vy = -b.vy * 0.5; if (!reduceMotion) hit(b, 0, ny0 < o.y ? 1 : -1, 0.3); }
-            o.x = nx0;
-            o.y = ny0;
+            const cx = clamp(o.x, bd.minX, bd.maxX);
+            const cy = clamp(o.y, bd.minY, bd.maxY);
+            if (cx !== o.x) {
+                const sp = Math.abs(b.vx);
+                b.vx = -b.vx * T.wallRestitution;
+                if (!reduceMotion && sp > 40) hit(b, cx < o.x ? 1 : -1, 0, Math.min(1, sp / 600));
+            }
+            if (cy !== o.y) {
+                const sp = Math.abs(b.vy);
+                b.vy = -b.vy * T.wallRestitution;
+                if (!reduceMotion && sp > 40) hit(b, 0, cy < o.y ? 1 : -1, Math.min(1, sp / 600));
+            }
+            o.x = cx;
+            o.y = cy;
         });
 
         // 4) 速さの上限と、ぷるぷる（バネ）
         list.forEach((el) => {
             const b = body.get(el);
             const sp = Math.hypot(b.vx, b.vy);
-            if (sp > MAX_SPEED) { b.vx *= MAX_SPEED / sp; b.vy *= MAX_SPEED / sp; }
+            if (sp > T.maxSpeed) { b.vx *= T.maxSpeed / sp; b.vy *= T.maxSpeed / sp; }
             b.mass = 1 + (b.mass - 1) * Math.exp(-2 * dt);   // 離した直後の重さは、少しずつ元に戻る
-            b.defv += (-JELLY_K * b.def - JELLY_C * b.defv) * dt;
-            b.def = clamp(b.def + b.defv * dt, -JELLY_MAX, JELLY_MAX);
+            b.defv += (-T.jellyK * b.def - T.jellyC * b.defv) * dt;
+            b.def = clamp(b.def + b.defv * dt, -T.jellyMax, T.jellyMax);
             const img = el.querySelector('img');
             if (Math.abs(b.def) > 0.003 || Math.abs(b.defv) > 0.05) {
                 const s = 1 + b.def;
@@ -1078,18 +1051,28 @@ function initMemberDrag() {
                 b.defv = 0;
                 img.style.transform = '';
             }
-            if (!isDragged(el)) applyTransform(el, false);
-            else applyTransform(el, true);
+            applyTransform(el, isDragged(el));
         });
     }
 
+    // まだ動いているか（速さ・ぷるぷる・DNAののび）。すべて落ち着いたら、物理を止める
     function simActive() {
         if (drag && drag.active) return true;
         let active = false;
         members.forEach((el) => {
             const b = body.get(el);
-            if (Math.hypot(b.vx, b.vy) > 8 || Math.abs(b.def) > 0.003 || Math.abs(b.defv) > 0.05 || b.mass > 1.05) active = true;
+            if (Math.hypot(b.vx, b.vy) > 6 || Math.abs(b.def) > 0.003 || Math.abs(b.defv) > 0.05 || b.mass > 1.05) active = true;
         });
+        if (!active) {
+            pairs.forEach((pair) => {
+                const oa = offsets.get(pair.a);
+                const ob = offsets.get(pair.b);
+                const ha = homes.get(pair.a);
+                const hb = homes.get(pair.b);
+                const d = Math.hypot((hb.x + ob.x) - (ha.x + oa.x), (hb.y + ob.y) - (ha.y + oa.y));
+                if (d - pair.l0 > 1) active = true;
+            });
+        }
         return active;
     }
 
@@ -1102,11 +1085,12 @@ function initMemberDrag() {
     }
 
     function wake() {
-        if (simId) return;
+        if (simId || resetting) return;
         lastT = performance.now();
         simId = requestAnimationFrame(simLoop);
     }
 
+    // 物理を止めて、全員の速さ・ぷるぷる・重さをゼロに戻す
     function stopSim() {
         if (simId) cancelAnimationFrame(simId);
         simId = 0;
@@ -1127,17 +1111,27 @@ function initMemberDrag() {
         el.style.transform = 'translate(' + o.x + 'px, ' + o.y + 'px)' + (lifted ? ' scale(1.05)' : '');
     }
 
-    function clamp(v, min, max) {
-        return Math.min(Math.max(v, min), max);
-    }
+    /* ---- ドラッグ ---- */
 
     // ドラッグ中の位置を更新する（画面が自動スクロールしても、ページ上の位置で計算する）
     function update() {
         const dx = (drag.cx + window.scrollX) - (drag.sx + drag.scx);
         const dy = (drag.cy + window.scrollY) - (drag.sy + drag.scy);
         const o = offsets.get(drag.el);
-        o.x = clamp(drag.ox + dx, drag.minX, drag.maxX);
-        o.y = clamp(drag.oy + dy, drag.minY, drag.maxY);
+        const rx = drag.ox + dx;
+        const ry = drag.oy + dy;
+        o.x = clamp(rx, drag.minX, drag.maxX);
+        o.y = clamp(ry, drag.minY, drag.maxY);
+        // つかんだまま壁に当たったときも、勢いに応じて軽くつぶれる
+        const b = body.get(drag.el);
+        const wallX = rx !== o.x;
+        const wallY = ry !== o.y;
+        if (!reduceMotion) {
+            if (wallX && !drag.wallX && Math.abs(b.vx) > 60) hit(b, rx > o.x ? 1 : -1, 0, Math.min(1, Math.abs(b.vx) / 700));
+            if (wallY && !drag.wallY && Math.abs(b.vy) > 60) hit(b, 0, ry > o.y ? 1 : -1, Math.min(1, Math.abs(b.vy) / 700));
+        }
+        drag.wallX = wallX;
+        drag.wallY = wallY;
         applyTransform(drag.el, true);
         drawLinks();
         wake();
@@ -1157,18 +1151,16 @@ function initMemberDrag() {
     function begin() {
         const el = drag.el;
         const o = offsets.get(el);
-        const r = el.getBoundingClientRect();
-        const mr = main.getBoundingClientRect();
-        // ページ上での「元の位置」から、動かせる範囲（<main>の中）を求める
-        const baseLeft = r.left + window.scrollX - o.x;
-        const baseTop = r.top + window.scrollY - o.y;
-        drag.minX = -baseLeft;
-        drag.maxX = document.documentElement.clientWidth - r.width - baseLeft;
-        drag.minY = mr.top + window.scrollY - baseTop;
-        drag.maxY = mr.bottom + window.scrollY - r.height - baseTop;
+        const bd = memberBounds(el);
+        drag.minX = bd.minX;
+        drag.maxX = bd.maxX;
+        drag.minY = bd.minY;
+        drag.maxY = bd.maxY;
+        drag.wallX = false;
+        drag.wallY = false;
         drag.active = true;
-        const bd = body.get(el);
-        bd.vx = 0; bd.vy = 0; bd.px = o.x; bd.py = o.y;
+        const b = body.get(el);
+        b.vx = 0; b.vy = 0; b.px = o.x; b.py = o.y;
         boundsCache = null;
         el.classList.remove('is-returning');
         el.classList.add('is-dragging');
@@ -1182,13 +1174,13 @@ function initMemberDrag() {
         clearTimeout(drag.timer);
         cancelAnimationFrame(rafId);
         if (drag.active) {
-            const rel = drag;
+            const released = drag;
             drag.el.classList.remove('is-dragging');
             applyTransform(drag.el, false);
             drawLinks();
-            const bd = body.get(rel.el);
-            bd.vx *= 0.85; bd.vy *= 0.85;   // 離したあと、動かしていた速さに応じて、少し滑る
-            bd.mass = 6;
+            const b = body.get(released.el);
+            b.vx *= 0.85; b.vy *= 0.85;   // 離したあと、動かしていた速さに応じて、少し滑る
+            b.mass = 6;                   // 離した直後は重くして、置いた場所にとどまりやすくする
             drag = null;
             wake();
             return;
@@ -1198,7 +1190,7 @@ function initMemberDrag() {
 
     members.forEach((el) => {
         el.addEventListener('pointerdown', (e) => {
-            if (drag) return;
+            if (drag || resetting) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             const o = offsets.get(el);
             drag = {
@@ -1240,10 +1232,12 @@ function initMemberDrag() {
         if (drag && drag.active) e.preventDefault();
     }, { passive: false });
 
-    // 元の並びに戻す
+    /* ---- 元の並びに戻す ---- */
     function resetLayout() {
         finish();
-        stopSim();
+        stopSim();               // 物理をいったん止める（速さもゼロにする）
+        resetting = true;
+        clearTimeout(resetTimer);
         members.forEach((el) => {
             const o = offsets.get(el);
             if (!o.x && !o.y) return;
@@ -1252,7 +1246,6 @@ function initMemberDrag() {
             if (reduceMotion) {
                 el.style.transform = '';
                 el.style.zIndex = '';
-                drawLinks();
                 return;
             }
             el.classList.add('is-returning');
@@ -1264,6 +1257,12 @@ function initMemberDrag() {
         });
         zTop = 10;
         if (!reduceMotion) animateLinks(900);
+        // 並び終わったら、速さをゼロにして、物理を再開できる状態にする
+        resetTimer = setTimeout(() => {
+            resetting = false;
+            stopSim();
+            drawLinks();
+        }, reduceMotion ? 0 : 900);
     }
 
     if (resetBtn) resetBtn.addEventListener('click', resetLayout);
@@ -1275,6 +1274,8 @@ function initMemberDrag() {
         lastWidth = window.innerWidth;
         finish();
         stopSim();
+        clearTimeout(resetTimer);
+        resetting = false;
         members.forEach((el) => {
             const o = offsets.get(el);
             o.x = 0;
