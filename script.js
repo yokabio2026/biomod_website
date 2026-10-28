@@ -1699,8 +1699,10 @@ function initMemberDrag() {
     const trailG = document.createElementNS(SVG_NS, 'g');
     svg.insertBefore(trailG, svg.firstChild);
     const TRAIL_SIZES = [16, 19, 22];   // 小さなDNAの長さ(px)
-    const trailPaths = {};              // 長さごとの、二重らせんの形（1.5回転・横棒3本）
-    TRAIL_SIZES.forEach((L) => {
+    const trailPaths = {};              // 長さごとの、二重らせんの形（1.5回転・横棒3本）。作ったものは覚えておく
+    function trailPathOf(L) {
+        const key = L.toFixed(1);
+        if (trailPaths[key]) return trailPaths[key];
         const a = L * 0.27;
         const n = Math.max(12, Math.round(L * 1.4));
         let s1 = '';
@@ -1716,8 +1718,46 @@ function initMemberDrag() {
             const x = (-L / 2 + L * t).toFixed(2);
             rungs += 'M' + x + ' ' + (-a).toFixed(2) + ' L' + x + ' ' + a.toFixed(2);
         });
-        trailPaths[L] = s1 + s2 + rungs;
-    });
+        trailPaths[key] = s1 + s2 + rungs;
+        return trailPaths[key];
+    }
+
+    /* ---- メンバーごとの、軌跡の色と大きさ ----
+       キー = team.html の .member に付けた data-member-id。写真ごとに固有なので、写真の位置が入れ替わっても、設定は、その写真についていく。
+       ここに書かれていないメンバー（村上さん・メンター・今後の追加）は、これまでの色（紫・青・ピンク）と大きさ（16〜22px）。
+       メンバーを追加するときは、team.html に data-member-id="..." を付けて、ここに1行足すだけ。
+         size   : 基準の大きさ(px)。実際は、その約0.85倍・1倍・1.15倍の3種類が、ばらついて出る
+         colors : 3色（濃い → 薄い）。1つのDNAの中で、なめらかに移り変わる。向きは、ランダムに反転する */
+    const TRAIL_STYLES = {
+        ominato:  { size: 20, colors: ['#438DDB', '#79B8F0', '#B6E1FC'] },   // ブルー系
+        nakata:   { size: 14, colors: ['#39A994', '#77D2BB', '#B4F1DC'] },   // ミント系
+        kawazu:   { size: 12, colors: ['#D95C9F', '#ED91C2', '#F8C6E0'] },   // ピンク系
+        goto:     { size: 24, colors: ['#E58B43', '#F4B66E', '#FFE0AD'] },   // オレンジ系
+        yamauchi: { size: 22, colors: ['#D94559', '#F07581', '#FFB5BD'] },   // 赤系
+        harada:   { size: 18, colors: ['#AB91E8', '#81C1F1', '#F3A8CE'] },   // パステルミックス
+        hamano:   { size: 16, colors: ['#D9AC35', '#F2D05C', '#FFF0AA'] }    // 黄色系
+    };
+    const TRAIL_SIZE_FACTORS = [0.85, 1, 1.15];
+    const trailStyleGrads = {};   // メンバーごとの、グラデーション（必要になったときに作る）
+    function trailGradOf(id, reversed) {
+        const key = id + (reversed ? 'r' : '');
+        if (trailStyleGrads[key]) return trailStyleGrads[key];
+        const cols = TRAIL_STYLES[id].colors.slice();
+        if (reversed) cols.reverse();
+        const lg = document.createElementNS(SVG_NS, 'linearGradient');
+        lg.setAttribute('id', 'dna-trail-grad-' + key);
+        lg.setAttribute('x1', '0'); lg.setAttribute('y1', '0'); lg.setAttribute('x2', '1'); lg.setAttribute('y2', '0');
+        cols.forEach((c, i) => {
+            const st = document.createElementNS(SVG_NS, 'stop');
+            st.setAttribute('offset', String(i / (cols.length - 1)));
+            st.setAttribute('stop-color', c);
+            lg.appendChild(st);
+        });
+        defs.appendChild(lg);
+        trailStyleGrads[key] = 'url(#dna-trail-grad-' + key + ')';
+        return trailStyleGrads[key];
+    }
+    TRAIL_SIZES.forEach((L) => trailPathOf(L));
     // 淡いグラデーション（ホバーのDNAと同じ3色）。1つのDNAの中で、色が移り変わる
     const trailGrads = [['dnaGradA', 'dnaGradB'], ['dnaGradB', 'dnaGradC'], ['dnaGradC', 'dnaGradA']].map((pr, k) => {
         const lg = document.createElementNS(SVG_NS, 'linearGradient');
@@ -1746,12 +1786,21 @@ function initMemberDrag() {
         if (mine >= (chain ? T.trailChainPerPhoto : T.trailPerPhoto)) return;
         const fast = clamp((sp - T.trailMinSpeed) / 2500, 0, 1);   // 速いほど、濃く・大きく
         const r = Math.random();
-        const L = TRAIL_SIZES[fast < 0.3 ? (r < 0.7 ? 0 : 1) : Math.floor(r * TRAIL_SIZES.length)];   // 弱い発射は、小さめ中心
+        const sizeIdx = fast < 0.3 ? (r < 0.7 ? 0 : 1) : Math.floor(r * TRAIL_SIZES.length);   // 弱い発射は、小さめ中心
+        const style = TRAIL_STYLES[owner.dataset.memberId];
+        let L = TRAIL_SIZES[sizeIdx];
+        let stroke = trailGrads[Math.floor(Math.random() * trailGrads.length)];
+        let lineW = T.trailLine;
+        if (style) {
+            L = style.size * TRAIL_SIZE_FACTORS[sizeIdx];
+            stroke = trailGradOf(owner.dataset.memberId, Math.random() < 0.5);
+            lineW = clamp(0.9 + L * 0.032, 1.2, 1.75);   // 小さいDNAは線を細く（らせんが、つぶれない）、大きいDNAは、少し太く
+        }
         const el = document.createElementNS(SVG_NS, 'path');
-        el.setAttribute('d', trailPaths[L]);
+        el.setAttribute('d', trailPathOf(L));
         el.setAttribute('fill', 'none');
-        el.setAttribute('stroke', trailGrads[Math.floor(Math.random() * trailGrads.length)]);
-        el.setAttribute('stroke-width', String(T.trailLine));
+        el.setAttribute('stroke', stroke);
+        el.setAttribute('stroke-width', String(lineW));
         el.setAttribute('stroke-linecap', 'round');
         el.setAttribute('stroke-linejoin', 'round');
         el.setAttribute('opacity', '0');
