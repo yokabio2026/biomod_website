@@ -677,7 +677,7 @@ function initMemberDrag() {
         collisionBoostRamp: 160, // 【衝突の強さ】ぶつかった速さが、この値(px/秒)ぶん遅いほうから速くなるにつれて、ブーストが0→最大に増える（弱い衝突は、控えめのまま）
         impactMinSpeed: 120,   // 【衝突エフェクト】これより弱い衝突(px/秒)では、衝撃線を出さない
         impactRepeatSpeed: 300, // 【衝突エフェクト】触れたまま、これより強くぶつかり直したとき(px/秒)は、もう一度出す
-        impactDuration: 0.26,  // 【衝突エフェクト】表示時間(秒)
+        impactDuration: 0.2,   // 【衝突エフェクト】表示時間(秒)
         impactCooldown: 0.16,  // 【衝突エフェクト】同じ2枚の写真では、この間隔(秒)があくまで、次の衝撃線を出さない
         impactSize: 1,         // 【衝突エフェクト】大きさの倍率
         impactMax: 10,         // 【衝突エフェクト】同時に出せる数の上限
@@ -783,31 +783,43 @@ function initMemberDrag() {
     main.appendChild(fx);
     let effects = [];            // 表示中の衝撃線 { g: 外側のグループ, inner: 内側のグループ, start: 開始時刻 }
     let fxId = 0;
-    const IMPACT_COLOR = '#8a4fe0';   // サイトの紫（細い線。暗い写真の上でも見えるよう、少し明るめ）
+    const IMPACT_COLOR = '#5b21b6';   // DNAの紫（#7a3fd1）より、少し濃い紫
+    const IMPACT_HALO = '#ffffff';    // 暗い写真や、DNAの上でも埋もれないように、線の下に敷く、細い白のふち（発光ではない）
 
-    // 接触点 (x, y) に、小さな衝撃線を出す。nx, ny は、接触の向き。power は強さ（0〜1）
-    function spawnImpact(x, y, nx, ny, power) {
+    // 接触点 (x, y) に、短い衝撃線を3〜4本だけ出す（漫画の「ポンッ」「コツッ」のイメージ）。
+    // nx, ny は接触の向き。power は強さ（0〜1）。side は、扇を向ける側（接触の向きに直角な、どちらか1方向）
+    function spawnImpact(x, y, nx, ny, power, side) {
         if (reduceMotion) return;
         while (effects.length >= T.impactMax) removeEffect(effects[0]);
-        const tangent = Math.atan2(ny, nx) + Math.PI / 2;   // 接触の向きに、線の向きをそろえる
-        const count = 3 + Math.round(2 * power);            // 弱い→3本、強い→5本
-        const rIn = 4;
-        const rOut = (11 + 15 * power) * T.impactSize;      // 写真の直径(約235px)に比べて、ずっと小さい
+        // 扇の真ん中の向き：接触の向きに直角（2枚のすきまに沿った向き）。片側だけに向ける
+        const center = Math.atan2(nx * side, -ny * side);
+        const count = 3 + Math.round(power);                 // 弱い→3本、強い→4本
+        const spread = count === 3 ? 0.9 : 1.2;              // 扇の開き（ラジアン。約50〜70度）
+        const rIn = 7;                                       // 接触点から、少しはなして始める
+        const len = (9 + 9 * power) * T.impactSize;          // 線の長さ。短く（写真の直径約235pxに比べて、ずっと小さい）
         const g = document.createElementNS(SVG_NS, 'g');
         g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
         const inner = document.createElementNS(SVG_NS, 'g');
-        for (let k = 0; k < count; k++) {
-            const a = tangent + Math.PI * 2 * (k + 0.5) / count;
+        const mk = (x1, y1, x2, y2, color, width, opacity) => {
             const line = document.createElementNS(SVG_NS, 'line');
-            line.setAttribute('x1', (Math.cos(a) * rIn).toFixed(1));
-            line.setAttribute('y1', (Math.sin(a) * rIn).toFixed(1));
-            line.setAttribute('x2', (Math.cos(a) * rOut).toFixed(1));
-            line.setAttribute('y2', (Math.sin(a) * rOut).toFixed(1));
-            line.setAttribute('stroke', IMPACT_COLOR);
-            line.setAttribute('stroke-width', '1.5');
+            line.setAttribute('x1', x1.toFixed(1));
+            line.setAttribute('y1', y1.toFixed(1));
+            line.setAttribute('x2', x2.toFixed(1));
+            line.setAttribute('y2', y2.toFixed(1));
+            line.setAttribute('stroke', color);
+            line.setAttribute('stroke-width', String(width));
             line.setAttribute('stroke-linecap', 'round');
-            inner.appendChild(line);
+            line.setAttribute('stroke-opacity', String(opacity));
+            return line;
+        };
+        const lines = [];
+        for (let k = 0; k < count; k++) {
+            const a = center + (k / (count - 1) - 0.5) * spread;
+            lines.push([Math.cos(a) * rIn, Math.sin(a) * rIn, Math.cos(a) * (rIn + len), Math.sin(a) * (rIn + len)]);
         }
+        // 先に、白いふち（太め）を全部、そのあとに、紫の線を重ねる
+        lines.forEach((l) => inner.appendChild(mk(l[0], l[1], l[2], l[3], IMPACT_HALO, 4.6, 0.8)));
+        lines.forEach((l) => inner.appendChild(mk(l[0], l[1], l[2], l[3], IMPACT_COLOR, 2.6, 1)));
         g.appendChild(inner);
         fx.appendChild(g);
         effects.push({ g: g, inner: inner, start: performance.now() });
@@ -833,8 +845,9 @@ function initMemberDrag() {
                 const p = (now - e.start) / (T.impactDuration * 1000);
                 if (p >= 1) { removeEffect(e); return; }
                 const ease = 1 - (1 - p) * (1 - p);
-                e.inner.setAttribute('transform', 'scale(' + (0.55 + 0.8 * ease).toFixed(3) + ')');
-                e.inner.setAttribute('opacity', (0.9 * (1 - p)).toFixed(3));
+                e.inner.setAttribute('transform', 'scale(' + (0.75 + 0.5 * ease).toFixed(3) + ')');
+                // 最初の4割は、はっきり見せて、そのあと、すっと透明になる
+                e.inner.setAttribute('opacity', (p < 0.4 ? 1 : 1 - (p - 0.4) / 0.6).toFixed(3));
             });
             fxId = effects.length ? requestAnimationFrame(loop) : 0;
         };
@@ -1386,7 +1399,13 @@ function initMemberDrag() {
                         // 接触点＝2つの円の中心を結ぶ線上の、円どうしのすきまの中央（ページ上の位置なので、スクロールでずれない）
                         const cx = ha.x + oa.x + nx * (radii.get(A) + T.gap / 2);
                         const cy = ha.y + oa.y + ny * (radii.get(A) + T.gap / 2);
-                        spawnImpact(cx, cy, nx, ny, clamp((-rel - T.impactMinSpeed) / 600, 0, 1));
+                        // 扇を向ける側：2枚が横にずれて動いている向き。ほぼ正面からなら、上向き
+                        const tx = -ny;
+                        const ty = nx;
+                        const lateral = (ba.vx + bb.vx) * tx + (ba.vy + bb.vy) * ty;
+                        let side = lateral >= 0 ? 1 : -1;
+                        if (Math.abs(lateral) < 30) side = ty > 0 ? -1 : 1;
+                        spawnImpact(cx, cy, nx, ny, clamp((-rel - T.impactMinSpeed) / 600, 0, 1), side);
                     }
                 }
             }
