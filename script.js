@@ -746,7 +746,17 @@ function initMemberDrag() {
         pluckSnapC: 11,        // 離したあと、DNAの揺れの減衰（小さいほど、ぷるぷるが長く続く）
         glideTime: 0.8,        // 【減衰】弾かれた直後に、滑りやすくなる時間(秒)
         glideAmount: 0.8,      // 【減衰】弾かれた直後に、減速が弱まる割合
-        springRamp: 1.0        // 【DNAの引き戻し抑制】弾いたあと、DNAの引き寄せが元の強さに戻るまでの時間(秒)
+        springRamp: 1.0,       // 【DNAの引き戻し抑制】弾いたあと、DNAの引き寄せが元の強さに戻るまでの時間(秒)
+        trailMinSpeed: 320,    // 【発射の軌跡】写真がこれより遅くなったら、新しい軌跡を出さない(px/秒)
+        trailInterval: 0.07,   // 【発射の軌跡】軌跡を残す間隔(秒)。速さ × この値 ＝ 残す間隔(px)。速いほど、間隔が広がり、数は増えすぎない
+        trailMinSpacing: 46,   // 【発射の軌跡】ゆっくりのときの、最小の間隔(px)
+        trailMaxSpacing: 140,  // 【発射の軌跡】高速のときの、最大の間隔(px)。これ以上は広げない（経路に沿って、点々と残る）
+        trailLifeMin: 0.3,     // 【発射の軌跡】1つが消えるまでの時間(秒)。下限
+        trailLifeMax: 0.5,     // 【発射の軌跡】同じく、上限
+        trailOpacity: 0.75,    // 【発射の軌跡】いちばん濃いときの不透明度（速いほど濃い。遅いときは、この半分ほど）
+        trailPerPhoto: 5,      // 【発射の軌跡】1枚の写真につき、同時に残る小さなDNAの上限
+        trailChainPerPhoto: 2, // 【発射の軌跡】発射した写真にぶつかられて動いた写真の、上限（連鎖の分は、少なめ）
+        trailMax: 36           // 【発射の軌跡】画面全体で、同時に残る小さなDNAの上限
     };
     window.teamPhysics = T;
 
@@ -1503,6 +1513,10 @@ function initMemberDrag() {
                     ba.free = Math.max(ba.free, f);
                     bb.free = Math.max(bb.free, f);
                 }
+                if (!reduceMotion && -rel > 300) {
+                    if (ba.trail === 1 && !bb.trail && !isDragged(B)) { bb.trail = 2; bb.trPrev = null; }
+                    if (bb.trail === 1 && !ba.trail && !isDragged(A)) { ba.trail = 2; ba.trPrev = null; }
+                }
                 const imp = -(1 + e) * rel / sum * boost;
                 ba.vx -= nx * imp * wa;
                 ba.vy -= ny * imp * wa;
@@ -1673,11 +1687,151 @@ function initMemberDrag() {
         return active;
     }
 
+    /* ---- 発射の軌跡：DNAを引っ張って発射した写真の後ろに、小さなDNAが点々と残って、消えていく ----
+            ・見た目だけ。物理の位置・速さ・力には、触れない。DNAを発射した写真（と、それに強くぶつかられて動いた写真）だけに出る
+            ・発生は、移動した距離で決める（高速でも、とぎれない）。速いほど、少し濃く。遅くなるほど、少なく。止まったら、出さない
+            ・写真より奥（DNAの線より、さらに奥）に描く。顔は、隠さない
+            ・1枚につき、同時に残るのは最大 trailPerPhoto 個、全体で trailMax 個まで。消えた要素は、すぐに取りのぞく
+            ・整列中は出さない（残りは、すばやく消す）。prefers-reduced-motion のときは、出さない */
+    const trailG = document.createElementNS(SVG_NS, 'g');
+    svg.insertBefore(trailG, svg.firstChild);
+    const TRAIL_SIZES = [10, 13, 16];   // 小さなDNAの長さ(px)
+    const trailPaths = {};              // 長さごとの、二重らせんの形（1.5回転・横棒3本）
+    TRAIL_SIZES.forEach((L) => {
+        const a = L * 0.24;
+        const n = Math.max(10, Math.round(L * 1.4));
+        let s1 = '';
+        let s2 = '';
+        for (let i = 0; i <= n; i++) {
+            const x = (-L / 2 + L * i / n).toFixed(2);
+            const y = a * Math.sin(i / n * Math.PI * 3);
+            s1 += (i ? ' L' : 'M') + x + ' ' + y.toFixed(2);
+            s2 += (i ? ' L' : 'M') + x + ' ' + (-y).toFixed(2);
+        }
+        let rungs = '';
+        [1 / 6, 1 / 2, 5 / 6].forEach((t) => {
+            const x = (-L / 2 + L * t).toFixed(2);
+            rungs += 'M' + x + ' ' + (-a).toFixed(2) + ' L' + x + ' ' + a.toFixed(2);
+        });
+        trailPaths[L] = s1 + s2 + rungs;
+    });
+    // 淡いグラデーション（ホバーのDNAと同じ3色）。1つのDNAの中で、色が移り変わる
+    const trailGrads = [['dnaGradA', 'dnaGradB'], ['dnaGradB', 'dnaGradC'], ['dnaGradC', 'dnaGradA']].map((pr, k) => {
+        const lg = document.createElementNS(SVG_NS, 'linearGradient');
+        lg.setAttribute('id', 'dna-trail-grad-' + k);
+        lg.setAttribute('x1', '0'); lg.setAttribute('y1', '0'); lg.setAttribute('x2', '1'); lg.setAttribute('y2', '0');
+        pr.forEach((key, i) => {
+            const st = document.createElementNS(SVG_NS, 'stop');
+            st.setAttribute('offset', String(i));
+            st.setAttribute('stop-color', T[key]);
+            lg.appendChild(st);
+        });
+        defs.appendChild(lg);
+        return 'url(#dna-trail-grad-' + k + ')';
+    });
+    let trails = [];
+    let trailRaf = 0;
+
+    function trailSpacing(sp, chain) {
+        return clamp(sp * T.trailInterval, T.trailMinSpacing, T.trailMaxSpacing) * (chain ? 1.6 : 1) * (0.75 + Math.random() * 0.5);
+    }
+
+    function spawnTrail(owner, x, y, dirDeg, sp, chain) {
+        if (trails.length >= T.trailMax) return;
+        let mine = 0;
+        trails.forEach((p) => { if (p.owner === owner) mine++; });
+        if (mine >= (chain ? T.trailChainPerPhoto : T.trailPerPhoto)) return;
+        const L = TRAIL_SIZES[Math.floor(Math.random() * TRAIL_SIZES.length)];
+        const el = document.createElementNS(SVG_NS, 'path');
+        el.setAttribute('d', trailPaths[L]);
+        el.setAttribute('fill', 'none');
+        el.setAttribute('stroke', trailGrads[Math.floor(Math.random() * trailGrads.length)]);
+        el.setAttribute('stroke-width', '1.1');
+        el.setAttribute('stroke-linecap', 'round');
+        el.setAttribute('stroke-linejoin', 'round');
+        el.setAttribute('opacity', '0');
+        trailG.appendChild(el);
+        const fast = clamp((sp - T.trailMinSpeed) / 2500, 0, 1);   // 速いほど、少し濃い
+        trails.push({
+            el: el, owner: owner, x: x, y: y,
+            rot: dirDeg + (Math.random() - 0.5) * 50,          // 進行方向のあたりを向く。少しばらつかせる
+            rotV: (Math.random() - 0.5) * 100,                   // 消えるまでに、少しだけ回る（約±20°）
+            t0: performance.now(),
+            life: (T.trailLifeMin + Math.random() * (T.trailLifeMax - T.trailLifeMin)) * 1000,
+            peak: T.trailOpacity * (0.5 + 0.5 * fast) * (chain ? 0.8 : 1)
+        });
+        if (!trailRaf) trailRaf = requestAnimationFrame(trailTick);
+    }
+
+    function trailTick(now) {
+        trailRaf = 0;
+        trails = trails.filter((p) => {
+            const age = now - p.t0;
+            if (age >= p.life) { p.el.remove(); return false; }   // 消えたら、要素も取りのぞく
+            const u = age / p.life;
+            const a = p.peak * Math.pow(1 - u, 1.3) * Math.min(1, age / 50);   // すぐ現れて、古いものから順に、すうっと透明になる
+            p.el.setAttribute('transform', 'translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ') rotate(' + (p.rot + p.rotV * age / 1000).toFixed(1) + ')');
+            p.el.setAttribute('opacity', a.toFixed(3));
+            return true;
+        });
+        if (trails.length) trailRaf = requestAnimationFrame(trailTick);
+    }
+
+    // 整列のとき：残っている軌跡を、すばやく自然に消す
+    function fadeTrails() {
+        const now = performance.now();
+        trails.forEach((p) => { p.life = Math.min(p.life, now - p.t0 + 220); });
+        members.forEach((el) => { const b = body.get(el); b.trail = 0; b.trPrev = null; });
+        if (trails.length && !trailRaf) trailRaf = requestAnimationFrame(trailTick);
+    }
+
+    // 物理の計算が動くたびに呼ぶ：発射した写真の、移動した距離ごとに、後ろへ小さなDNAを残す
+    function trailUpdate() {
+        if (reduceMotion || resetting) return;
+        members.forEach((el) => {
+            const b = body.get(el);
+            if (!b.trail) return;
+            if (isDragged(el)) { b.trail = 0; b.trPrev = null; return; }
+            const sp = Math.hypot(b.vx, b.vy);
+            if (sp < T.trailMinSpeed) { b.trail = 0; b.trPrev = null; return; }   // 遅くなったら、出さない
+            const hm = homes.get(el);
+            const o = offsets.get(el);
+            const x = hm.x + o.x;
+            const y = hm.y + o.y;
+            if (!b.trPrev) { b.trPrev = [x, y]; b.trAcc = 0; b.trNext = trailSpacing(sp, b.trail === 2); return; }
+            const px = b.trPrev[0];
+            const py = b.trPrev[1];
+            b.trPrev = [x, y];
+            const d = Math.hypot(x - px, y - py);
+            if (d < 0.01) return;
+            const ux = (x - px) / d;
+            const uy = (y - py) / d;
+            const R = radii.get(el);
+            const chain = b.trail === 2;
+            // この区間の中で、次に残す場所までの距離。区間が長くても（高速でも）、経路に沿って、順に残す
+            let next = b.trNext - b.trAcc;
+            let last = 0;
+            let spawned = false;
+            while (next <= d) {
+                const side = (Math.random() - 0.5) * R * 0.6;   // 進行方向に直角に、少しばらつかせる
+                const bx = px + ux * next - ux * R * 0.85 - uy * side;
+                const by = py + uy * next - uy * R * 0.85 + ux * side;
+                spawnTrail(el, bx, by, Math.atan2(uy, ux) * 180 / Math.PI, sp, chain);
+                spawned = true;
+                last = next;
+                b.trNext = trailSpacing(sp, chain);
+                next = last + b.trNext;
+            }
+            b.trAcc = spawned ? d - last : b.trAcc + d;
+        });
+    }
+
     function simLoop(now) {
         const dt = Math.min(0.033, (now - lastT) / 1000) || 0.016;
         lastT = now;
         lastSimAt = now;
         step(dt);
+        trailUpdate();
         drawLinks();
         simId = simActive() ? requestAnimationFrame(simLoop) : 0;
     }
@@ -1795,6 +1949,7 @@ function initMemberDrag() {
         el.addEventListener('pointerdown', (e) => {
             if (drag || pluck || resetting) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
+            body.get(el).trail = 0;   // 手でつかんだ写真には、軌跡を出さない
             const o = offsets.get(el);
             drag = {
                 el: el, id: e.pointerId, type: e.pointerType,
@@ -1974,6 +2129,8 @@ function initMemberDrag() {
             b.vx += dx * speed;
             b.vy += dy * speed;
             b.glide = 1;   // 弾かれた直後は、すこし滑りやすくする
+            b.trail = 1;   // 発射した写真：軌跡を出す
+            b.trPrev = null;
             if (!reduceMotion) hit(b, dx, dy, Math.min(1, speed / 1500) * 0.5);
         });
     }
@@ -2385,6 +2542,7 @@ function initMemberDrag() {
         pairs.forEach((p) => { p.pluck = null; p.glow = 0; p.hovG = 0; p.bul.w = 0; p.bul.v = 0; });
         stopSim();               // 物理をいったん止める（速さもゼロにする）
         resetting = true;
+        fadeTrails();            // 残っている軌跡は、すばやく消す。新しくは出さない
         clearTimeout(resetTimer);
         members.forEach((el) => {
             const o = offsets.get(el);
