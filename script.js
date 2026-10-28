@@ -760,6 +760,7 @@ function initMemberDrag() {
         trailPerPhoto: 8,      // 【発射の軌跡】1枚の写真につき、同時に残る小さなDNAの上限（以前は5）
         trailChainPerPhoto: 3, // 【発射の軌跡】発射した写真にぶつかられて動いた写真の、上限（連鎖の分は、少なめ）
         trailMax: 48,          // 【発射の軌跡】画面全体で、同時に残る小さなDNAの上限（以前は36）
+        alignNeededPx: 10,     // 【YOKABIOくん】写真が1枚でも、初期配置からこの距離(px)以上ずれていれば、「整列が必要」とみなす
         dnaPickPx: 10,         // 【DNAの優先】主鎖・横棒から、この距離(px)以内を押したら、写真が重なっていても、DNAをつまむ（マウス）
         dnaPickTouchPx: 12,    // 【DNAの優先】同じく、タッチ操作のとき
         tutorialIdleMs: 3000,  // 【チュートリアル】（以前は5000）写真・DNAが操作されないまま、この時間(ミリ秒)たつと、実演を始める
@@ -3027,17 +3028,19 @@ function initMemberDrag() {
         }, reduceMotion ? 0 : 900);
     }
 
-    /* ---- YOKABIOくんの機嫌：整列ボタンを、短時間に何度も押すと、だんだん怒る ----
-            ・前回のクリックから1秒以内に、また押すと「連打」。連打の回数に応じて、画像が変わる：1回目 = 通常 / 2 / 3 / 4回目 / 5回目以降 = 激怒
-            ・1秒より間があいたら、連打の回数は、新しい1回目から数え直す。ただし、いま表示している怒りは、下げない（回復の処理だけが、戻す）
-            ・最後のクリックから約5秒たつと、機嫌が直る（通常の画像に戻り、回数もリセット）。回復のタイマーは1つだけ。押すたびに、数え直す
-            ・画像が切り替わったときだけ、ぷるっ（1.08倍 → 0.2秒）。怒りが強いほど震える（CSSアニメーション）
-            ・整列そのものは、これまでどおり resetLayout を1回だけ呼ぶ（怒りの更新は、見た目だけ） */
+    /* ---- YOKABIOくんの機嫌：整列ボタンが「役に立ったかどうか」で変わる ----
+            ・写真がすでに初期配置にあるのに、整列ボタンを短時間に何度も押すと、だんだん怒る（画像が5段階で変わる。5段階目は、それ以上押しても、そのまま）
+                連打 = 前回のクリックから1秒以内。1秒より間があいたら、連打の回数は、新しい1回目から数え直す（表示している怒りは、下げない）
+            ・写真が初期配置から動いていた（実際の位置が、10px以上ずれた写真が、1枚でもあった）ときに押すと、整列しながら、怒りを解除する：
+                通常の画像に戻り、連打の回数も0。このクリックは、連打の回数に数えない
+            ・時間がたっても、機嫌は直らない（放置しても、怒ったまま）。ページを読み込み直すと、通常から始まる
+            ・「写真が動いたか」は、物理の位置（offsets）で判定する。ホバー・待機・チュートリアルの、見た目だけの動きは、含まない。
+              判定は、整列を始める「前」の位置で行う（整列を始めると、位置が0に戻るため）
+            ・画像が切り替わったときだけ、ぷるっ（CSSアニメーション）。整列そのものは、これまでどおり resetLayout を1回だけ呼ぶ */
     const ANGER_GAP_MS = 1000;       // この時間(ミリ秒)以内に、また押したら、連打
-    const ANGER_RECOVER_MS = 5000;   // 最後のクリックから、この時間たつと、機嫌が直る
     const faceWrap = resetBtn ? resetBtn.querySelector('.mascot-faces') : null;
     const faces = faceWrap ? Array.from(faceWrap.querySelectorAll('.mascot-face')) : [];
-    const anger = { stage: 1, count: 0, last: 0, timer: 0 };
+    const anger = { stage: 1, count: 0, last: 0 };
     faces.forEach((f) => { if (f.decode) f.decode().catch(() => { /* 読み込めなくても、何もしない */ }); });   // 5枚とも、先に読み込んでおく（切り替えで、ちらつかない）
 
     function showAnger(stage, shake) {
@@ -3050,24 +3053,38 @@ function initMemberDrag() {
         faceWrap.classList.add(shake && stage >= 2 ? 'is-shake-' + stage : 'is-pop');
     }
 
-    function angerStep() {
+    // 写真が、初期配置から、実際に動いているか（物理の位置が、alignNeededPx 以上ずれた写真が、1枚でもあるか）
+    function needsAlign() {
+        let moved = false;
+        members.forEach((el) => {
+            const o = offsets.get(el);
+            if (Math.hypot(o.x, o.y) >= T.alignNeededPx) moved = true;
+        });
+        return moved;
+    }
+
+    function angerStep(wasMoved) {
         if (!faces.length) return;
+        if (wasMoved) {
+            // 整列が役に立った：怒りを解除（通常の画像・回数0）。このクリックは、連打に数えない
+            anger.count = 0;
+            anger.last = 0;
+            showAnger(1, false);
+            return;
+        }
+        // すでに初期配置：意味のないクリック。連打されるほど、怒る
         const now = performance.now();
         anger.count = (anger.count > 0 && now - anger.last <= ANGER_GAP_MS) ? anger.count + 1 : 1;
         anger.last = now;
         const target = Math.min(5, anger.count);
-        if (target > anger.stage) showAnger(target, true);   // 怒りは、回復するまで、下がらない
-        clearTimeout(anger.timer);
-        anger.timer = setTimeout(() => {
-            anger.count = 0;
-            showAnger(1, false);   // 機嫌が直る：通常の画像に戻る（ぷるっ、だけ）
-        }, ANGER_RECOVER_MS);
+        if (target > anger.stage) showAnger(target, true);   // 怒りは、解除されるまで、下がらない
     }
 
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
-            resetLayout();   // これまでどおりの整列（1回だけ）
-            angerStep();
+            const wasMoved = needsAlign();   // 整列を始める前の位置で、判定する
+            resetLayout();                   // これまでどおりの整列（1回だけ）
+            angerStep(wasMoved);
         });
     }
 
