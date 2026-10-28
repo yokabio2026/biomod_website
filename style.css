@@ -410,11 +410,16 @@ a.search-result-item:hover {
 /* ホバー：カーソルを重ねると、影がわずかに強くなって、浮いて見える（動きは、JSがバネで行う） */
 .member img {
     cursor: grab;
-    transition: box-shadow 0.25s ease;
+    transition: box-shadow 0.3s ease;
+}
+
+/* 写真の下に、やわらかい影。少し浮き上がったように見える。ホバー中の写真は、となりの写真より手前に */
+.member.is-hover {
+    z-index: 6;
 }
 
 .member.is-hover img {
-    box-shadow: 0 10px 22px rgba(43, 16, 85, 0.22);
+    box-shadow: 0 16px 28px rgba(43, 16, 85, 0.30);
 }
 
 .member.is-dragging,

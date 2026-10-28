@@ -675,14 +675,14 @@ function initMemberDrag() {
         bounceMinSpeed: 20,    // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
         collisionBoost: 1.45,  // 【衝突の強さ】動いている写真どうしが、ぶつかった瞬間の勢いの伝わり方の倍率（1で、ブーストなし）。1回の衝突につき、1度だけ適用
         collisionBoostRamp: 160, // 【衝突の強さ】ぶつかった速さが、この値(px/秒)ぶん遅いほうから速くなるにつれて、ブーストが0→最大に増える（弱い衝突は、控えめのまま）
-        hoverScale: 0.015,     // 【ホバー】カーソルを重ねたときの、拡大（1.5%）
-        hoverMove: 7,          // 【ホバー】カーソルの方向へ追従する、最大の距離(px)
+        hoverScale: 0.04,      // 【ホバー】カーソルを重ねたときの、拡大（4%）。ほかの写真や壁に近いときは、重ならないよう、自動で小さくする
+        hoverMove: 12,         // 【ホバー】カーソルの方向へ追従する、最大の距離(px)。ほかの写真や壁に近い向きは、重ならないよう、自動で制限する
         hoverK: 170,           // 【ホバー】追従のバネの強さ（大きいほど、すばやく追いつく）
         hoverC: 12,            // 【ホバー】追従の減衰（小さいほど、離れたときに、ぷるぷるが長く続く）
-        dnaHoverMax: 4,        // 【DNAのホバー】カーソルを重ねたとき、DNAがカーソルの方向へ曲がる量(px)。見た目だけ
+        dnaHoverMax: 10,       // 【DNAのホバー】カーソルを重ねたとき、DNAがカーソルの方向へ曲がる量(px)。見た目だけ
         dnaHoverK: 260,        // 【DNAのホバー】追従のバネの強さ
         dnaHoverC: 14,         // 【DNAのホバー】追従の減衰（約0.4秒で、ぷるんと元に戻る）
-        dnaHoverGlow: 0.3,     // 【DNAのホバー】重ねている間の、紫の濃さ（0〜1。つかんで引っ張ると、最大で1）
+        dnaHoverGlow: 0.6,     // 【DNAのホバー】重ねている間の、紫の濃さ（0〜1。つかんで引っ張ると、最大で1）
         freeTime: 0.5,         // 【衝突後】ぶつかったあと、DNAに引き戻されにくくなる時間(秒)
         springRelief: 0.8,     // 【衝突後】ぶつかった直後に、DNAの引き寄せを弱める割合（0〜1）
         frictionBase: 1.3,     // 【減衰】動いている写真の減速（ゆっくり動くとき）。小さいほど、長く滑る（以前は1.6）
@@ -726,7 +726,7 @@ function initMemberDrag() {
     members.forEach((el) => offsets.set(el, { x: 0, y: 0 }));
     // ホバーの見た目の状態（x, y: 見た目だけのずれ(px)、s: 拡大ぶん、tx/ty: 追従の目標、inside: カーソルが重なっているか）
     const hover = new Map();
-    members.forEach((el) => hover.set(el, { x: 0, y: 0, s: 0, vx: 0, vy: 0, vs: 0, tx: 0, ty: 0, inside: false }));
+    members.forEach((el) => hover.set(el, { x: 0, y: 0, s: 0, vx: 0, vy: 0, vs: 0, tx: 0, ty: 0, ts: 0, inside: false }));
     // 写真が属するセクション（Team Member / Mentor / Faculty Mentor）。DNAでつなぐ組を決めるのに使う。
     // 動ける範囲は、セクションごとではなく、3つのセクション全体をまとめた共通の領域（areaRect）
     const groupOf = new Map();
@@ -1893,7 +1893,7 @@ function initMemberDrag() {
             const on = h.inside && !off;
             const tx = on ? h.tx : 0;
             const ty = on ? h.ty : 0;
-            const ts = on ? T.hoverScale : 0;
+            const ts = on ? h.ts : 0;
             // バネ：目標へ、少し遅れて追従する。離れると、ぷるんと揺れながら元に戻る
             h.vx += (-T.hoverK * (h.x - tx) - T.hoverC * h.vx) * dt;
             h.vy += (-T.hoverK * (h.y - ty) - T.hoverC * h.vy) * dt;
@@ -1946,7 +1946,7 @@ function initMemberDrag() {
         const nx = -vy / dist;
         const ny = vx / dist;
         const off = (pt.x - (ca.x + vx * u)) * nx + (pt.y - (ca.y + vy * u)) * ny;
-        const amt = clamp(off * 0.2, -T.dnaHoverMax, T.dnaHoverMax);
+        const amt = clamp(off * 0.5, -T.dnaHoverMax, T.dnaHoverMax);   // カーソルがDNAの線から20pxはなれていれば、約10px
         v.u = u;
         v.tx = nx * amt;
         v.ty = ny * amt;
@@ -1959,28 +1959,58 @@ function initMemberDrag() {
         hoverRaf = requestAnimationFrame(hoverTick);
     }
 
-    // カーソルの位置から、追従の目標を決める。写真が壁際にあるときは、見た目が領域の外へ出ないよう、動ける余裕のぶんまでに制限する
+    // カーソルの位置から、追従の目標を決める。
+    // ほかの写真に近いときは、拡大と、その向きへの追従を、重ならない範囲に制限する。壁際では、領域の外へ出ない範囲に制限する
     function hoverAim(el, e) {
         const h = hover.get(el);
         const img = el.querySelector('img');
         const r = img.getBoundingClientRect();
-        const R = img.offsetWidth / 2;
+        const Ri = img.offsetWidth / 2;
         // ホバーで動いているぶんを引いて、「本来の中心」を求める（目標が、自分の動きに引っ張られないように）
         const cx = r.left + r.width / 2 - h.x;
         const cy = r.top + r.height / 2 - h.y;
-        let vx = (e.clientX - cx) / R;
-        let vy = (e.clientY - cy) / R;
+        let vx = (e.clientX - cx) / Ri;
+        let vy = (e.clientY - cy) / Ri;
         const len = Math.hypot(vx, vy);
         if (len > 1) { vx /= len; vy /= len; }
         let tx = vx * T.hoverMove;
         let ty = vy * T.hoverMove;
+        const margin = 2;   // ほかの写真・壁との、最低限のすきま(px)
+        const hi = homes.get(el);
+        const oi = offsets.get(el);
+        const ci = [hi.x + oi.x, hi.y + oi.y];   // 物理上の中心（ホバーのずれを含まない）
+
+        // 1) ほかの写真に重ならないよう、拡大を小さくする
+        let ts = T.hoverScale;
+        const near = [];
+        members.forEach((other) => {
+            if (other === el) return;
+            const ho = homes.get(other);
+            const oo = offsets.get(other);
+            const dx = ho.x + oo.x - ci[0];
+            const dy = ho.y + oo.y - ci[1];
+            const d = Math.hypot(dx, dy);
+            const Rj = radii.get(other);
+            if (d > Ri * (1 + T.hoverScale) + Rj + T.hoverMove + 10) return;   // 遠い写真は、関係ない
+            near.push([dx / d, dy / d, d, Rj]);
+            ts = Math.min(ts, Math.max(0, (d - Rj - margin) / Ri - 1));
+        });
+
+        // 2) 壁際：拡大ぶんも含めて、領域の外へ出ないようにする
         const bd = getBounds().get(el);
-        const o = offsets.get(el);
-        const m = 2;   // 拡大ぶんの余裕(px)
-        tx = clamp(tx, -Math.max(0, o.x - bd.minX - m), Math.max(0, bd.maxX - o.x - m));
-        ty = clamp(ty, -Math.max(0, o.y - bd.minY - m), Math.max(0, bd.maxY - o.y - m));
+        const m = margin + Ri * ts;
+        tx = clamp(tx, -Math.max(0, oi.x - bd.minX - m), Math.max(0, bd.maxX - oi.x - m));
+        ty = clamp(ty, -Math.max(0, oi.y - bd.minY - m), Math.max(0, bd.maxY - oi.y - m));
+
+        // 3) ほかの写真の方向への追従は、重ならない（すきま margin が残る）範囲までに制限する
+        near.forEach((q) => {
+            const slack = Math.max(0, q[2] - Ri * (1 + ts) - q[3] - margin);   // その写真の方向へ、動ける余裕
+            const proj = tx * q[0] + ty * q[1];
+            if (proj > slack) { tx -= (proj - slack) * q[0]; ty -= (proj - slack) * q[1]; }
+        });
         h.tx = tx;
         h.ty = ty;
+        h.ts = ts;
     }
 
     if (hoverCapable) {
