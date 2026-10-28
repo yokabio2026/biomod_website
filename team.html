@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YOKABIO</title>
     <link rel="stylesheet" href="style.css">
+    <!-- マスコットのふきだし用のフォント（Baloo 2）。Teamページだけで読み込む -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&display=swap">
 </head>
 <body>
     <header class="navbar">
@@ -152,8 +156,14 @@
         </div>
     </main>
 
-    <button type="button" id="reset-layout-btn" class="reset-layout-btn" aria-label="Reset layout" title="Reset layout">
+    <button type="button" id="reset-layout-btn" class="reset-layout-btn" aria-label="Reset layout">
         <img src="images/reset-mascot.png" alt="">
+        <span class="reset-bubble" aria-hidden="true">
+            <svg viewBox="0 0 148 66" focusable="false">
+                <path d="M23,41 A12,12 0 0 1 23,19 A16,16 0 0 1 52,13 A18,18 0 0 1 88,13 A16,16 0 0 1 118,16 A14,14 0 0 1 128,39 L139,62 L109,48 A19,19 0 0 1 73,49 A18,18 0 0 1 39,48 A17,17 0 0 1 23,41 Z"/>
+            </svg>
+            <span class="reset-bubble-text">Tap to ALiGN</span>
+        </span>
     </button>
 
     <footer class="site-footer">
