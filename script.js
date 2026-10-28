@@ -697,7 +697,8 @@ function initMemberDrag() {
 
     const offsets = new Map();   // 各写真の「元の位置からのずれ」(px)
     members.forEach((el) => offsets.set(el, { x: 0, y: 0 }));
-    // 写真ごとの、動ける場所＝その写真が属するセクション（Team Member / Mentor / Faculty Mentor）
+    // 写真が属するセクション（Team Member / Mentor / Faculty Mentor）。DNAでつなぐ組を決めるのに使う。
+    // 動ける範囲は、セクションごとではなく、3つのセクション全体をまとめた共通の領域（areaRect）
     const groupOf = new Map();
     members.forEach((el) => groupOf.set(el, el.closest('.content-section') || main));
     const body = new Map();      // 写真ごとの、速さ・ひしゃげ具合・重さ
@@ -973,17 +974,31 @@ function initMemberDrag() {
             ・ぶつかった瞬間に、ぶつかった向きへ5〜10%つぶれ、約0.4秒でぷるんと戻る
             ・DNAは、自然長（元の距離）よりのびたときだけ、バネとダンパーで引き寄せる */
 
-    // 写真が動かせる範囲＝その写真が属するセクションの中。offsets（元の位置からのずれ）で表す
+    // 全員が動ける共通の領域＝3つのセクション全体（ページ上の座標）。ヘッダーやナビゲーションは含まない。
+    // スクロールしても変わらない（ページ上の座標で持っているため）
+    function areaRect() {
+        let l = Infinity, r = -Infinity, tp = Infinity, b = -Infinity;
+        new Set(groupOf.values()).forEach((g) => {
+            const q = g.getBoundingClientRect();
+            l = Math.min(l, q.left + window.scrollX);
+            r = Math.max(r, q.right + window.scrollX);
+            tp = Math.min(tp, q.top + window.scrollY);
+            b = Math.max(b, q.bottom + window.scrollY);
+        });
+        return { l: l, r: r, t: tp, b: b };
+    }
+
+    // 写真が動かせる範囲＝共通の領域の中（写真全体＝円と名前が収まる範囲）。offsets（元の位置からのずれ）で表す
     function memberBounds(el) {
         const o = offsets.get(el);
         const r = el.getBoundingClientRect();
-        const g = groupOf.get(el).getBoundingClientRect();
+        const area = areaRect();
         const baseLeft = r.left + window.scrollX - o.x;
         const baseTop = r.top + window.scrollY - o.y;
-        const regLeft = Math.max(0, g.left + window.scrollX - 30);
-        const regRight = Math.min(document.documentElement.clientWidth, g.right + window.scrollX + 30);
-        const regTop = g.top + window.scrollY;
-        const regBottom = g.bottom + window.scrollY;
+        const regLeft = Math.max(0, area.l - 30);
+        const regRight = Math.min(document.documentElement.clientWidth, area.r + 30);
+        const regTop = area.t;
+        const regBottom = area.b;
         return {
             minX: regLeft - baseLeft,
             maxX: regRight - r.width - baseLeft,
@@ -1115,7 +1130,6 @@ function initMemberDrag() {
                 for (let j = i + 1; j < list.length; j++) {
                     const A = list[i];
                     const B = list[j];
-                    if (groupOf.get(A) !== groupOf.get(B)) continue;   // 別のセクションの写真とは、ぶつからない
                     const ka = isDragged(A);
                     const kb = isDragged(B);
                     if (ka && kb) continue;
