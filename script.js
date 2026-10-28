@@ -906,15 +906,18 @@ function initMemberDrag() {
         })();
     }
 
-    /* ---- ぶつかったら、スライムのようにぷるんと押し出す（かんたんな物理シミュレーション） ----
-            つかんでいる写真が、ほかの写真に当たると、相手は弾かれて少し滑り、ぷるぷる揺れて止まる */
+    /* ---- ぶつかったら、ゼリーのように軽く変形して弾く（かんたんな物理シミュレーション） ----
+            ・押す速さに応じて、弾かれ方が変わる（ゆっくり→少しだけ、速く→大きく）
+            ・ぶつかった瞬間に、ぶつかった向きへ5〜10%つぶれ、約0.4秒でぷるんと戻る */
     const GAP = 8;                      // 写真どうしのすきま(px)
-    const PUSH_KICK = reduceMotion ? 0 : 16;      // めり込んだ量に応じて、弾き出す強さ
-    const RESTITUTION = reduceMotion ? 0 : 0.8;   // 弾み具合
-    const FRICTION = 5;                 // 弾かれたあとの減速（大きいほど早く止まる）
-    const MAX_SPEED = 1500;             // 弾かれる速さの上限(px/秒)
-    const JELLY_K = 260;                // ぷるぷるのバネの強さ
-    const JELLY_C = 12;                 // ぷるぷるの減衰（小さいほど長く揺れる）
+    const RESTITUTION = reduceMotion ? 0 : 0.35;  // 弾み具合（中くらい）
+    const BOUNCE_MIN_SPEED = 20;        // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
+    const FRICTION = 8;                 // 弾かれたあとの減速（大きいほど早く止まる）
+    const MAX_SPEED = 800;              // 弾かれる速さの上限(px/秒)
+    const JELLY_K = 300;                // ぷるぷるのバネの強さ
+    const JELLY_C = 13;                 // ぷるぷるの減衰（約0.4秒でほぼ止まる）
+    const JELLY_MAX = 0.12;             // つぶれる量の上限（12%）
+    const JELLY_HIT = 1.6;              // 最大の勢いでぶつかったときの、つぶれの強さ
     const body = new Map();             // 写真ごとの、速さ(vx,vy)・ひしゃげ具合(def)・向き(ang)
     members.forEach((el) => body.set(el, { vx: 0, vy: 0, def: 0, defv: 0, ang: 0, px: 0, py: 0, mass: 1 }));
     const homes = new Map();            // 写真ごとの、元の位置（中心）
@@ -962,7 +965,7 @@ function initMemberDrag() {
 
     function hit(b, nx, ny, strength) {
         // ぶつかった向きにつぶれて、そのあと、ぷるぷる揺れ戻る
-        b.defv -= strength * 10;
+        b.defv -= strength * JELLY_HIT;
         b.ang = Math.atan2(ny, nx);
     }
 
@@ -1023,26 +1026,21 @@ function initMemberDrag() {
                     oa.y -= ny * corr * wa / sum;
                     ob.x += nx * corr * wb / sum;
                     ob.y += ny * corr * wb / sum;
-                    // 速さ：近づいていたら跳ね返す
+                    // 速さ：近づいていたら、ぶつかった速さに応じて跳ね返す（ゆっくりなら、そっと押すだけ）
                     const rel = (bb.vx - ba.vx) * nx + (bb.vy - ba.vy) * ny;
                     if (rel < 0) {
-                        const imp = -(1 + RESTITUTION) * rel / sum;
+                        const e = -rel > BOUNCE_MIN_SPEED ? RESTITUTION : 0;
+                        const imp = -(1 + e) * rel / sum;
                         ba.vx -= nx * imp * wa;
                         ba.vy -= ny * imp * wa;
                         bb.vx += nx * imp * wb;
                         bb.vy += ny * imp * wb;
-                    }
-                    // めり込んだ量に応じて、さらに弾き出す
-                    const kick = pen * PUSH_KICK / sum;
-                    ba.vx -= nx * kick * wa;
-                    ba.vy -= ny * kick * wa;
-                    bb.vx += nx * kick * wb;
-                    bb.vy += ny * kick * wb;
-                    // ぷるん（両方がつぶれる）
-                    if (!reduceMotion) {
-                        const strength = Math.min(1, pen / 40 + Math.abs(rel) / 900);
-                        hit(ba, nx, ny, strength);
-                        hit(bb, -nx, -ny, strength);
+                        // ぷるん：ぶつかった瞬間だけ、速さに応じて両方がつぶれる
+                        if (!reduceMotion && -rel > 40) {
+                            const strength = Math.min(1, -rel / 700);
+                            hit(ba, nx, ny, strength);
+                            hit(bb, -nx, -ny, strength);
+                        }
                     }
                 }
             }
@@ -1069,7 +1067,7 @@ function initMemberDrag() {
             if (sp > MAX_SPEED) { b.vx *= MAX_SPEED / sp; b.vy *= MAX_SPEED / sp; }
             b.mass = 1 + (b.mass - 1) * Math.exp(-2 * dt);   // 離した直後の重さは、少しずつ元に戻る
             b.defv += (-JELLY_K * b.def - JELLY_C * b.defv) * dt;
-            b.def = clamp(b.def + b.defv * dt, -0.4, 0.4);
+            b.def = clamp(b.def + b.defv * dt, -JELLY_MAX, JELLY_MAX);
             const img = el.querySelector('img');
             if (Math.abs(b.def) > 0.003 || Math.abs(b.defv) > 0.05) {
                 const s = 1 + b.def;
@@ -1189,7 +1187,7 @@ function initMemberDrag() {
             applyTransform(drag.el, false);
             drawLinks();
             const bd = body.get(rel.el);
-            bd.vx *= 0.6; bd.vy *= 0.6;
+            bd.vx *= 0.85; bd.vy *= 0.85;   // 離したあと、動かしていた速さに応じて、少し滑る
             bd.mass = 6;
             drag = null;
             wake();
