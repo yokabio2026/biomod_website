@@ -407,7 +407,18 @@ a.search-result-item:hover {
     touch-action: pan-y;
 }
 
-.member.is-dragging {
+/* ホバー：カーソルを重ねると、影がわずかに強くなって、浮いて見える（動きは、JSがバネで行う） */
+.member img {
+    cursor: grab;
+    transition: box-shadow 0.25s ease;
+}
+
+.member.is-hover img {
+    box-shadow: 0 10px 22px rgba(43, 16, 85, 0.22);
+}
+
+.member.is-dragging,
+.member.is-dragging img {
     cursor: grabbing;
 }
 

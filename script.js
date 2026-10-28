@@ -675,6 +675,10 @@ function initMemberDrag() {
         bounceMinSpeed: 20,    // これより遅い接触は、弾まずに、そっと押すだけ(px/秒)
         collisionBoost: 1.45,  // 【衝突の強さ】動いている写真どうしが、ぶつかった瞬間の勢いの伝わり方の倍率（1で、ブーストなし）。1回の衝突につき、1度だけ適用
         collisionBoostRamp: 160, // 【衝突の強さ】ぶつかった速さが、この値(px/秒)ぶん遅いほうから速くなるにつれて、ブーストが0→最大に増える（弱い衝突は、控えめのまま）
+        hoverScale: 0.015,     // 【ホバー】カーソルを重ねたときの、拡大（1.5%）
+        hoverMove: 7,          // 【ホバー】カーソルの方向へ追従する、最大の距離(px)
+        hoverK: 170,           // 【ホバー】追従のバネの強さ（大きいほど、すばやく追いつく）
+        hoverC: 12,            // 【ホバー】追従の減衰（小さいほど、離れたときに、ぷるぷるが長く続く）
         freeTime: 0.5,         // 【衝突後】ぶつかったあと、DNAに引き戻されにくくなる時間(秒)
         springRelief: 0.8,     // 【衝突後】ぶつかった直後に、DNAの引き寄せを弱める割合（0〜1）
         frictionBase: 1.3,     // 【減衰】動いている写真の減速（ゆっくり動くとき）。小さいほど、長く滑る（以前は1.6）
@@ -716,6 +720,9 @@ function initMemberDrag() {
 
     const offsets = new Map();   // 各写真の「元の位置からのずれ」(px)
     members.forEach((el) => offsets.set(el, { x: 0, y: 0 }));
+    // ホバーの見た目の状態（x, y: 見た目だけのずれ(px)、s: 拡大ぶん、tx/ty: 追従の目標、inside: カーソルが重なっているか）
+    const hover = new Map();
+    members.forEach((el) => hover.set(el, { x: 0, y: 0, s: 0, vx: 0, vy: 0, vs: 0, tx: 0, ty: 0, inside: false }));
     // 写真が属するセクション（Team Member / Mentor / Faculty Mentor）。DNAでつなぐ組を決めるのに使う。
     // 動ける範囲は、セクションごとではなく、3つのセクション全体をまとめた共通の領域（areaRect）
     const groupOf = new Map();
@@ -778,7 +785,8 @@ function initMemberDrag() {
     function photoCenter(el) {
         const r = el.querySelector('img').getBoundingClientRect();
         const mr = main.getBoundingClientRect();
-        return { x: r.left - mr.left + r.width / 2, y: r.top - mr.top + r.height / 2, r: r.width / 2 };
+        const hv = hover.get(el);   // ホバーによる見た目のずれは、DNAの接続位置には、含めない
+        return { x: r.left - mr.left + r.width / 2 - hv.x, y: r.top - mr.top + r.height / 2 - hv.y, r: r.width / 2 };
     }
 
     // 写真ごとの元の位置と半径を測る（画面の幅が変わるたびにやり直す）
@@ -1828,6 +1836,142 @@ function initMemberDrag() {
     window.addEventListener('touchmove', (e) => {
         if (pluck && pluck.active) e.preventDefault();
     }, { passive: false });
+
+    /* ---- ホバーアニメーション：カーソルを重ねると、ふわっと浮いて、カーソルの動きに柔らかく追従する ----
+            ・見た目だけ。物理の位置・速さ・半径は、まったく変えない
+            ・写真の画像(img)の、個別の変形プロパティ（translate・scale）を使う。
+              スライム風の変形は transform を使っているので、おたがいに、競合しない
+            ・マウスがある端末だけ。スマホなどのタッチ端末では、動かさない
+            ・ドラッグ中・DNAをつまんでいる間は、ホバーの演出を止める（ずれは、バネで、なめらかに戻る） */
+    const hoverCapable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    let hoverRaf = 0;
+    let hoverLast = 0;
+
+    function hoverSuppressed() {
+        return !!((drag && drag.active) || (pluck && pluck.active) || resetting);
+    }
+
+    function hoverApply(el, h) {
+        const img = el.querySelector('img');
+        if (Math.abs(h.x) < 0.01 && Math.abs(h.y) < 0.01 && Math.abs(h.s) < 0.0002 && !h.inside) {
+            img.style.translate = '';
+            img.style.scale = '';
+            return;
+        }
+        img.style.translate = h.x.toFixed(2) + 'px ' + h.y.toFixed(2) + 'px';
+        img.style.scale = (1 + h.s).toFixed(4);
+    }
+
+    function hoverTick(now) {
+        const dt = Math.min(0.033, (now - hoverLast) / 1000) || 0.016;
+        hoverLast = now;
+        const off = hoverSuppressed();
+        let active = false;
+        members.forEach((el) => {
+            const h = hover.get(el);
+            const on = h.inside && !off;
+            const tx = on ? h.tx : 0;
+            const ty = on ? h.ty : 0;
+            const ts = on ? T.hoverScale : 0;
+            // バネ：目標へ、少し遅れて追従する。離れると、ぷるんと揺れながら元に戻る
+            h.vx += (-T.hoverK * (h.x - tx) - T.hoverC * h.vx) * dt;
+            h.vy += (-T.hoverK * (h.y - ty) - T.hoverC * h.vy) * dt;
+            h.vs += (-T.hoverK * (h.s - ts) - T.hoverC * h.vs) * dt;
+            h.x += h.vx * dt;
+            h.y += h.vy * dt;
+            h.s += h.vs * dt;
+            el.classList.toggle('is-hover', on);
+            const moving = Math.abs(h.x - tx) > 0.02 || Math.abs(h.y - ty) > 0.02 || Math.abs(h.s - ts) > 0.0002 ||
+                Math.abs(h.vx) > 0.05 || Math.abs(h.vy) > 0.05 || Math.abs(h.vs) > 0.002;
+            if (!moving && !on) { h.x = 0; h.y = 0; h.s = 0; h.vx = 0; h.vy = 0; h.vs = 0; }
+            hoverApply(el, h);
+            if (moving || on) active = true;
+        });
+        hoverRaf = active ? requestAnimationFrame(hoverTick) : 0;
+    }
+
+    function wakeHover() {
+        if (hoverRaf) return;
+        hoverLast = performance.now();
+        hoverRaf = requestAnimationFrame(hoverTick);
+    }
+
+    // カーソルの位置から、追従の目標を決める。写真が壁際にあるときは、見た目が領域の外へ出ないよう、動ける余裕のぶんまでに制限する
+    function hoverAim(el, e) {
+        const h = hover.get(el);
+        const img = el.querySelector('img');
+        const r = img.getBoundingClientRect();
+        const R = img.offsetWidth / 2;
+        // ホバーで動いているぶんを引いて、「本来の中心」を求める（目標が、自分の動きに引っ張られないように）
+        const cx = r.left + r.width / 2 - h.x;
+        const cy = r.top + r.height / 2 - h.y;
+        let vx = (e.clientX - cx) / R;
+        let vy = (e.clientY - cy) / R;
+        const len = Math.hypot(vx, vy);
+        if (len > 1) { vx /= len; vy /= len; }
+        let tx = vx * T.hoverMove;
+        let ty = vy * T.hoverMove;
+        const bd = getBounds().get(el);
+        const o = offsets.get(el);
+        const m = 2;   // 拡大ぶんの余裕(px)
+        tx = clamp(tx, -Math.max(0, o.x - bd.minX - m), Math.max(0, bd.maxX - o.x - m));
+        ty = clamp(ty, -Math.max(0, o.y - bd.minY - m), Math.max(0, bd.maxY - o.y - m));
+        h.tx = tx;
+        h.ty = ty;
+    }
+
+    if (hoverCapable) {
+        members.forEach((el) => {
+            const img = el.querySelector('img');
+            const h = hover.get(el);
+            const enter = (e) => {
+                if (e.pointerType !== 'mouse') return;
+                h.inside = true;
+                if (reduceMotion) {
+                    // 簡略化：少し拡大して、影をつけるだけ（追従・バネは、なし）
+                    if (!hoverSuppressed()) { el.classList.add('is-hover'); img.style.scale = String(1 + T.hoverScale); }
+                    return;
+                }
+                hoverAim(el, e);
+                wakeHover();
+            };
+            img.addEventListener('pointerenter', enter);
+            img.addEventListener('pointermove', (e) => {
+                if (e.pointerType !== 'mouse') return;
+                if (!h.inside) h.inside = true;
+                if (reduceMotion) return;
+                hoverAim(el, e);
+                wakeHover();
+            });
+            img.addEventListener('pointerleave', (e) => {
+                if (e.pointerType !== 'mouse') return;
+                h.inside = false;
+                if (reduceMotion) { el.classList.remove('is-hover'); img.style.scale = ''; return; }
+                wakeHover();
+            });
+        });
+        // ドラッグやDNA操作を終えたとき、カーソルが写真の上にあれば、ホバーを再開する
+        window.addEventListener('pointerup', (e) => {
+            if (e.pointerType !== 'mouse') return;
+            const under = document.elementFromPoint(e.clientX, e.clientY);
+            members.forEach((el) => {
+                const h = hover.get(el);
+                h.inside = under === el.querySelector('img');
+                if (h.inside && !reduceMotion) hoverAim(el, e);
+            });
+            if (reduceMotion) {
+                members.forEach((el) => {
+                    const on = hover.get(el).inside;
+                    el.classList.toggle('is-hover', on);
+                    el.querySelector('img').style.scale = on ? String(1 + T.hoverScale) : '';
+                });
+            } else {
+                wakeHover();
+            }
+        });
+        // ドラッグやDNA操作を始めたときは、ホバーの演出を止める（バネで、なめらかに戻る）
+        window.addEventListener('pointerdown', () => { if (!reduceMotion) wakeHover(); });
+    }
 
     /* ---- 元の並びに戻す ---- */
     function resetLayout() {
