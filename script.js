@@ -760,6 +760,11 @@ function initMemberDrag() {
         trailPerPhoto: 8,      // 【発射の軌跡】1枚の写真につき、同時に残る小さなDNAの上限（以前は5）
         trailChainPerPhoto: 3, // 【発射の軌跡】発射した写真にぶつかられて動いた写真の、上限（連鎖の分は、少なめ）
         trailMax: 48,          // 【発射の軌跡】画面全体で、同時に残る小さなDNAの上限（以前は36）
+        mascotRestitution: 0.8, // 【YOKABIOくんとの衝突】反発係数（0.75〜0.85が目安）
+        mascotGap: 1,          // 【YOKABIOくんとの衝突】写真とYOKABIOくんの、すきま(px)
+        mascotBumpMin: 60,     // 【YOKABIOくんとの衝突】これより遅い接触(px/秒)では、YOKABIOくんは揺れない
+        mascotHitMinSpeed: 250, // 【YOKABIOくんとの衝突】これ以上の速さでぶつかったときだけ、怒りの回数に数える(px/秒)
+        mascotHitCooldownMs: 300, // 【YOKABIOくんとの衝突】同じ写真が、続けて回数に数えられるまでの間(ミリ秒)
         alignNeededPx: 10,     // 【YOKABIOくん】写真が1枚でも、初期配置からこの距離(px)以上ずれていれば、「整列が必要」とみなす
         dnaPickPx: 10,         // 【DNAの優先】主鎖・横棒から、この距離(px)以内を押したら、写真が重なっていても、DNAをつまむ（マウス）
         dnaPickTouchPx: 12,    // 【DNAの優先】同じく、タッチ操作のとき
@@ -1348,6 +1353,116 @@ function initMemberDrag() {
         });
     }
 
+    /* ---- YOKABIOくん（右下）を、動かない障害物にする ----
+            ・写真は、YOKABIOくんの「体」に近い、いくつかの円（幅に対する割合）にぶつかる。画像全体の四角では、ぶつからない（透明な余白は、すり抜ける）
+            ・YOKABIOくんは、画面に固定（position: fixed）。写真は、ページ上の座標で動くので、毎フレーム、いまの位置を main の座標に直して使う
+            ・写真ごとに、判定を「入れる／切る」を管理する（body.mascotOff）。
+                初期配置・整列のあと・スクロールで、すでに重なっている写真は、切る（押し出さない）。写真が実際に動いて、重なりがなくなったら、入れる
+            ・位置の補正（めり込みを押し戻す）と、速さの計算（跳ね返り）は、写真どうし・壁と同じ流れの中で行う
+            ・見た目だけの動き（ホバー・待機・チュートリアル）は、物理の位置（offsets）を変えないので、判定に影響しない
+            ・衝突したら、YOKABIOくんが、見た目だけ、ぷるっと揺れる（位置・クリック判定は動かさない）。速い衝突は、怒りの回数に数える */
+    const MASCOT_SHAPE = [[0.36, 0.576, 0.33], [0.70, 0.40, 0.19], [0.70, 0.884, 0.24], [0.30, 1.126, 0.20]];   // [x, y, 半径]：ボタンの幅 W に対する割合（頭・DNAの上・DNAの下・足）
+    const mascotObs = { circles: [], px: NaN, py: NaN, moved: true };
+
+    // いまの位置を、main の座標の円に直す。スクロールで動いたか（moved）も、覚える
+    function mascotRefresh() {
+        if (!resetBtn) { mascotObs.circles = []; return; }
+        const r = resetBtn.getBoundingClientRect();
+        const mr = main.getBoundingClientRect();
+        const ox = r.left - mr.left;
+        const oy = r.top - mr.top;
+        mascotObs.moved = !(Math.abs(ox - mascotObs.px) < 0.5 && Math.abs(oy - mascotObs.py) < 0.5);
+        mascotObs.px = ox;
+        mascotObs.py = oy;
+        mascotObs.circles = MASCOT_SHAPE.map((c) => ({ x: ox + c[0] * r.width, y: oy + c[1] * r.width, r: c[2] * r.width }));
+    }
+
+    function mascotOverlap(el) {
+        const o = offsets.get(el);
+        const h = homes.get(el);
+        const R = radii.get(el);
+        return mascotObs.circles.some((c) => Math.hypot(h.x + o.x - c.x, h.y + o.y - c.y) < R + c.r);
+    }
+
+    // 1フレームに1回：写真ごとに、判定の「入れる／切る」を決める
+    function mascotUpdate() {
+        mascotRefresh();
+        members.forEach((el) => {
+            const b = body.get(el);
+            const ov = mascotOverlap(el);
+            if (!ov) b.mascotOff = false;                              // 重なりがなくなった：判定を入れる
+            else if (!b.mascotOv && mascotObs.moved) b.mascotOff = true;   // 画面のスクロールで、重なった（写真が動いたわけではない）：離れるまで、判定しない
+            b.mascotOv = ov;
+        });
+    }
+
+    // 整列・画面幅の変更のあと（写真が、元の位置に戻ったあと）：重なっている写真は、判定を切る
+    function mascotResetFlags() {
+        mascotRefresh();
+        members.forEach((el) => {
+            const b = body.get(el);
+            b.mascotOv = mascotOverlap(el);
+            b.mascotOff = b.mascotOv;
+        });
+    }
+
+    // 位置の補正：めり込んでいたら、円の外へ、法線の向きに押し戻す（YOKABIOくんは、動かない）
+    function pushFromMascot(el) {
+        const b = body.get(el);
+        if (b.mascotOff || !mascotObs.circles.length) return;
+        const o = offsets.get(el);
+        const h = homes.get(el);
+        const R = radii.get(el);
+        mascotObs.circles.forEach((c) => {
+            const dx = h.x + o.x - c.x;
+            const dy = h.y + o.y - c.y;
+            const d = Math.hypot(dx, dy);
+            const min = R + c.r + T.mascotGap;
+            if (d >= min) return;
+            const nx = d > 0.01 ? dx / d : 1;
+            const ny = d > 0.01 ? dy / d : 0;
+            const pen = min - d;
+            o.x += nx * pen;
+            o.y += ny * pen;
+            b.pmx = Math.max(b.pmx, pen * Math.abs(nx) * T.pairSquash);
+            b.pmy = Math.max(b.pmy, pen * Math.abs(ny) * T.pairSquash);
+        });
+    }
+
+    // 速さの計算：近づく向きの速さだけを、反発係数をかけて、跳ね返す（もう離れている向きには、何もしない）
+    function mascotVelocities(list) {
+        if (!mascotObs.circles.length) return;
+        const now = performance.now();
+        list.forEach((el) => {
+            const b = body.get(el);
+            if (b.mascotOff) return;
+            const o = offsets.get(el);
+            const h = homes.get(el);
+            const R = radii.get(el);
+            const dragged = isDragged(el);
+            mascotObs.circles.forEach((c) => {
+                const dx = h.x + o.x - c.x;
+                const dy = h.y + o.y - c.y;
+                const d = Math.hypot(dx, dy);
+                if (d > R + c.r + T.mascotGap + 1 || d < 0.01) return;   // 触れていない
+                const nx = dx / d;   // YOKABIOくん → 写真
+                const ny = dy / d;
+                const fresh = now - (b.mascotAt || -1e9) > 120;   // しばらく離れていたあとの、新しい接触
+                b.mascotAt = now;
+                const vn = b.vx * nx + b.vy * ny;
+                if (vn >= 0) return;   // すでに離れる向き
+                const sp = -vn;
+                if (!dragged) {
+                    const e = sp > T.bounceMinSpeed ? T.mascotRestitution : 0;
+                    b.vx -= (1 + e) * vn * nx;
+                    b.vy -= (1 + e) * vn * ny;
+                    if (!reduceMotion && sp > 40) hit(b, -nx, -ny, Math.min(1, sp / 600));   // 写真も、ぷるん
+                }
+                if (fresh && sp > T.mascotBumpMin) mascotCollided(b, sp, now);
+            });
+        });
+    }
+
     /* ---- 位置の補正（めり込みを解く）。速さの計算とは分けて、毎回「めり込みゼロ」を目指す ----
             ・円どうしの中心間距離が、半径の合計＋すきま より短くならないようにする
             ・壁の判定と、写真どうしの判定を、同じ反復の中で一緒に解く（壁で動けない写真は、動かさない）
@@ -1418,6 +1533,7 @@ function initMemberDrag() {
                     pushApart(list[i], list[j], blocked, dragFactor);
                 }
             }
+            list.forEach(pushFromMascot);   // YOKABIOくん（動かない）からも、押し戻す
             const next = new Set();
             list.forEach((el) => clampBody(el, bounds.get(el), next));
             blocked = next;
@@ -1460,6 +1576,7 @@ function initMemberDrag() {
                 od.x -= dx / d * (min - d);
                 od.y -= dy / d * (min - d);
             });
+            pushFromMascot(dragEl);   // つかんでいる写真も、YOKABIOくんの中へは、入れない
             clampBody(dragEl, bd, new Set());
         }
     }
@@ -1550,6 +1667,7 @@ function initMemberDrag() {
                 }
             }
         }
+        mascotVelocities(list);   // YOKABIOくんとの、跳ね返り
         // 壁：当たったら、軽く変形して、柔らかく跳ね返る（ゆっくりなら、止まる）
         list.forEach((el) => {
             if (isDragged(el)) return;
@@ -1630,6 +1748,7 @@ function initMemberDrag() {
         const bounds = getBounds();
         const n = clamp(Math.ceil(dt / T.maxSubstep), 1, 6);
         list.forEach((el) => { const b = body.get(el); b.pmx = 0; b.pmy = 0; });
+        mascotUpdate();   // YOKABIOくんの、いまの位置と、写真ごとの判定の入れる／切る
         for (let s = 0; s < n; s++) substep(dt / n, bounds);
         // つかんでいる写真が、壁の向こうへ押しこもうとしているぶんも、押しつけの強さにする
         if (drag && drag.active) {
@@ -3019,6 +3138,7 @@ function initMemberDrag() {
             }, 800);
         });
         zTop = 10;
+        mascotResetFlags();   // 元の位置で、YOKABIOくんと重なっている写真は、離れるまで、判定を切る（整列中は、そもそも物理が止まっている）
         if (!reduceMotion) animateLinks(900);
         // 並び終わったら、速さをゼロにして、物理を再開できる状態にする
         resetTimer = setTimeout(() => {
@@ -3045,7 +3165,8 @@ function initMemberDrag() {
     const ANGER_STEPS = [6, 10, 14, 20];   // 連打の回数が、これ以上になると、第2・第3・第4・第5段階（以前は 4, 6, 8, 10）
     const faceWrap = resetBtn ? resetBtn.querySelector('.mascot-faces') : null;
     const faces = faceWrap ? Array.from(faceWrap.querySelectorAll('.mascot-face')) : [];
-    const anger = { stage: 1, count: 0, last: 0, timer: 0 };   // 怒りの段階 / 連打の回数 / 最後のクリック時刻 / 回復のタイマー
+    const anger = { stage: 1, count: 0, last: 0, timer: 0, hits: 0 };   // 怒りの段階 / 連打の回数 / 最後のクリック時刻 / 回復のタイマー / 衝突の回数（連打とは、別に数える）
+    const HIT_STEPS = [3, 6, 9, 12];   // 衝突の回数が、これ以上になると、第2・第3・第4・第5段階
     faces.forEach((f) => { if (f.decode) f.decode().catch(() => { /* 読み込めなくても、何もしない */ }); });   // 5枚とも、先に読み込んでおく（切り替えで、ちらつかない）
 
     function showAnger(stage, shake) {
@@ -3075,25 +3196,54 @@ function initMemberDrag() {
         return s;
     }
 
-    // 回復のタイマー：怒っている間だけ。前のタイマーを止めてから、新しく数え直す（重ならない）
+    // 衝突の回数 → 怒りの段階（1〜5）
+    function stageOfHits(n) {
+        let s = 1;
+        HIT_STEPS.forEach((need, i) => { if (n >= need) s = i + 2; });
+        return s;
+    }
+
+    // 回復のタイマー：怒っている間（または、衝突の回数がたまっている間）だけ。前のタイマーを止めてから、新しく数え直す（重ならない）
+    // 最後の「クリック」か「有効な衝突」から5秒間、どちらもなければ、連打の回数・衝突の回数を両方リセットして、第1段階に戻る
     function armRecovery() {
         clearTimeout(anger.timer);
         anger.timer = 0;
-        if (anger.stage <= 1) return;   // 通常のときは、何もしない（回復の演出も、出さない）
+        if (anger.stage <= 1 && anger.hits === 0) return;   // 通常のときは、何もしない（回復の演出も、出さない）
         anger.timer = setTimeout(() => {
             anger.timer = 0;
             anger.count = 0;
             anger.last = 0;
+            anger.hits = 0;
             showAnger(1, false);   // 機嫌が直る：通常の画像に戻る（軽くぷるん）
         }, ANGER_RECOVER_MS);
+    }
+
+    // YOKABIOくんが、写真にぶつかられたとき：揺れる（見た目だけ）。速い衝突は、回数に数える
+    function mascotBump(sp) {
+        if (!resetBtn || reduceMotion) return;
+        resetBtn.classList.remove('is-bump-1', 'is-bump-2');
+        void resetBtn.offsetWidth;
+        resetBtn.classList.add(sp > 800 ? 'is-bump-2' : 'is-bump-1');   // 軽い衝突は小さく、強い衝突は少し大きく
+    }
+
+    function mascotCollided(b, sp, now) {
+        mascotBump(sp);
+        if (resetting || sp < T.mascotHitMinSpeed) return;                       // 整列中・弱い衝突は、数えない
+        if (now - (b.mascotCountAt || -1e9) < T.mascotHitCooldownMs) return;     // 同じ写真が、続けて数えられない
+        b.mascotCountAt = now;
+        anger.hits++;
+        const target = stageOfHits(anger.hits);
+        if (target > anger.stage) showAnger(target, true);   // 連打と衝突の、高い方の段階になる（どちらも、下がるのは、回復・解除のときだけ）
+        armRecovery();
     }
 
     function angerStep(wasMoved) {
         if (!faces.length) return;
         if (wasMoved) {
-            // 整列が役に立った：怒りを解除（通常の画像・回数0・タイマー停止）。このクリックは、連打に数えない
+            // 整列が役に立った：怒りを解除（通常の画像・連打と衝突の回数0・タイマー停止）。このクリックは、連打に数えない
             anger.count = 0;
             anger.last = 0;
+            anger.hits = 0;
             showAnger(1, false);
             armRecovery();
             return;
@@ -3134,6 +3284,7 @@ function initMemberDrag() {
         });
         zTop = 10;
         computePairs();
+        mascotResetFlags();
         drawLinks();
     });
 

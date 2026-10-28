@@ -838,3 +838,35 @@ a.search-result-item:hover {
         animation: mascot-pop 0.2s ease-out;
     }
 }
+
+/* 写真がぶつかったときの、YOKABIOくんの揺れ（見た目だけ。ボタンの位置・クリックできる範囲は、動かさない）。
+   画像だけに、個別プロパティ scale / rotate を使う（ホバーの拡大は transform、怒りの「ぷるっ」は、外側のラッパー。おたがいに、ぶつからない） */
+.reset-layout-btn.is-bump-1 .mascot-face.is-on {
+    animation: mascot-bump-1 0.25s ease-out;
+}
+
+.reset-layout-btn.is-bump-2 .mascot-face.is-on {
+    animation: mascot-bump-2 0.33s ease-out;
+}
+
+@keyframes mascot-bump-1 {
+    0% { scale: 1 1; rotate: 0deg; }
+    25% { scale: 1.05 0.95; rotate: -2.5deg; }
+    60% { scale: 0.985 1.015; rotate: 1.5deg; }
+    100% { scale: 1 1; rotate: 0deg; }
+}
+
+@keyframes mascot-bump-2 {
+    0% { scale: 1 1; rotate: 0deg; }
+    22% { scale: 1.11 0.89; rotate: -6deg; }
+    50% { scale: 0.96 1.04; rotate: 4deg; }
+    78% { scale: 1.02 0.98; rotate: -1.5deg; }
+    100% { scale: 1 1; rotate: 0deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reset-layout-btn.is-bump-1 .mascot-face.is-on,
+    .reset-layout-btn.is-bump-2 .mascot-face.is-on {
+        animation: none;
+    }
+}
