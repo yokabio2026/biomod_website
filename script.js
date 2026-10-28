@@ -679,6 +679,10 @@ function initMemberDrag() {
         hoverMove: 7,          // 【ホバー】カーソルの方向へ追従する、最大の距離(px)
         hoverK: 170,           // 【ホバー】追従のバネの強さ（大きいほど、すばやく追いつく）
         hoverC: 12,            // 【ホバー】追従の減衰（小さいほど、離れたときに、ぷるぷるが長く続く）
+        dnaHoverMax: 4,        // 【DNAのホバー】カーソルを重ねたとき、DNAがカーソルの方向へ曲がる量(px)。見た目だけ
+        dnaHoverK: 260,        // 【DNAのホバー】追従のバネの強さ
+        dnaHoverC: 14,         // 【DNAのホバー】追従の減衰（約0.4秒で、ぷるんと元に戻る）
+        dnaHoverGlow: 0.3,     // 【DNAのホバー】重ねている間の、紫の濃さ（0〜1。つかんで引っ張ると、最大で1）
         freeTime: 0.5,         // 【衝突後】ぶつかったあと、DNAに引き戻されにくくなる時間(秒)
         springRelief: 0.8,     // 【衝突後】ぶつかった直後に、DNAの引き寄せを弱める割合（0〜1）
         frictionBase: 1.3,     // 【減衰】動いている写真の減速（ゆっくり動くとき）。小さいほど、長く滑る（以前は1.6）
@@ -818,7 +822,8 @@ function initMemberDrag() {
             // 写真のあいだに見える部分（円と円のすきま）に、もとの量＋DNA_EXTRA_TURNS 節ぶんのらせんが入るようにする
             const visible = Math.max(40, l0 - radii.get(a) - radii.get(b));
             const turns = l0 / DNA_PERIOD + DNA_EXTRA_TURNS * (l0 / visible);
-            pairs.push({ a: a, b: b, l0: l0, turns: turns, pluck: null, releasedAt: 0, hit: null, hp: null, glow: 0, glowT: 0, wasHot: false });
+            pairs.push({ a: a, b: b, l0: l0, turns: turns, pluck: null, releasedAt: 0, hit: null, hp: null, glow: 0, glowT: 0, wasHot: false,
+                hov: { u: 0.5, dx: 0, dy: 0, vx: 0, vy: 0, tx: 0, ty: 0, inside: false } });
         }
         // DNAをつまむための、透明な操作判定領域（見た目は変えない）。写真より奥にあるので、重なる所では写真が優先される
         pairs.forEach((pair) => {
@@ -835,6 +840,17 @@ function initMemberDrag() {
             h.style.pointerEvents = 'stroke';
             h.style.cursor = 'grab';
             h.addEventListener('pointerdown', (e) => startPluck(pair, e));
+            // ホバー（マウスがある端末だけ）：DNAに重ねると、重ねた付近が、カーソルの方向へ、わずかに曲がる
+            if (hoverCapable && !reduceMotion) {
+                const aim = (e) => { if (e.pointerType === 'mouse') dnaHoverAim(pair, e); };
+                h.addEventListener('pointerenter', aim);
+                h.addEventListener('pointermove', aim);
+                h.addEventListener('pointerleave', (e) => {
+                    if (e.pointerType !== 'mouse') return;
+                    pair.hov.inside = false;
+                    wakeHover();
+                });
+            }
             svg.appendChild(h);
             hitEls.push(h);
             pair.hit = h;
@@ -846,7 +862,8 @@ function initMemberDrag() {
     // 2つの写真の中心をむすぶDNAの中心線を、点の列で返す。
     // つまんでいるときは、つまんだ点を通る曲線（二次ベジェ）になる
     function centerline(pair, ca, cb, shake) {
-        const pk = pair.pluck;
+        // つまんでいる（または、離したあとの揺れの）ときは、そちらの形。そうでなければ、ホバーの、わずかな曲がり
+        const pk = pair.pluck || pair.hov;
         if (!pk || Math.abs(pk.dx) + Math.abs(pk.dy) < 0.3) return [[ca.x, ca.y], [cb.x, cb.y]];
         const u = pk.u;
         // 震え：つまんだ点だけを、ごく小さく揺らす（両端の写真の位置は動かさない）
@@ -897,7 +914,9 @@ function initMemberDrag() {
             const cb = photoCenter(pair.b);
             // 引っ張りのパワー（0〜1）。最大距離の pluckFullFrac 割で 1。つまんでいるDNAだけ、色の濃さと震えが変わる
             const pk0 = pair.pluck;
-            const power = pk0 && pk0.held ? clamp(Math.hypot(pk0.dx, pk0.dy) / (T.pluckMax * T.pluckFullFrac), 0, 1) : 0;
+            const pluckPower = pk0 && pk0.held ? clamp(Math.hypot(pk0.dx, pk0.dy) / (T.pluckMax * T.pluckFullFrac), 0, 1) : 0;
+            // ホバー中だけ、紫を少し濃くする（つかんでいないときだけ）
+            const power = Math.max(pluckPower, !pk0 && pair.hov && pair.hov.inside ? T.dnaHoverGlow : 0);
             const nowMs = performance.now();
             const dtg = pair.glowT ? Math.min(0.1, (nowMs - pair.glowT) / 1000) : 0;
             pair.glowT = nowMs;
@@ -1716,9 +1735,11 @@ function initMemberDrag() {
         pair.pluck = {
             u: prev ? prev.u : pluck.u,
             f: prev ? prev.f : pluck.f,
-            dx: prev ? prev.dx : 0, dy: prev ? prev.dy : 0,
+            dx: prev ? prev.dx : pair.hov.dx, dy: prev ? prev.dy : pair.hov.dy,   // ホバーで曲がっていたぶんから始める（跳ねない）
             vx: 0, vy: 0, held: true
         };
+        // ホバーの曲がりは、引っ張りに引き継いだので、リセットする
+        pair.hov.dx = 0; pair.hov.dy = 0; pair.hov.vx = 0; pair.hov.vy = 0; pair.hov.tx = 0; pair.hov.ty = 0; pair.hov.inside = false;
         pluck.u = pair.pluck.u;
         pluck.baseX = pair.pluck.dx;
         pluck.baseY = pair.pluck.dy;
@@ -1887,7 +1908,49 @@ function initMemberDrag() {
             hoverApply(el, h);
             if (moving || on) active = true;
         });
+        // DNAのホバー：バネで、少し遅れて追従し、離すと、ぷるんと戻る。つかんでいる間・ドラッグ中は、止める
+        let dnaMoving = false;
+        pairs.forEach((pair) => {
+            const v = pair.hov;
+            const on = v.inside && !off && !pair.pluck;
+            const tx = on ? v.tx : 0;
+            const ty = on ? v.ty : 0;
+            v.vx += (-T.dnaHoverK * (v.dx - tx) - T.dnaHoverC * v.vx) * dt;
+            v.vy += (-T.dnaHoverK * (v.dy - ty) - T.dnaHoverC * v.vy) * dt;
+            v.dx += v.vx * dt;
+            v.dy += v.vy * dt;
+            const moving = Math.abs(v.dx - tx) > 0.03 || Math.abs(v.dy - ty) > 0.03 || Math.abs(v.vx) > 0.1 || Math.abs(v.vy) > 0.1;
+            if (!moving && !on) { v.dx = 0; v.dy = 0; v.vx = 0; v.vy = 0; }
+            if (moving || on || pair.glow > 0.02) dnaMoving = true;
+        });
+        if (dnaMoving) { drawLinks(); active = true; }
         hoverRaf = active ? requestAnimationFrame(hoverTick) : 0;
+    }
+
+    // DNAにカーソルが重なったとき、重なった付近が、カーソルの方向（DNAに直角な向き）へ、わずかに曲がるよう、目標を決める
+    function dnaHoverAim(pair, e) {
+        const v = pair.hov;
+        v.inside = true;
+        if (pair.pluck) { wakeHover(); return; }   // つかんでいる間（と、離したあとの揺れ）は、ホバーの曲がりを使わない
+        const ca = photoCenter(pair.a);
+        const cb = photoCenter(pair.b);
+        const pt = mainPoint(e.clientX, e.clientY);
+        const vx = cb.x - ca.x;
+        const vy = cb.y - ca.y;
+        const dist = Math.hypot(vx, vy) || 1;
+        const visible = Math.max(10, dist - ca.r - cb.r);
+        const proj = ((pt.x - ca.x) * vx + (pt.y - ca.y) * vy) / dist;
+        const f = clamp((proj - ca.r) / visible, T.pluckGrabMin, 1 - T.pluckGrabMin);
+        const u = (ca.r + f * visible) / dist;
+        // DNAに直角な向き（法線）と、カーソルが、DNAの線からどれだけはなれているか
+        const nx = -vy / dist;
+        const ny = vx / dist;
+        const off = (pt.x - (ca.x + vx * u)) * nx + (pt.y - (ca.y + vy * u)) * ny;
+        const amt = clamp(off * 0.2, -T.dnaHoverMax, T.dnaHoverMax);
+        v.u = u;
+        v.tx = nx * amt;
+        v.ty = ny * amt;
+        wakeHover();
     }
 
     function wakeHover() {
