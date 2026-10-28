@@ -3029,18 +3029,23 @@ function initMemberDrag() {
     }
 
     /* ---- YOKABIOくんの機嫌：整列ボタンが「役に立ったかどうか」で変わる ----
-            ・写真がすでに初期配置にあるのに、整列ボタンを短時間に何度も押すと、だんだん怒る（画像が5段階で変わる。5段階目は、それ以上押しても、そのまま）
-                連打 = 前回のクリックから1秒以内。1秒より間があいたら、連打の回数は、新しい1回目から数え直す（表示している怒りは、下げない）
+            ・写真がすでに初期配置にあるのに、整列ボタンを短時間に何度も押すと、だんだん怒る。画像が5段階で変わる（5段階目は、それ以上押しても、そのまま）：
+                連打の回数  1〜3回 = 第1段階（通常） / 4〜5回 = 第2段階 / 6〜7回 = 第3段階 / 8〜9回 = 第4段階 / 10回以上 = 第5段階
+                連打 = 前回のクリックから0.7秒以内。0.7秒より間があいたら、連打の回数は、新しい1回目から数え直す。
+                「連打の回数」と「怒りの段階」は、別々に管理する：回数が戻っても、怒りの段階は、下げない（段階を戻すのは、下の2つだけ）
+            ・自然回復：最後にクリックしてから5秒間、クリックがなければ、第1段階に戻る（連打の回数も0）。クリックのたびに、5秒を数え直す（タイマーは1つだけ）
             ・写真が初期配置から動いていた（実際の位置が、10px以上ずれた写真が、1枚でもあった）ときに押すと、整列しながら、怒りを解除する：
-                通常の画像に戻り、連打の回数も0。このクリックは、連打の回数に数えない
-            ・時間がたっても、機嫌は直らない（放置しても、怒ったまま）。ページを読み込み直すと、通常から始まる
+                通常の画像に戻り、連打の回数も0、回復のタイマーも止める。このクリックは、連打の回数に数えない
+            ・ページを読み込み直すと、通常から始まる
             ・「写真が動いたか」は、物理の位置（offsets）で判定する。ホバー・待機・チュートリアルの、見た目だけの動きは、含まない。
               判定は、整列を始める「前」の位置で行う（整列を始めると、位置が0に戻るため）
             ・画像が切り替わったときだけ、ぷるっ（CSSアニメーション）。整列そのものは、これまでどおり resetLayout を1回だけ呼ぶ */
-    const ANGER_GAP_MS = 1000;       // この時間(ミリ秒)以内に、また押したら、連打
+    const ANGER_GAP_MS = 700;        // この時間(ミリ秒)以内に、また押したら、連打（以前は1000）
+    const ANGER_RECOVER_MS = 5000;   // 最後のクリックから、この時間たつと、機嫌が直る
+    const ANGER_STEPS = [4, 6, 8, 10];   // 連打の回数が、これ以上になると、第2・第3・第4・第5段階
     const faceWrap = resetBtn ? resetBtn.querySelector('.mascot-faces') : null;
     const faces = faceWrap ? Array.from(faceWrap.querySelectorAll('.mascot-face')) : [];
-    const anger = { stage: 1, count: 0, last: 0 };
+    const anger = { stage: 1, count: 0, last: 0, timer: 0 };   // 怒りの段階 / 連打の回数 / 最後のクリック時刻 / 回復のタイマー
     faces.forEach((f) => { if (f.decode) f.decode().catch(() => { /* 読み込めなくても、何もしない */ }); });   // 5枚とも、先に読み込んでおく（切り替えで、ちらつかない）
 
     function showAnger(stage, shake) {
@@ -3063,21 +3068,43 @@ function initMemberDrag() {
         return moved;
     }
 
+    // 連打の回数 → 怒りの段階（1〜5）
+    function stageOfCount(n) {
+        let s = 1;
+        ANGER_STEPS.forEach((need, i) => { if (n >= need) s = i + 2; });
+        return s;
+    }
+
+    // 回復のタイマー：怒っている間だけ。前のタイマーを止めてから、新しく数え直す（重ならない）
+    function armRecovery() {
+        clearTimeout(anger.timer);
+        anger.timer = 0;
+        if (anger.stage <= 1) return;   // 通常のときは、何もしない（回復の演出も、出さない）
+        anger.timer = setTimeout(() => {
+            anger.timer = 0;
+            anger.count = 0;
+            anger.last = 0;
+            showAnger(1, false);   // 機嫌が直る：通常の画像に戻る（軽くぷるん）
+        }, ANGER_RECOVER_MS);
+    }
+
     function angerStep(wasMoved) {
         if (!faces.length) return;
         if (wasMoved) {
-            // 整列が役に立った：怒りを解除（通常の画像・回数0）。このクリックは、連打に数えない
+            // 整列が役に立った：怒りを解除（通常の画像・回数0・タイマー停止）。このクリックは、連打に数えない
             anger.count = 0;
             anger.last = 0;
             showAnger(1, false);
+            armRecovery();
             return;
         }
         // すでに初期配置：意味のないクリック。連打されるほど、怒る
         const now = performance.now();
-        anger.count = (anger.count > 0 && now - anger.last <= ANGER_GAP_MS) ? anger.count + 1 : 1;
+        anger.count = (anger.count > 0 && now - anger.last <= ANGER_GAP_MS) ? anger.count + 1 : 1;   // 間があいたら、回数だけ数え直す（怒りの段階は、そのまま）
         anger.last = now;
-        const target = Math.min(5, anger.count);
-        if (target > anger.stage) showAnger(target, true);   // 怒りは、解除されるまで、下がらない
+        const target = stageOfCount(anger.count);
+        if (target > anger.stage) showAnger(target, true);   // 怒りは、回復するまで、下がらない
+        armRecovery();                                       // クリックのたびに、5秒を数え直す
     }
 
     if (resetBtn) {
