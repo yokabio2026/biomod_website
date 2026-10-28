@@ -678,8 +678,8 @@ function initMemberDrag() {
         freeTime: 0.5,         // 【衝突後】ぶつかったあと、DNAに引き戻されにくくなる時間(秒)
         springRelief: 0.8,     // 【衝突後】ぶつかった直後に、DNAの引き寄せを弱める割合（0〜1）
         frictionBase: 1.6,     // 動いている写真の減速（ゆっくり動くとき）
-        frictionQuad: 0.012,   // 速く動くほど、強く減速する度合い（小さいほど、遠くまで滑る）
-        maxSpeed: 2000,        // 写真の速さの上限(px/秒)。これを超えると、物理が不安定になるので、必ず頭打ちにする
+        frictionQuad: 0.009,   // 【減衰】速く動くほど、強く減速する度合い（小さいほど、遠くまで滑る。以前は0.012）
+        maxSpeed: 2800,        // 写真の速さの上限(px/秒)。これを超えると、物理が不安定になるので、必ず頭打ちにする
         wallRestitution: 0.4,  // 壁での弾み具合
         jellyK: 300,           // ぷるぷるのバネの強さ
         jellyC: 13,            // ぷるぷるの減衰（約0.4秒でほぼ止まる）
@@ -696,19 +696,21 @@ function initMemberDrag() {
         pluckGain: 1.2,        // たまったエネルギーを、写真の勢いに変える倍率（反発倍率）
         pluckAlong: 0.45,      // DNAに沿った向きに引いても、距離の何割を「のび」として扱うか（のびなしでも弾けるように）
         pluckGrabMin: 0.12,    // 【DNAをつかむ】つかめる位置の端の余白（0〜1）。端に近すぎると、接続点が外れるので、この割合だけ内側に制限する
-        pluckBias: 0.2,        // 【DNAをつかむ】つかんだ位置による、両端の写真への力の偏り（0で、左右同じ）。左をつかむと左の写真が、右をつかむと右の写真が、やや強く飛ぶ
+        pluckBias: 0.25,       // 【力の配分】いちばん端をつかんだときの、左右の力の偏り（±25%）。0で、左右同じ。左右の合計は、いつも一定
         hitPad: 26,            // 【DNAをつかむ】DNAの操作領域（透明）の余白(px)。らせんの幅＋この値が、操作領域の太さ
         pluckInward: 0.25,     // 弾くとき、両端の写真に「おたがいへ向かう成分」をどのくらい混ぜるか
-        pluckMaxSpeed: 2000,   // 【発射の速さ】DNAを弾いたときの、写真の速さの上限(px/秒)。なめらかに頭打ちになる
+        pluckMaxSpeed: 2600,   // 【発射の速さ】DNAを弾いたときの、写真の速さの上限(px/秒)。なめらかに頭打ちになる
+        pluckLaunchScale: 1.3, // 【発射の速さ】最大まで引いたときの、発射速度の倍率（以前の約1.3倍）。軽い引っ張りには、ほとんど効かない
+        pluckLaunchExp: 1.5,   // 【発射の速さ】上の倍率が、引いた距離の割合に対して、どれだけ急に効くか（大きいほど、強く引いたときだけ効く）
         pluckBoost: 0.45,      // 【発射の速さ】強く引くほど、さらに速くする度合い（0で、引いた距離に比例するだけ）
         pluckFullFrac: 0.7,    // 最大距離の何割まで引いたら「最大パワー」とみなすか（色の濃さ・震えの基準）
         pluckShakeStart: 0.9,  // パワーがこの割合を超えたら、DNAがごく小さく震えはじめる
         pluckShakeAmp: 1.4,    // 震えの大きさ(px)
         pluckSnapK: 800,       // 離したあと、DNAが元に戻るバネの強さ（大きいほど速く戻る）
         pluckSnapC: 11,        // 離したあと、DNAの揺れの減衰（小さいほど、ぷるぷるが長く続く）
-        glideTime: 0.5,        // 【減衰】弾かれた直後に、滑りやすくなる時間(秒)
-        glideAmount: 0.65,     // 【減衰】弾かれた直後に、減速が弱まる割合
-        springRamp: 0.5        // 【DNAの弾性】弾いたあと、DNAの引き寄せが元の強さに戻るまでの時間(秒)
+        glideTime: 0.6,        // 【減衰】弾かれた直後に、滑りやすくなる時間(秒)
+        glideAmount: 0.72,     // 【減衰】弾かれた直後に、減速が弱まる割合
+        springRamp: 0.8        // 【DNAの弾性】弾いたあと、DNAの引き寄せが元の強さに戻るまでの時間(秒)
     };
     window.teamPhysics = T;
 
@@ -1756,7 +1758,9 @@ function initMemberDrag() {
         const fx = -pk.dx / m;   // 引っ張った向きの、反対
         const fy = -pk.dy / m;
         // つかんだ位置による力の偏り：左をつかむと、左の写真（A）がやや強く、右をつかむと、右の写真（B）がやや強く。中央は同じ
-        const bias = T.pluckBias * (1 - 2 * pk.f);
+        // f は、pluckGrabMin 〜 1 - pluckGrabMin の範囲。いちばん端（f = pluckGrabMin）で、ちょうど ±pluckBias になるよう、なめらかに（直線的に）変える。
+        // 左右の重みは (1 + bias, 1 - bias) なので、合計は、つかむ位置に関係なく、いつも一定
+        const bias = T.pluckBias * clamp((1 - 2 * pk.f) / (1 - 2 * T.pluckGrabMin), -1, 1);
         [[A, ca, cb, 1 + bias], [B, cb, ca, 1 - bias]].forEach((it) => {
             const b = body.get(it[0]);
             let ix = it[2].x - it[1].x;
@@ -1772,7 +1776,9 @@ function initMemberDrag() {
             // 速さ = √(2E / 質量) × 反発倍率。上限つき
             // 軽い引っ張りでは、これまでと同じ（ほぼ比例）。強く引くほど伸びて、上限 pluckMaxSpeed に、なめらかに近づく
             // さらに、引いた距離の割合（0〜1）の2乗に応じて増やす：軽い引っ張りはほぼ変わらず、強く引くほど速くなる
-            const raw = Math.sqrt(2 * energy / b.mass) * T.pluckGain * (1 + T.pluckBoost * power * power) * it[3];
+            // 発射速度の倍率：軽い引っ張りでは、ほぼ1。最大まで引くと、pluckLaunchScale 倍（power の pluckLaunchExp 乗で、なめらかに増える）
+            const launchScale = 1 + (T.pluckLaunchScale - 1) * Math.pow(power, T.pluckLaunchExp);
+            const raw = Math.sqrt(2 * energy / b.mass) * T.pluckGain * (1 + T.pluckBoost * power * power) * launchScale * it[3];
             const speed = T.pluckMaxSpeed * Math.tanh(raw / T.pluckMaxSpeed);
             b.vx += dx * speed;
             b.vy += dy * speed;
