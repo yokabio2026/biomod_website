@@ -485,7 +485,6 @@ a.search-result-item:hover {
     border: none;
     background: none;
     cursor: pointer;
-    transition: transform 0.2s ease;
 }
 
 .reset-layout-btn img {
@@ -494,13 +493,81 @@ a.search-result-item:hover {
     height: auto;
     filter: drop-shadow(0 6px 10px rgba(43, 16, 85, 0.35));
     pointer-events: none;
+    transform-origin: 50% 85%;
+    transition: transform 0.2s ease;
 }
 
-.reset-layout-btn:hover {
-    transform: translateY(-4px) rotate(-6deg);
+/* マスコットにカーソルを重ねたときの、ふきだし「Tap to ALiGN」（見た目だけ。クリックの動きは変えない）。
+   ふきだしはマスコットの左上。クリックや重なりの判定には、加わらない */
+.reset-layout-btn::after {
+    content: "Tap to ALiGN";
+    position: absolute;
+    right: 80%;
+    bottom: 82%;
+    padding: 5px 11px;
+    border-radius: 14px;
+    background: #f4efff;
+    border: 1.5px solid #cdbdf2;
+    color: #2b1055;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    box-shadow: 0 4px 10px rgba(43, 16, 85, 0.18);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
 }
 
-.reset-layout-btn:active {
+/* ふきだしのしっぽ（マスコットの方を向く、小さな三角） */
+.reset-layout-btn::before {
+    content: "";
+    position: absolute;
+    right: calc(80% + 12px);
+    bottom: calc(82% - 5px);
+    width: 9px;
+    height: 9px;
+    background: #f4efff;
+    border-right: 1.5px solid #cdbdf2;
+    border-bottom: 1.5px solid #cdbdf2;
+    transform: rotate(45deg) translateY(4px);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* カーソルを持つ端末（パソコンなど）だけ。スマホ・タブレットでは、ホバーに頼らず、タップでそのまま並び直す */
+@media (hover: hover) and (pointer: fine) {
+    .reset-layout-btn:hover img {
+        transform: scale(1.05);   /* 約5%拡大 */
+    }
+
+    .reset-layout-btn:hover::after {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .reset-layout-btn:hover::before {
+        opacity: 1;
+        transform: rotate(45deg) translateY(0);
+    }
+}
+
+/* キーボードで選んだときにも、同じふきだしを出す */
+.reset-layout-btn:focus-visible::after {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reset-layout-btn:focus-visible::before {
+    opacity: 1;
+    transform: rotate(45deg) translateY(0);
+}
+
+.reset-layout-btn:active img {
     transform: scale(0.92);
 }
 
