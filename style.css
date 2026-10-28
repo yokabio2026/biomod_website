@@ -698,3 +698,55 @@ a.search-result-item:hover {
         font-size: 15px;
     }
 }
+
+/* ---- 操作チュートリアル（偽物のカーソル）。見た目だけ。クリックなどの判定には、加わらない ---- */
+.tutorial-cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    z-index: 9;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+.tutorial-cursor svg {
+    display: block;
+    transform-origin: 6px 3.5px;
+    transition: transform 0.12s ease;
+    filter: drop-shadow(0 2px 3px rgba(43, 16, 85, 0.35));
+}
+
+.tutorial-cursor.is-press svg {
+    transform: scale(0.86);
+}
+
+/* クリックの波紋（矢印の先に、小さく） */
+.tutorial-ring {
+    position: absolute;
+    left: 5.8px;
+    top: 3.5px;
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+    border: 2px solid rgba(134, 80, 189, 0.7);
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tutorial-cursor.is-click .tutorial-ring {
+    animation: tutorial-ring 0.45s ease-out;
+}
+
+@keyframes tutorial-ring {
+    from { transform: scale(0.3); opacity: 0.9; }
+    to { transform: scale(1.15); opacity: 0; }
+}
+
+/* 写真をつかんだように見せる影（実演のとき、写真は動かさない） */
+.member.tut-lift img {
+    box-shadow: 0 16px 28px rgba(43, 16, 85, 0.30);
+}

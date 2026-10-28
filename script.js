@@ -759,7 +759,11 @@ function initMemberDrag() {
         trailShrink: 0.45,     // 【発射の軌跡】消えるまでに、小さくなる割合（古いものほど小さく、薄く）
         trailPerPhoto: 8,      // 【発射の軌跡】1枚の写真につき、同時に残る小さなDNAの上限（以前は5）
         trailChainPerPhoto: 3, // 【発射の軌跡】発射した写真にぶつかられて動いた写真の、上限（連鎖の分は、少なめ）
-        trailMax: 48           // 【発射の軌跡】画面全体で、同時に残る小さなDNAの上限（以前は36）
+        trailMax: 48,          // 【発射の軌跡】画面全体で、同時に残る小さなDNAの上限（以前は36）
+        tutorialIdleMs: 5000,  // 【チュートリアル】写真・DNAが操作されないまま、この時間(ミリ秒)たつと、実演を始める
+        tutorialPhotoGap: 1200, // 【チュートリアル】写真の実演のあと、DNAの実演までの間(ミリ秒)
+        tutorialDnaGap: 3500,  // 【チュートリアル】DNAの実演のあと、つぎの写真の実演までの間(ミリ秒)
+        tutorialRounds: 3      // 【チュートリアル】「写真 → DNA」を繰り返す回数の上限（そのあとは、操作されるまで、出さない）
     };
     window.teamPhysics = T;
 
@@ -2588,6 +2592,235 @@ function initMemberDrag() {
         document.addEventListener('visibilitychange', wakeIdle);
         wakeIdle();
     }
+
+    /* ---- 操作チュートリアル：しばらく操作がないと、偽物のマウスカーソルが出てきて、写真とDNAの操作を実演する ----
+            ・対象は3組だけ（メンバーID で管理。DOMの順番や、ドラッグ後の座標では決めない）：
+                Team Member … 村上さんの写真 と、その右隣（大湊さん）とをつなぐDNA
+                Mentor      … 丸山さんの写真 と、その右隣とをつなぐDNA
+                Faculty Mentor … いちばん左の写真（data-member-id="faculty-1"）と、その右隣とをつなぐDNA
+              DNAは、「対象の写真が左端（pair.a）になっているDNA」。写真が動いて並びが変わっても、対象は変わらない
+            ・そのセクションが画面に見えていて、写真もDNAも操作されないまま約5秒たつと、写真 → DNA → 写真 → … と交互に実演する（1回に1組だけ）
+            ・実際の写真は、動かさない。DNAは、「つまんで引っ張る」見た目だけを、既存の描画に重ねる（写真に力は加えず、発射もしない）。離すと、ぷるんと戻る
+            ・写真かDNAを操作（ホバー・クリック）したら、すぐに消す。クリック（ドラッグ開始）したセクションは、このページを開いている間は、もう出さない
+            ・文字・吹き出しは出さない。カーソルは pointer-events: none。マウスのある端末だけ。prefers-reduced-motion のときは、出さない */
+    const TUTORIAL_TARGETS = ['murakami', 'maruyama', 'faculty-1'];
+    const tut = { run: null, raf: 0, cursor: null, tgts: [] };
+
+    function tutEase(u) { return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; }
+    function tutProg(t, a, b) { return clamp((t - a) / (b - a), 0, 1); }
+
+    // 対象の写真（と、DNAなら右隣の写真）が、画面の中に、すっかり見えているか（ナビゲーションバーの下）
+    function tutVisible(el) {
+        const r = el.querySelector('img').getBoundingClientRect();
+        return r.top >= 70 && r.bottom <= window.innerHeight - 10 && r.left >= 0 && r.right <= window.innerWidth;
+    }
+
+    function tutPairOf(tgt) {
+        return pairs.find((p) => p.a === tgt.el) || null;
+    }
+
+    function tutGeometryOk(tgt, kind) {
+        if (!tutVisible(tgt.el)) return false;
+        if (kind !== 'dna') return true;
+        const pair = tutPairOf(tgt);
+        return !!pair && tutVisible(pair.b);
+    }
+
+    function tutSetup() {
+        if (reduceMotion || !hoverCapable) return;
+        const cur = document.createElement('div');
+        cur.className = 'tutorial-cursor';
+        cur.setAttribute('aria-hidden', 'true');
+        cur.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" focusable="false">' +
+            '<path d="M5 3 L5 19.6 L9.2 15.9 L12 22 L15.2 20.6 L12.5 14.6 L18.2 14.4 Z" fill="#ffffff" stroke="#2b1055" stroke-width="1.8" stroke-linejoin="round"/></svg>' +
+            '<span class="tutorial-ring"></span>';
+        main.appendChild(cur);
+        tut.cursor = cur;
+        const list = Array.from(members);
+        TUTORIAL_TARGETS.forEach((id) => {
+            const el = list.find((m) => m.dataset.memberId === id);
+            if (!el) return;
+            tut.tgts.push({ id: id, el: el, sec: groupOf.get(el), inView: false, since: 0, lastAct: 0, dismissed: false,
+                kind: 'photo', nextAt: 0, rounds: 0 });
+        });
+        if (!tut.tgts.length) return;
+
+        // セクションが画面に見えているか。見えはじめたら、5秒を数え直す。見えなくなったら、実演を止める
+        if ('IntersectionObserver' in window) {
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach((en) => {
+                    const seen = en.isIntersecting && (en.intersectionRatio >= 0.2 || en.intersectionRect.height >= 250);
+                    tut.tgts.forEach((t) => {
+                        if (t.sec !== en.target) return;
+                        if (seen && !t.inView) { t.since = performance.now(); t.rounds = 0; t.kind = 'photo'; t.nextAt = 0; }
+                        if (!seen && t.inView && tut.run && tut.run.tgt === t) tutAbort(false);
+                        t.inView = seen;
+                    });
+                });
+            }, { threshold: [0, 0.2, 0.4, 0.6] });
+            new Set(tut.tgts.map((t) => t.sec)).forEach((s) => io.observe(s));
+        }
+
+        // 操作の検出：写真・DNAにカーソルが重なったら、実演を消して、5秒を数え直す。クリックしたら、そのセクションは、もう出さない
+        const sectionOf = (target) => {
+            if (!target || !target.closest) return null;
+            const m = target.closest('.member');
+            if (m) return groupOf.get(m) || null;
+            const pr = pairs.find((p) => p.hit === target);
+            return pr ? groupOf.get(pr.a) || null : null;
+        };
+        main.addEventListener('pointerover', (e) => {
+            const sec = sectionOf(e.target);
+            if (!sec) return;
+            tutAbort(false);
+            tut.tgts.forEach((t) => { if (t.sec === sec) t.lastAct = performance.now(); });
+        });
+        window.addEventListener('pointerdown', (e) => {
+            const sec = sectionOf(e.target);
+            if (!sec) return;
+            tutAbort(true);
+            tut.tgts.forEach((t) => { if (t.sec === sec) t.dismissed = true; });
+        }, true);   // 写真・DNAの操作より先に受けて、実演の見た目を片づけてから、本物の操作を始める
+
+        setInterval(tutCheck, 500);
+    }
+
+    function tutCheck() {
+        if (tut.run || document.hidden || drag || pluck || resetting || simId) return;
+        const now = performance.now();
+        for (let i = 0; i < tut.tgts.length; i++) {
+            const t = tut.tgts[i];
+            if (t.dismissed || !t.inView || t.rounds >= T.tutorialRounds || now < t.nextAt) continue;
+            if (now - Math.max(t.since, t.lastAct) < T.tutorialIdleMs) continue;
+            if (!tutGeometryOk(t, t.kind)) continue;
+            if (hover.get(t.el).inside) continue;
+            if (t.kind === 'dna' && tutPairOf(t).pluck) continue;
+            tutStart(t);
+            return;
+        }
+    }
+
+    function tutStart(t) {
+        tut.run = { tgt: t, kind: t.kind, t0: performance.now(), pair: t.kind === 'dna' ? tutPairOf(t) : null,
+            clicked: false, released: false, lifted: false };
+        tut.cursor.style.opacity = '0';
+        tut.raf = requestAnimationFrame(tutFrame);
+    }
+
+    // 実演を止める。hard = ユーザーがクリックしたとき（DNAの見た目も、すぐ元に戻す）
+    function tutAbort(hard) {
+        const run = tut.run;
+        if (!run) return;
+        cancelAnimationFrame(tut.raf);
+        tut.raf = 0;
+        tut.run = null;
+        tutCleanup(run, hard);
+        tut.cursor.style.opacity = '0';
+        tut.cursor.classList.remove('is-press');
+    }
+
+    // 実演のDNAの引っ張りと、写真の持ち上げを、元に戻す
+    function tutCleanup(run, hard) {
+        run.tgt.el.classList.remove('tut-lift');
+        const pk = run.pair && run.pair.pluck;
+        if (pk && pk.demo) {
+            if (hard) { run.pair.pluck = null; drawLinks(); } else { pk.held = false; wake(); }   // ふつうは、ぷるんと戻る
+        }
+    }
+
+    function tutFinish() {
+        const run = tut.run;
+        tut.run = null;
+        tut.raf = 0;
+        tutCleanup(run, false);
+        tut.cursor.style.opacity = '0';
+        tut.cursor.classList.remove('is-press');
+        const t = run.tgt;
+        const now = performance.now();
+        if (run.kind === 'photo') { t.kind = 'dna'; t.nextAt = now + T.tutorialPhotoGap; }
+        else { t.kind = 'photo'; t.rounds++; t.nextAt = now + T.tutorialDnaGap; }
+    }
+
+    function tutFrame(now) {
+        const run = tut.run;
+        if (!run) return;
+        const t = now - run.t0;
+        const tgt = run.tgt;
+        // 実演の途中で、状況が変わったら、すぐ止める（スクロールで見えなくなった・ほかの操作・整列など）
+        if (document.hidden || drag || pluck || resetting || !tgt.inView || !tutGeometryOk(tgt, run.kind)) { tutAbort(false); return; }
+        const cur = tut.cursor;
+        let x;
+        let y;
+        let opacity;
+        let press;
+        let dur;
+        if (run.kind === 'photo') {
+            // 写真：左上から現れて、写真の左上あたりを押し、少しドラッグして、離す（写真は、動かさない。影で「つかんだ」感じだけを出す）
+            const c = photoCenter(tgt.el);
+            const R = c.r;
+            const P0 = [c.x - 1.05 * R, c.y - 1.05 * R];
+            const P1 = [c.x - 0.45 * R, c.y - 0.45 * R];
+            const P2 = [P1[0] + 0.4 * R, P1[1] + 0.3 * R];
+            dur = 2700;
+            if (t < 1000) { const u = tutEase(tutProg(t, 0, 1000)); x = P0[0] + (P1[0] - P0[0]) * u; y = P0[1] + (P1[1] - P0[1]) * u; }
+            else if (t < 1250) { x = P1[0]; y = P1[1]; }
+            else if (t < 1950) { const u = tutEase(tutProg(t, 1250, 1950)); x = P1[0] + (P2[0] - P1[0]) * u; y = P1[1] + (P2[1] - P1[1]) * u; }
+            else if (t < 2050) { x = P2[0]; y = P2[1]; }
+            else { const u = tutEase(tutProg(t, 2050, 2550)); x = P2[0] + 6 * u; y = P2[1] + 6 * u; }
+            opacity = Math.min(tutProg(t, 0, 350), 1 - tutProg(t, 2300, 2650));
+            press = t >= 1180 && t < 2000;
+            if (press !== run.lifted) { run.lifted = press; tgt.el.classList.toggle('tut-lift', press); }
+            if (press && !run.clicked) { run.clicked = true; tutClick(); }
+        } else {
+            // DNA：左上から現れて、中央付近をつかみ、斜め下へ引っ張って、離す。引っ張りの見た目は、既存の「つまんだDNA」の描画をそのまま使う
+            const pair = run.pair;
+            const ca = photoCenter(pair.a);
+            const cb = photoCenter(pair.b);
+            const M = [(ca.x + cb.x) / 2, (ca.y + cb.y) / 2];
+            const P0 = [M[0] - 42, M[1] - 50];
+            const D = [30, 58];
+            dur = 2600;
+            let pull = 0;
+            if (t < 900) { const u = tutEase(tutProg(t, 0, 900)); x = P0[0] + (M[0] - P0[0]) * u; y = P0[1] + (M[1] - P0[1]) * u; }
+            else if (t < 1150) { x = M[0]; y = M[1]; }
+            else if (t < 1950) { pull = tutEase(tutProg(t, 1150, 1950)); }
+            else if (t < 2100) { pull = 1; }
+            if (t >= 1150 && t < 2100) { x = M[0] + D[0] * pull; y = M[1] + D[1] * pull; }
+            press = t >= 1050 && t < 2100;
+            if (press && !pair.pluck) {
+                pair.pluck = { u: 0.5, f: 0.5, dx: 0, dy: 0, vx: 0, vy: 0, held: true, demo: true };
+                run.clicked = true;
+                tutClick();
+            }
+            if (pair.pluck && pair.pluck.demo && pair.pluck.held) {
+                pair.pluck.dx = D[0] * pull;
+                pair.pluck.dy = D[1] * pull;
+                drawLinks();
+            }
+            if (t >= 2100) {
+                if (!run.released) { run.released = true; if (pair.pluck && pair.pluck.demo) { pair.pluck.held = false; wake(); } }   // 離す：ぷるんと戻る
+                const u = tutEase(tutProg(t, 2100, 2500));
+                x = M[0] + D[0] + 6 * u;
+                y = M[1] + D[1] + 8 * u;
+            }
+            opacity = Math.min(tutProg(t, 0, 350), 1 - tutProg(t, 2200, 2550));
+        }
+        cur.style.transform = 'translate(' + (x - 5.8).toFixed(1) + 'px, ' + (y - 3.5).toFixed(1) + 'px)';
+        cur.style.opacity = opacity.toFixed(3);
+        cur.classList.toggle('is-press', press);
+        if (t >= dur) { tutFinish(); return; }
+        tut.raf = requestAnimationFrame(tutFrame);
+    }
+
+    // クリックの小さな波紋
+    function tutClick() {
+        const cur = tut.cursor;
+        cur.classList.remove('is-click');
+        void cur.offsetWidth;
+        cur.classList.add('is-click');
+    }
+
+    tutSetup();
 
     /* ---- 元の並びに戻す ---- */
     function resetLayout() {
