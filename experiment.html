@@ -46,30 +46,99 @@
         <div class="page-hero-header page-hero-header--with-title">
             <h1>Experiment</h1>
         </div>
-        <div class="content-section">
+        <div class="content-section" id="purpose">
             <h2 class="section-title">Purpose</h2>
             <div class="content-space">
                 <div class="section-text">
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
+                    <p>
+                        ALiGN aims to build a network in which GUVs connect to selected partners
+                        and exchange their contents through those connections. Our experiments
+                        test the two functions needed to realize this design:
+                        <strong>controlled connection</strong> and <strong>controlled material exchange</strong>.
+                    </p>
+                    <p>
+                        For connection, we need to determine whether DNA can select the binding
+                        partners and control the number of partners attached to each GUV.
+                        For material exchange, we need to determine whether connected GUVs can
+                        exchange their contents while unconnected GUVs retain theirs.
+                    </p>
+                    <p>
+                        We begin by preparing the vesicles that will form this network.
+                        Before testing connections or transport, we need to identify the vesicle
+                        membrane and distinguish its interior from the surrounding solution.
+                        This provides the starting point for interpreting the later experiments.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="content-section">
+        <div class="content-section" id="guv-preparation">
             <h2 class="section-title">GUV Preparation</h2>
             <div class="content-space">
                 <div class="section-text">
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
+                    <p>
+                        In ALiGN, each GUV serves as a compartment: its membrane provides a
+                        surface for connections, and its interior holds the molecules to be
+                        exchanged. Our first experiment therefore focuses on preparing vesicles
+                        whose membrane and internal contents can be observed separately.
+                    </p>
 
-                    <h3 class="sub-title">Method</h3>
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
+                    <h3 class="sub-title" id="guv-method">Method</h3>
+                    <p>
+                        We use the <strong>emulsion transfer method</strong>. First, an aqueous
+                        solution is dispersed into small droplets in lipid-containing oil.
+                        Lipids coat the surface of each droplet. Centrifugation then drives the
+                        droplets through an oil&ndash;water interface coated with another lipid
+                        layer. As the droplets cross this interface, they acquire a second layer,
+                        forming a lipid bilayer around the internal solution.
+                        <a href="https://doi.org/10.1021/la026100v" aria-label="Reference: emulsion transfer mechanism">[1]</a>
+                    </p>
+                    <p>
+                        This approach lets us put the molecules intended for the vesicle
+                        interior into the droplets before membrane formation. In this experiment,
+                        we used POPC as the main membrane lipid, with NBD-PE as a green fluorescent
+                        membrane label. Sulforhodamine B was added to the internal solution
+                        as a red fluorescent marker. The internal and external solutions
+                        contained sucrose and glucose, respectively.
+                    </p>
+                    <p>
+                        After transfer and washing, we examined the sample by phase-contrast
+                        and fluorescence microscopy. The two fluorescent labels were used to
+                        distinguish the membrane boundary from the aqueous interior, rather
+                        than relying on vesicle shape alone.
+                    </p>
 
-                    <h3 class="sub-title">Results</h3>
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
+                    <h3 class="sub-title" id="guv-results">Results</h3>
+                    <!-- EDITOR: Insert the verified microscopy figure and observation-based
+                         conclusion here. Do not describe the intended labeling as an achieved result.
+                         Suggested panels: phase contrast, green membrane channel, red contents
+                         channel, and an overlay of the same field, with calibrated scale bars.
+                         State the actual observed morphology, diameter range, and sample count
+                         only when supported by the images and measurement records.
+                         A static image cannot establish retention over time, membrane
+                         unilamellarity, or material exchange between vesicles. -->
+                    <p>
+                        Microscopy images and their interpretation will be added here after
+                        verification of the original image data.
+                    </p>
+                    <p>
+                        This experiment addresses the preparation of observable compartments.
+                        Selective connection and controlled exchange require separate tests,
+                        described in the following sections.
+                    </p>
+                    <!-- EDITOR: Before adding a detailed protocol or reporting dye concentration,
+                         resolve the notebook discrepancy: 1 microL of 100 microM stock in
+                         10 microL total gives 10 microM, while the table states 1 microM. -->
+
+                    <h3 class="sub-title">Reference</h3>
+                    <p>
+                        [1] Pautot, S., Frisken, B. J., and Weitz, D. A. (2003).
+                        <a href="https://doi.org/10.1021/la026100v">Production of Unilamellar
+                        Vesicles Using an Inverted Emulsion.</a>
+                        <em>Langmuir</em>, 19, 2870&ndash;2879.
+                        This reference explains the method's principle; our preparation
+                        conditions are recorded in the laboratory notebook.
+                    </p>
                 </div>
             </div>
         </div>
