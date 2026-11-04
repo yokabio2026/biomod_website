@@ -1,6 +1,6 @@
 # Emulsion transfer animation
 
-`emulsion_transfer.py` extracts the interface-crossing scene from the team-provided Manim animation. It preserves the molecular wrapping and camera zoom, while omitting the pipetting and centrifuge overview scenes.
+`emulsion_transfer.py` extracts the interface-crossing scene from the team-provided Manim animation. It starts at the molecular close-up, corresponding to 5 seconds into the previous video.
 
 Render with Manim Community 0.22.1:
 
