@@ -57,7 +57,14 @@ class EmulsionTransferWeb(MovingCameraScene):
 
         # The planar oil/outer interface already carries lipids.  Their heads are
         # in outer and their tails point upward into oil.
-        interface_xs = np.linspace(cx - 0.62, cx + 0.62, 39)
+        # Adjacent head groups touch across the visible interface.
+        head_diameter = 2 * 0.060 * (0.020 / 0.24)
+        frame = self.camera.frame
+        interface_xs = np.arange(
+            frame.get_left()[0] - head_diameter,
+            frame.get_right()[0] + head_diameter,
+            head_diameter,
+        )
         interface_lipids = VGroup(*[
             always_redraw(
                 lambda x=x: self.dynamic_interface_lipid_local(
@@ -80,13 +87,6 @@ class EmulsionTransferWeb(MovingCameraScene):
             for a in np.linspace(0, TAU, 38, endpoint=False)
         ])
 
-        interface_line = Line(
-            np.array([cx - 0.80, interface_y, 0]),
-            np.array([cx + 0.80, interface_y, 0]),
-            color=WHITE,
-            stroke_width=0.75,
-        )
-
         # Text remains available, but the geometry is understandable without it.
         # These objects are drawn at 1/10 scale because the camera is magnified 10x.
         close_labels = VGroup(
@@ -99,7 +99,7 @@ class EmulsionTransferWeb(MovingCameraScene):
         key = self.make_lipid_structure_key().scale(0.10)
         key.move_to(zoom_center + RIGHT * 0.35 + UP * 0.27)
         self.add(core, inner_leaflet, inner_word, interface_lipids,
-                 outer_leaflet, interface_line, close_labels, key)
+                 outer_leaflet, close_labels, key)
 
         # Continuous sinking.  The red core remains the same size throughout;
         # the second leaflet is recruited smoothly from the interface as the
