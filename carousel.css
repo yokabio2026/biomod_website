@@ -1,0 +1,151 @@
+/* 画像を左右にめくるスライダーの見た目。carousel.js が、ボタン・点を作る。
+   使いかた：style.css のあとに読み込む（<link rel="stylesheet" href="carousel.css">）。色は、サイトの紫に合わせてある */
+
+.carousel {
+    max-width: 100%;
+    margin: 24px 0;
+    outline: none;
+}
+
+.carousel:focus-visible .carousel-stage {
+    outline: 3px solid #8650bd;
+    outline-offset: 3px;
+}
+
+/* 画像が並ぶ窓。縦横の比は、data-ratio で変えられる（初期値 16/10）。比のちがう画像は、中に収める */
+.carousel-stage {
+    --carousel-ratio: 16 / 10;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: var(--carousel-ratio);
+    border-radius: 8px;
+    background: #0d0f1a;
+    touch-action: pan-y;   /* 縦のスクロールは、そのまま。横は、めくる */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.carousel-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: grab;
+}
+
+.carousel-track.is-dragging {
+    transition: none;     /* 指やマウスについてくる間は、すぐ動く */
+    cursor: grabbing;
+}
+
+.carousel-track.no-motion {
+    transition: none;
+}
+
+.carousel-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+}
+
+.carousel-slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;   /* 画像をつかんで、ドラッグできるように */
+}
+
+/* ---- 左右の矢印 ---- */
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-top: -22px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(13, 15, 26, 0.45);
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.carousel-btn:hover {
+    background: rgba(43, 16, 85, 0.85);
+}
+
+.carousel-prev {
+    left: 10px;
+}
+
+.carousel-next {
+    right: 10px;
+}
+
+/* ---- 下の点：いま見ている画像は、輪（○）、ほかは、点（●） ---- */
+.carousel-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    display: flex;
+    gap: 10px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(13, 15, 26, 0.45);
+    transform: translateX(-50%);
+}
+
+.carousel-dot {
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.carousel-dot.is-active {
+    background: transparent;
+    border-color: #ffffff;
+    width: 14px;
+    height: 14px;
+    margin: -1px;
+}
+
+/* ---- 説明文（画像の下）。いま見ている画像の説明が出る ---- */
+.carousel-caption {
+    margin: 12px 4px 0;
+    color: #555555;
+    font-size: 15px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .carousel-btn {
+        width: 38px;
+        height: 38px;
+        margin-top: -19px;
+    }
+
+    .carousel-prev {
+        left: 6px;
+    }
+
+    .carousel-next {
+        right: 6px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .carousel-track {
+        transition: none;
+    }
+}

@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="text-style.css">
     <!-- ページ左の目次（項目別ジャンプ）：見出しから、自動で作られる。本物のページに入れるときも、この1行（toc.css）と、下の toc.js の1行を足すだけ -->
     <link rel="stylesheet" href="toc.css">
+    <!-- 画像を左右にめくるスライダー：下の「image slider」の見本で使う。本物のページに入れるときも、この1行（carousel.css）と、下の carousel.js の1行を足すだけ -->
+    <link rel="stylesheet" href="carousel.css">
 </head>
 <body>
     <header class="navbar">
@@ -228,6 +230,59 @@
                 </div>
             </div>
         </div>
+        <!-- 画像スライダーの見本（コピーして使えます。不要になったら、この <div class="content-section"> ごと消してOK） -->
+        <div class="content-section">
+            <h2 class="section-title">image slider</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        複数の画像を、1枚ずつ、左右にめくって見せられます。
+                        左右の矢印、下の点、スマホは指でスワイプ、パソコンはドラッグ（または、キーボードの ← →）でめくれます。
+                        最後まで行くと、最初に戻ります。
+                    </p>
+
+                    <h3 class="sub-title">Example</h3>
+                    <div class="carousel" aria-label="Slider example">
+                        <figure>
+                            <img src="images/sample-a.svg" alt="サンプルA">
+                            <figcaption>1. サンプルA：画像の下に、説明を書けます（なくてもOK）。</figcaption>
+                        </figure>
+                        <figure>
+                            <img src="images/sample-b.svg" alt="サンプルB">
+                            <figcaption>2. サンプルB：めくると、説明も切り替わります。</figcaption>
+                        </figure>
+                        <figure>
+                            <img src="images/sample-c.svg" alt="サンプルC">
+                            <figcaption>3. サンプルC</figcaption>
+                        </figure>
+                        <figure>
+                            <img src="images/sample-graph.svg" alt="サンプルのグラフ">
+                            <figcaption>4. 縦横の比がちがう画像（グラフ）も、中に収まって表示されます。</figcaption>
+                        </figure>
+                    </div>
+
+                    <h3 class="sub-title">How to write it</h3>
+                    <p>
+                        めくりたい画像を、<code>&lt;figure&gt;</code> で包んで、<code>&lt;div class="carousel"&gt;</code> の中に並べます。
+                        画像の説明（<code>&lt;figcaption&gt;</code>）は、なくても大丈夫です。
+                    </p>
+                    <p>
+                        <code>&lt;div class="carousel" aria-label="説明"&gt;</code><br>
+                        <code>&nbsp;&nbsp;&lt;figure&gt;&lt;img src="images/a.png" alt="説明"&gt;&lt;figcaption&gt;画像の説明&lt;/figcaption&gt;&lt;/figure&gt;</code><br>
+                        <code>&nbsp;&nbsp;&lt;figure&gt;&lt;img src="images/b.png" alt="説明"&gt;&lt;/figure&gt;</code><br>
+                        <code>&lt;/div&gt;</code>
+                    </p>
+
+                    <h3 class="sub-title">Options</h3>
+                    <p>
+                        画像の縦横の比は、<code>data-ratio="16/9"</code> のように書くと、変えられます（書かなければ 16/10）。
+                        比のちがう画像は、切り取られずに、枠の中に収まります。
+                        ページに入れるときは、<code>carousel.css</code>（<code>&lt;/head&gt;</code> の前）と
+                        <code>carousel.js</code>（<code>&lt;/body&gt;</code> の前）を足してください。
+                    </p>
+                </div>
+            </div>
+        </div>
         <!-- 左の目次の見本の説明（不要になったら、この <div class="content-section"> ごと消してOK） -->
         <div class="content-section">
             <h2 class="section-title">contents sidebar</h2>
@@ -271,5 +326,7 @@
     <script src="script.js"></script>
     <!-- 左の目次を作る（見出しが2つ以上あるページで、自動で動く） -->
     <script src="toc.js"></script>
+    <!-- 画像のスライダー（<div class="carousel"> を、自動で、めくれるようにする） -->
+    <script src="carousel.js"></script>
 </body>
 </html>
