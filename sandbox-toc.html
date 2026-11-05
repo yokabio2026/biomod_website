@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="style.css">
     <!-- 左の目次：見出しから自動で作る。本物のページに入れるときも、この2行（toc.css と toc.js）を足すだけ -->
     <link rel="stylesheet" href="toc.css">
+    <!-- 文章の強調（背景色・文字の色）：<mark class="hl-yellow">…</mark> / <span class="text-red">…</span> -->
+    <link rel="stylesheet" href="text-style.css">
 </head>
 <body>
     <header class="navbar">
@@ -267,6 +269,93 @@
                     <p>
                         Conn6_R2X: 5′-<code style="word-break: break-all;">CTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTAGTCCATTGTAACGAAGGCCA</code>-3′<br>
                         (binds Conn23_R2 on GUV3; the CT repeat gathers Conn6_L2 on GUV2)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">Text Highlight and Colors</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        文章の中で目立たせたい部分に、<strong>背景の色</strong>や<strong>文字の色</strong>をつけられます。
+                        色をつけたい文字を、下の書き方で囲むだけです（ここに書いてある「見本」と「書き方」を、そのままコピーして使えます）。
+                    </p>
+
+                    <h3 class="sub-title">Background Colors</h3>
+                    <p class="style-note">蛍光ペンのように、文字の背景に色をつけます。<code>mark</code> に、色の名前の class をつけます。</p>
+                    <div class="style-demo">
+                        <span>This part is <mark class="hl-yellow">Yellow emphasis</mark> in a sentence.</span>
+                        <code>&lt;mark class="hl-yellow"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <mark class="hl-blue">Blue emphasis</mark> in a sentence.</span>
+                        <code>&lt;mark class="hl-blue"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <mark class="hl-pink">Pink emphasis</mark> in a sentence.</span>
+                        <code>&lt;mark class="hl-pink"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <mark class="hl-green">Green emphasis</mark> in a sentence.</span>
+                        <code>&lt;mark class="hl-green"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <mark class="hl-orange">Orange emphasis</mark> in a sentence.</span>
+                        <code>&lt;mark class="hl-orange"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <mark class="hl-purple">Purple emphasis</mark> in a sentence.</span>
+                        <code>&lt;mark class="hl-purple"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <mark class="hl-gray">Gray emphasis</mark> in a sentence.</span>
+                        <code>&lt;mark class="hl-gray"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+
+                    <h3 class="sub-title">Text Colors</h3>
+                    <p class="style-note">文字そのものの色を変えます。特に目立たせたいときは、<span class="text-red">赤</span>や<span class="text-blue">青</span>が分かりやすいです。<code>span</code> に、色の名前の class をつけます。</p>
+                    <div class="style-demo">
+                        <span>This part is <span class="text-red">Red emphasis</span> in a sentence.</span>
+                        <code>&lt;span class="text-red"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="text-blue">Blue emphasis</span> in a sentence.</span>
+                        <code>&lt;span class="text-blue"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="text-green">Green emphasis</span> in a sentence.</span>
+                        <code>&lt;span class="text-green"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="text-orange">Orange emphasis</span> in a sentence.</span>
+                        <code>&lt;span class="text-orange"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="text-purple">Purple emphasis</span> in a sentence.</span>
+                        <code>&lt;span class="text-purple"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="text-gray">Gray emphasis</span> in a sentence.</span>
+                        <code>&lt;span class="text-gray"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+
+                    <h3 class="sub-title">Combining and In Context</h3>
+                    <p>背景の色・文字の色・太字は、重ねて使えます。たとえば次のように書きます。</p>
+                    <div class="style-demo">
+                        <span>The <mark class="hl-yellow"><strong class="text-red">key result</strong></mark> is shown here.</span>
+                        <code>&lt;mark class="hl-yellow"&gt;&lt;strong class="text-red"&gt;強調&lt;/strong&gt;&lt;/mark&gt;</code>
+                    </div>
+                    <p>
+                        実際の文章の中では、次のように見えます。For the closed-to-open structural change,
+                        <mark class="hl-blue">the 20% w/v PEG 8k purification method</mark> gave a
+                        <span class="text-red"><strong>low yield of only 0.8 nM</strong></span>, whereas
+                        <mark class="hl-yellow">the Amicon purification worked best</mark> and provided
+                        <span class="text-blue">good enough yield and clarity</span> for imaging.
+                    </p>
+                    <p>
+                        使いすぎると、どこが大切か分かりにくくなります。1つの段落に、強調は1〜2か所までにするのがおすすめです。
                     </p>
                 </div>
             </div>

@@ -1,0 +1,72 @@
+/* 文章の「強調」用の色。本文の一部分を、目立たせたいときに使う。
+   ・背景の色（蛍光ペンのように）：<mark class="hl-yellow">強調したい文字</mark>
+   ・文字そのものの色：<span class="text-red">強調したい文字</span>
+   ・重ねて使える：<mark class="hl-yellow"><span class="text-red">赤い文字＋黄色の背景</span></mark>
+   ・太字にしたいときは、<strong>…</strong> で囲む（色と組み合わせられる）
+   使いかた：style.css のあとに読み込む（<link rel="stylesheet" href="text-style.css">）。
+   色は、白い背景でも読みやすい濃さにしてある。サイトの紫（見出し）より、目立たせたい文字には、赤・青を使うと分かりやすい */
+
+/* ---- 背景色（蛍光ペン） ---- */
+mark[class^="hl-"] {
+    padding: 0.05em 0.25em;
+    border-radius: 3px;
+    color: inherit;                       /* 文字の色は、そのまま（text-... で変えられる） */
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;          /* 2行にまたがっても、それぞれの行に、背景がつく */
+}
+
+.hl-yellow { background-color: #fff2a6; }
+.hl-blue   { background-color: #cfe4ff; }
+.hl-pink   { background-color: #ffd7e5; }
+.hl-green  { background-color: #d3f3dc; }
+.hl-orange { background-color: #ffe0bd; }
+.hl-purple { background-color: #e5dbf7; }
+.hl-gray   { background-color: #e6e6ee; }
+
+/* ---- 文字の色 ---- */
+.text-red    { color: #c9182f; }
+.text-blue   { color: #1a56c4; }
+.text-green  { color: #167a40; }
+.text-orange { color: #b85408; }
+.text-purple { color: #6a35c2; }
+.text-gray   { color: #707080; }
+
+/* 背景色をつけた文字は、少し濃い色にして、背景と区別しやすくする（背景と文字を組み合わせたとき） */
+mark[class^="hl-"] .text-red    { color: #b5102a; }
+mark[class^="hl-"] .text-blue   { color: #0f47b0; }
+mark[class^="hl-"] .text-green  { color: #0f6a35; }
+
+/* ---- 見本ページ用：色の一覧の表示（本物のページでは、使わなくてよい） ---- */
+.style-demo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px 24px;
+    align-items: center;
+    margin: 20px 0 32px;
+    padding: 18px 20px;
+    border: 1px solid #e3dff0;
+    border-radius: 10px;
+    background: #ffffff;
+    font-size: 16px;
+}
+
+.style-note code,
+.style-demo code {
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #f3f1f8;
+    color: #3b2a63;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+@media (max-width: 700px) {
+    .style-demo {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+    }
+
+    .style-demo code {
+        margin-bottom: 10px;
+    }
+}
