@@ -70,3 +70,64 @@ mark[class^="hl-"] .text-green  { color: #0f6a35; }
         margin-bottom: 10px;
     }
 }
+
+/* ---- 文章の途中から、関連する場所へジャンプするリンク（ページ内リンク） ----
+   ・飛び先：移動したい見出しや段落に、id をつける（半角の英数字とハイフン。ページ内で、ほかと重ならない名前）
+        <h3 class="sub-title" id="step4-purification">Step 4. Testing purification</h3>
+   ・リンク：文章の中の、ジャンプさせたい言葉を、<a class="jump-link" href="#飛び先のid"> で囲む
+        …see <a class="jump-link" href="#step4-purification">Step 4 testing purification</a> below.
+   ・ほかのページの途中へも、飛べる：<a class="jump-link" href="design.html#design-references">…</a>
+   ・移動したあと、飛び先が、一瞬、黄色くひかって、場所が分かる */
+.jump-link {
+    color: #b85408;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+    font-weight: 600;
+}
+
+.jump-link:hover {
+    color: #8a3d03;
+    background-color: #fff2e0;
+}
+
+.jump-link:focus-visible {
+    outline: 3px solid #8650bd;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* ジャンプしたとき、上のメニューバーの下に、飛び先が隠れないようにする。なめらかに動く */
+html {
+    scroll-behavior: smooth;
+}
+
+.content [id] {
+    scroll-margin-top: 90px;
+}
+
+/* 飛び先が、一瞬だけ、黄色くひかる */
+.content :target {
+    animation: target-flash 1.8s ease-out;
+}
+
+@keyframes target-flash {
+    0% { background-color: #fff2a6; }
+    100% { background-color: transparent; }
+}
+
+@media (max-width: 999px) {
+    .content [id] {
+        scroll-margin-top: 120px;   /* スマホは、メニューバーが2段になって、高いため */
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .content :target {
+        animation: none;
+    }
+}

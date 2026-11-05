@@ -146,7 +146,7 @@
         </div>
         <!-- 文章の強調の見本（コピーして使えます。不要になったら、この <div class="content-section"> ごと消してOK） -->
         <div class="content-section">
-            <h2 class="section-title">text colors</h2>
+            <h2 class="section-title" id="sandbox-text-colors">text colors</h2>
             <div class="content-space">
                 <div class="section-text">
                     <p>
@@ -232,7 +232,7 @@
         </div>
         <!-- 画像スライダーの見本（コピーして使えます。不要になったら、この <div class="content-section"> ごと消してOK） -->
         <div class="content-section">
-            <h2 class="section-title">image slider</h2>
+            <h2 class="section-title" id="sandbox-image-slider">image slider</h2>
             <div class="content-space">
                 <div class="section-text">
                     <p>
@@ -279,6 +279,54 @@
                         比のちがう画像は、切り取られずに、枠の中に収まります。
                         ページに入れるときは、<code>carousel.css</code>（<code>&lt;/head&gt;</code> の前）と
                         <code>carousel.js</code>（<code>&lt;/body&gt;</code> の前）を足してください。
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- ページ内リンク（文章の途中から、関連する場所へジャンプ）の見本（不要になったら、この <div class="content-section"> ごと消してOK） -->
+        <div class="content-section">
+            <h2 class="section-title" id="sandbox-page-links">page links</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        文章の途中の言葉をリンクにして、関連する場所へジャンプできます。
+                        リンクは<span class="text-orange"><strong>オレンジ色の下線</strong></span>で表示されます。押してみてください。
+                    </p>
+
+                    <h3 class="sub-title">Example</h3>
+                    <p id="link-origin">
+                        The flight rings were then purified. We tested 4 purification methods to ensure the greatest yield
+                        possible&mdash;see <a class="jump-link" href="#step4-purification">Step 4 testing purification</a>
+                        for the method and results below. See also
+                        <a class="jump-link" href="#sandbox-text-colors">text colors</a> (another section of this page)
+                        and <a class="jump-link" href="design.html#design-references">References for the Design</a> (another page).
+                    </p>
+
+                    <h3 class="sub-title">How to write it</h3>
+                    <p>
+                        <strong>① 飛び先に、id をつける</strong>（半角の英数字とハイフン。ページの中で、ほかと同じ名前にしない）<br>
+                        <code>&lt;h3 class="sub-title" id="step4-purification"&gt;Step 4. Testing purification&lt;/h3&gt;</code>
+                    </p>
+                    <p>
+                        <strong>② 文章の中の言葉を、リンクで囲む</strong>（<code>#</code> のあとに、①の id を書く）<br>
+                        <code>&lt;a class="jump-link" href="#step4-purification"&gt;Step 4 testing purification&lt;/a&gt;</code>
+                    </p>
+                    <p>
+                        <strong>③ ほかのページの途中へ飛ぶとき</strong>は、ページ名の後ろに <code>#id</code> をつけます。<br>
+                        <code>&lt;a class="jump-link" href="design.html#design-references"&gt;References for the Design&lt;/a&gt;</code>
+                    </p>
+                    <p>
+                        飛び先は、移動したあと、一瞬だけ黄色くひかるので、どこに来たか分かります。
+                        ページに入れるときは、<code>text-style.css</code>（<code>&lt;/head&gt;</code> の前）を読み込んでください。
+                    </p>
+
+                    <h3 class="sub-title" id="step4-purification">Step 4. Testing purification</h3>
+                    <p>
+                        ここが、上の文章からジャンプしてくる場所（飛び先）です。
+                        見出しに <code>id="step4-purification"</code> がついています。
+                    </p>
+                    <p>
+                        <a class="jump-link" href="#link-origin">&larr; 元の文章に戻る</a>（戻りたいときは、元の段落にも id をつけて、同じ書き方で、リンクを作ります）
                     </p>
                 </div>
             </div>
