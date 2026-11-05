@@ -3,6 +3,8 @@
    ・文字そのものの色：<span class="text-red">強調したい文字</span>
    ・重ねて使える：<mark class="hl-yellow"><span class="text-red">赤い文字＋黄色の背景</span></mark>
    ・太字にしたいときは、<strong>…</strong> で囲む（色と組み合わせられる）
+   ・文字のフォント（書体）：<span class="font-serif">…</span>（serif / mono / rounded / sans）
+   ・文字の大きさ：<span class="size-lg">…</span>（size-sm / size-lg / size-xl / size-2xl）
    使いかた：style.css のあとに読み込む（<link rel="stylesheet" href="text-style.css">）。
    色は、白い背景でも読みやすい濃さにしてある。サイトの紫（見出し）より、目立たせたい文字には、赤・青を使うと分かりやすい */
 
@@ -35,6 +37,22 @@ mark[class^="hl-"] {
 mark[class^="hl-"] .text-red    { color: #b5102a; }
 mark[class^="hl-"] .text-blue   { color: #0f47b0; }
 mark[class^="hl-"] .text-green  { color: #0f6a35; }
+
+/* ---- 文字のフォント（書体） ----
+   使いかた：<span class="font-serif">強調したい文字</span>
+   どの端末にも入っている書体だけを使う（読み込みが遅くならない）。端末によって、少しだけ、見え方がちがう */
+.font-sans    { font-family: "Helvetica Neue", Arial, sans-serif; }                                              /* ふだんの文字（ゴシック体） */
+.font-serif   { font-family: Georgia, "Times New Roman", "Hiragino Mincho ProN", "Yu Mincho", serif; }        /* 明朝体・セリフ体：論文のような、かたい印象 */
+.font-mono    { font-family: ui-monospace, Consolas, "SFMono-Regular", Menlo, "Courier New", monospace; }       /* 等幅：塩基配列・コードなど、文字の幅をそろえたいとき */
+.font-rounded { font-family: "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", "Yu Gothic UI", Meiryo, sans-serif; }   /* 丸ゴシック：やわらかい印象 */
+
+/* ---- 文字の大きさ ----
+   使いかた：<span class="size-lg">強調したい文字</span>
+   まわりの文字に対する、割合（em）なので、どの場所に書いても、まわりより、ちょうどよく大きく（小さく）なる */
+.size-sm  { font-size: 0.85em; }
+.size-lg  { font-size: 1.25em; }
+.size-xl  { font-size: 1.5em; }
+.size-2xl { font-size: 2em; line-height: 1.3; }
 
 /* ---- 見本ページ用：色の一覧の表示（本物のページでは、使わなくてよい） ---- */
 .style-demo {

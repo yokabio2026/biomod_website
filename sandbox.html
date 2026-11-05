@@ -232,6 +232,76 @@
                 </div>
             </div>
         </div>
+        <!-- 文字のフォント・大きさの見本（コピーして使えます。不要になったら、この <div class="content-section"> ごと消してOK） -->
+        <div class="content-section">
+            <h2 class="section-title">font and size</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        文章の中で目立たせたい部分の、<strong>フォント（書体）</strong>と<strong>文字の大きさ</strong>を変えられます。
+                        変えたい文字を、各見本の「書き方」で囲むだけです（コピーして使えます）。
+                        色（text colors）や太字と、重ねて使えます。
+                    </p>
+
+                    <h3 class="sub-title">Fonts</h3>
+                    <p class="style-note">書体を変えます。<code>span</code> に、書体の名前の class をつけます（どの端末にも入っている書体だけを使うので、読み込みは、遅くなりません）。</p>
+                    <div class="style-demo">
+                        <span>This part is <span class="font-sans">Sans (default)</span> in a sentence.</span>
+                        <code>&lt;span class="font-sans"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="font-serif">Serif</span> in a sentence.</span>
+                        <code>&lt;span class="font-serif"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="font-mono">Monospace ATGCATGC</span> in a sentence.</span>
+                        <code>&lt;span class="font-mono"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="font-rounded">Rounded</span> in a sentence.</span>
+                        <code>&lt;span class="font-rounded"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+
+                    <h3 class="sub-title">Sizes</h3>
+                    <p class="style-note">まわりの文字に対する割合で、大きさを変えます。<code>span</code> に、大きさの名前の class をつけます。</p>
+                    <div class="style-demo">
+                        <span>This part is <span class="size-sm">Small</span> in a sentence.</span>
+                        <code>&lt;span class="size-sm"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="size-lg">Large</span> in a sentence.</span>
+                        <code>&lt;span class="size-lg"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="size-xl">Extra large</span> in a sentence.</span>
+                        <code>&lt;span class="size-xl"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>This part is <span class="size-2xl">Huge</span> in a sentence.</span>
+                        <code>&lt;span class="size-2xl"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+
+                    <h3 class="sub-title">Combining and In Context</h3>
+                    <p>フォント・大きさ・色・太字・背景の色は、重ねて使えます。</p>
+                    <div class="style-demo">
+                        <span>This is the <span class="font-serif size-xl text-red"><strong>key finding</strong></span> of the study.</span>
+                        <code>&lt;span class="font-serif size-xl text-red"&gt;&lt;strong&gt;強調&lt;/strong&gt;&lt;/span&gt;</code>
+                    </div>
+                    <p>
+                        実際の文章の中では、次のように見えます。
+                        The scaffold strand was designed as
+                        <span class="font-mono"><mark class="hl-gray">5&prime;-ATGCCGTAAGCT-3&prime;</mark></span>,
+                        and the annealed structure showed a
+                        <span class="size-xl text-blue"><strong>clear single band</strong></span>
+                        in the gel. In contrast, the control sample gave
+                        <span class="font-serif size-lg">no visible band at all</span>.
+                    </p>
+                    <p>
+                        使いすぎると、読みにくくなります。1つの段落に、フォントや大きさを変える場所は、1〜2か所までにするのがおすすめです。
+                    </p>
+                </div>
+            </div>
+        </div>
         <!-- 画像スライダーの見本（コピーして使えます。不要になったら、この <div class="content-section"> ごと消してOK） -->
         <div class="content-section">
             <h2 class="section-title" id="sandbox-image-slider">image slider</h2>
