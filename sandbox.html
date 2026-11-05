@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="style.css">
     <!-- 練習用CSS：デザインを試すときは sandbox.css に書く（本物のページには影響しない） -->
     <link rel="stylesheet" href="sandbox.css">
+    <!-- 文章の強調（背景の色・文字の色）：下の「text colors」の見本で使う。本物のページに入れるときも、この1行を足すだけ -->
+    <link rel="stylesheet" href="text-style.css">
 </head>
 <body>
     <header class="navbar">
@@ -135,6 +137,92 @@
                         <img src="images/sample-graph.svg" alt="サンプルのグラフ">
                         <figcaption>Fig. 2 ここに、図の説明や出典を書きます。</figcaption>
                     </figure>
+                </div>
+            </div>
+        </div>
+        <!-- 文章の強調の見本（コピーして使えます。不要になったら、この <div class="content-section"> ごと消してOK） -->
+        <div class="content-section">
+            <h2 class="section-title">text colors</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        文章の中で目立たせたい部分に、<strong>背景の色</strong>や<strong>文字の色</strong>をつけられます。
+                        色をつけたい文字を、各見本の「書き方」（グレーの枠の中）で囲むだけです（コピーして使えます）。
+                    </p>
+
+                    <p class="style-note">① 背景の色（蛍光ペンのように）：<code>mark</code> に、色の名前の class をつけます。</p>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<mark class="hl-yellow">Yellow</mark> になります。</span>
+                        <code>&lt;mark class="hl-yellow"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<mark class="hl-blue">Blue</mark> になります。</span>
+                        <code>&lt;mark class="hl-blue"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<mark class="hl-pink">Pink</mark> になります。</span>
+                        <code>&lt;mark class="hl-pink"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<mark class="hl-green">Green</mark> になります。</span>
+                        <code>&lt;mark class="hl-green"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<mark class="hl-orange">Orange</mark> になります。</span>
+                        <code>&lt;mark class="hl-orange"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<mark class="hl-purple">Purple</mark> になります。</span>
+                        <code>&lt;mark class="hl-purple"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<mark class="hl-gray">Gray</mark> になります。</span>
+                        <code>&lt;mark class="hl-gray"&gt;強調したい文字&lt;/mark&gt;</code>
+                    </div>
+
+                    <p class="style-note">② 文字そのものの色：<code>span</code> に、色の名前の class をつけます。特に目立たせたいときは、<span class="text-red">赤</span>や<span class="text-blue">青</span>が分かりやすいです。</p>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<span class="text-red">Red</span> になります。</span>
+                        <code>&lt;span class="text-red"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<span class="text-blue">Blue</span> になります。</span>
+                        <code>&lt;span class="text-blue"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<span class="text-green">Green</span> になります。</span>
+                        <code>&lt;span class="text-green"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<span class="text-orange">Orange</span> になります。</span>
+                        <code>&lt;span class="text-orange"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<span class="text-purple">Purple</span> になります。</span>
+                        <code>&lt;span class="text-purple"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+                    <div class="style-demo">
+                        <span>文章 の一部が、<span class="text-gray">Gray</span> になります。</span>
+                        <code>&lt;span class="text-gray"&gt;強調したい文字&lt;/span&gt;</code>
+                    </div>
+
+                    <p>③ 重ねて使う（背景の色 ＋ 文字の色 ＋ 太字）</p>
+                    <div class="style-demo">
+                        <span>ここが <mark class="hl-yellow"><strong class="text-red">いちばん大切</strong></mark> な結果です。</span>
+                        <code>&lt;mark class="hl-yellow"&gt;&lt;strong class="text-red"&gt;強調&lt;/strong&gt;&lt;/mark&gt;</code>
+                    </div>
+
+                    <p>④ 実際の文章の中での見え方</p>
+                    <p>
+                        For the closed-to-open structural change,
+                        <mark class="hl-blue">the 20% w/v PEG 8k purification method</mark> gave a
+                        <span class="text-red"><strong>low yield of only 0.8 nM</strong></span>, whereas
+                        <mark class="hl-yellow">the Amicon purification worked best</mark> and provided
+                        <span class="text-blue">good enough yield and clarity</span> for imaging.
+                    </p>
+                    <p>
+                        使いすぎると、どこが大切か分かりにくくなります。1つの段落に、強調は1〜2か所までにするのがおすすめです。
+                    </p>
                 </div>
             </div>
         </div>
