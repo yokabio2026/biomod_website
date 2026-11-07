@@ -334,7 +334,7 @@ a.search-result-item:hover {
     color: #666666;
     font-size: 14px;
     line-height: 1.6;
-    text-align: center;
+    text-align: left;
 }
 
 /* 幅広：文章の幅より広く、最大1280pxで表示する（グラフなど、小さい文字がある画像向け）。
