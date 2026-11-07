@@ -51,8 +51,8 @@
             <div class="content-space">
                 <div class="section-text">
                     <figure>
-                        <img src="images/design-align-overview-v4.png" alt="Three connected GUVs (GUV1, GUV2, GUV3) with the four elements of ALiGN marked by circles and labels">
-                        <figcaption><strong>Fig. 1 An overview of ALiGN.</strong> Three GUVs are connected as GUV1–GUV2–GUV3, and the labels show where each of the four elements appears: (1) the DNA between two GUVs chooses the partner; (2) the surface density of the DNA sets how many partners a GUV takes; (3) the pores between connected membranes let the contents move; (4) TRIMEB closes the other pores to prevent leakage.</figcaption>
+                        <img src="images/design-align-overview-v5.png" alt="Three connected GUVs (GUV1, GUV2, GUV3) with the four elements of ALiGN marked by circles and labels">
+                        <figcaption><strong>Fig. 1 An overview of ALiGN.</strong> Three GUVs are connected as GUV1–GUV2–GUV3, and the labels show where each of the four elements appears: (1) the DNA between two GUVs chooses the partner; (2) the surface density of the DNA sets how many partners a GUV takes; (3) the pores between connected membranes let the contents move; (4) TRIMEB closes the other pores to reduce leakage.</figcaption>
                     </figure>
 
                     <p>
@@ -72,7 +72,7 @@
                     <p>
                         <strong>Material exchange</strong> (see <a href="#pore-formation">Pore Formation for Material Exchange</a>)<br>
                         3. <a href="#alpha-hemolysin">Exchanging contents between connected GUVs</a>: α-hemolysin makes pores in the GUV membrane. This makes a path for the contents to move between connected GUVs.<br>
-                        4. <a href="#trimeb-lid">Preventing leakage from unconnected GUVs</a>: TRIMEB works as a lid on the pores. It prevents the contents of unconnected GUVs from leaking out.
+                        4. <a href="#trimeb-lid">Reducing leakage from unconnected GUVs</a>: TRIMEB works as a lid on the pores. It reduces leakage of the contents of unconnected GUVs.
                     </p>
 
                 </div>
@@ -89,7 +89,7 @@
 
                     <h3 class="sub-title" id="sequence-specific-binding">Sequence-Specific Binding</h3>
                     <figure>
-                        <img src="images/design-specific-binding.png" alt="GUV1 connected to GUV2 and GUV2 connected to GUV3, with a second GUV1 and GUV3 below that are close to each other but not connected">
+                        <img src="images/design-specific-binding-v2.png" alt="GUV1 connected to GUV2 and GUV2 connected to GUV3, with a second GUV1 and GUV3 below that are close to each other but not connected">
                         <figcaption><strong>Fig. 2 DNA with different sequences lets GUV1 bind GUV2 and GUV2 bind GUV3, while GUV1 and GUV3, which have no complementary sequences, do not connect.</strong></figcaption>
                     </figure>
 
@@ -150,7 +150,7 @@
                     </figure>
 
                     <p>
-                        When a GUV connects to its intended partner, most of the strands on the facing surfaces are used for that connection. The few remaining strands cannot hold another partner, so the GUV does not connect any further. Therefore, the key parameter is the density of DNA on the surface of each GUV. By adjusting it, we aim to obtain many sets of exactly three GUVs connected as GUV1–GUV2–GUV3.
+                        When a GUV connects to its intended partner, most of the strands on the facing surfaces are used for that connection. The few remaining strands cannot hold another partner, so the GUV does not connect any further. Therefore, the key parameter is the density of DNA on the surface of each GUV. GUV1 and GUV3 each have one kind of DNA for connecting to GUV2. Only the central GUV2 has two kinds of DNA: one for connecting to GUV1 and one for connecting to GUV3. By adjusting the surface densities of these four kinds of DNA, we aim to obtain many sets of exactly three GUVs connected as GUV1–GUV2–GUV3.
                     </p>
 
                 </div>
@@ -162,31 +162,31 @@
             <div class="content-space">
                 <div class="section-text">
                     <p>
-                        Controlling the connections between GUVs alone does not satisfy the four elements that ALiGN needs. Connected GUVs must also be able to exchange contents with each other, like cells that communicate with each other. To do this, we must meet two conditions at the same time: connected GUVs can exchange their contents, and unconnected GUVs do not leak their contents to the outside. We realize the exchange of contents between connected GUVs with α-hemolysin, and the prevention of leakage from unconnected GUVs with TRIMEB.
+                        Controlling the connections between GUVs alone does not satisfy the four elements that ALiGN needs. Connected GUVs must also be able to exchange contents with each other, like cells that communicate with each other. To do this, we must meet two conditions at the same time: connected GUVs can exchange their contents, and unconnected GUVs do not leak their contents to the outside. We realize the exchange of contents between connected GUVs with α-hemolysin, and the reduction of leakage from unconnected GUVs with TRIMEB.
                     </p>
 
                     <h3 class="sub-title" id="alpha-hemolysin">α-Hemolysin as a Pore</h3>
                     <figure>
-                        <img src="images/design-pore-exchange.png" alt="Connected membranes of GUV1 and GUV2 with open pores between them and a content molecule passing through a pore">
-                        <figcaption><strong>Fig. 5 When the membranes are brought together by DNA, the pores between them are open and the contents can move between the two GUVs.</strong> Here, a content molecule of GUV1 (orange dot) is passing through the open pore on the GUV2 side.</figcaption>
+                        <img src="images/design-pore-exchange-v4.png" alt="Connected membranes of GUV1 and GUV2 with open pores between them and a content molecule passing through a pore">
+                        <figcaption><strong>Fig. 5 When the membranes are brought together by DNA, the pores between them are open and the contents can move between the two GUVs.</strong> The contents of GUV1 (red dots) and GUV2 (green dots) leave through the open pores and spread into the other GUV.</figcaption>
                     </figure>
 
                     <p>
-                        α-Hemolysin is a pore-forming protein from <em>Staphylococcus aureus</em>. Seven subunits gather in a lipid membrane and form a pore. The pore is 1.4 nm wide at its narrowest point, and small molecules can pass through it <a href="#ref-3" id="cite-3">[3]</a>. When engineered α-hemolysin is added to the outside of GUVs, pores form in the membrane, and an encapsulated dye leaks out <a href="#ref-4" id="cite-4">[4]</a>. By making α-hemolysin pores in the GUV membrane, we open a path for the contents of a GUV to move to its partner GUV.
+                        α-Hemolysin is a pore-forming protein from <em>Staphylococcus aureus</em>. Seven subunits gather in a lipid membrane and form a pore. The pore is 1.4 nm wide at its narrowest point, and small molecules can pass through it <a href="#ref-3" id="cite-3">[3]</a>. When α-hemolysin is added to the outside of GUVs, pores form in the membrane, and the encapsulated contents leak out <a href="#ref-4" id="cite-4">[4]</a>. The leaked contents can then move into the inside of the connected partner GUV through the α-hemolysin pores on its surface.
                     </p>
 
                     <h3 class="sub-title" id="trimeb-lid">TRIMEB as a Lid</h3>
                     <figure>
                         <img src="images/design-trimeb-lid.png" alt="A pore in the membrane of a GUV closed by TRIMEB, with the contents kept inside">
-                        <figcaption><strong>Fig. 6 On a membrane that is not connected to a partner, TRIMEB (purple) closes the pores and prevents the contents from leaking out.</strong></figcaption>
+                        <figcaption><strong>Fig. 6 On a membrane that is not connected to a partner, TRIMEB (purple) closes the pores and reduces leakage of the contents.</strong></figcaption>
                     </figure>
 
                     <p>
-                        If the pores are only open, the contents leak out through the surface of a GUV even when the GUV is not connected to any partner. To prevent this, we use TRIMEB (heptakis(2,3,6-tri-O-methyl)-β-cyclodextrin), a derivative of β-cyclodextrin. TRIMEB binds reversibly inside the α-hemolysin pore and blocks it like a lid <a href="#ref-3">[3]</a>. The more TRIMEB there is, the more slowly the contents leak through the pore <a href="#ref-3">[3]</a>.
+                        If the pores are only open, the contents leak out through the surface of a GUV even when the GUV is not connected to any partner. To reduce this leakage, we use TRIMEB (heptakis(2,3,6-tri-O-methyl)-β-cyclodextrin), a derivative of β-cyclodextrin. TRIMEB binds reversibly inside the α-hemolysin pore and blocks it like a lid <a href="#ref-3">[3]</a>. The more TRIMEB there is, the more slowly the contents leak through the pore <a href="#ref-3">[3]</a>.
                     </p>
 
                     <p>
-                        While a GUV is floating alone, the lid prevents its contents from leaking out. When two GUVs are connected and their membranes come close to each other, the two GUVs can exchange contents <a href="#ref-5" id="cite-5">[5]</a>. In this way, material exchange happens mainly between connected GUVs.
+                        While a GUV is floating alone, the lid reduces the leakage of its contents. When two GUVs are connected and their membranes come close to each other, the two GUVs can exchange contents <a href="#ref-5" id="cite-5">[5]</a>. In this way, material exchange happens mainly between connected GUVs.
                     </p>
                     <p><a href="#what-is-align">↩ Back to What is the ALiGN</a></p>
 
@@ -208,7 +208,7 @@
                     </p>
 
                     <figure class="media-wide">
-                        <img src="images/design-dna-6nt-v5.png" alt="Three connected GUVs on the left and a close-up of four evenly spaced 6-nt DNA pairs in the gap between GUV1 and GUV2 on the right">
+                        <img src="images/design-dna-6nt-v6.png" alt="Three connected GUVs on the left and a close-up of four evenly spaced 6-nt DNA pairs in the gap between GUV1 and GUV2 on the right">
                         <figcaption><strong>Fig. 7 Weak binding by 6-nt DNA.</strong> Left: three GUVs connected. Right: close-up of the gap between GUV1 and GUV2, where a connection holds only when many strands bind at the same time.</figcaption>
                     </figure>
                     <p>
@@ -240,7 +240,7 @@
                     </p>
 
                     <figure class="media-wide">
-                        <img src="images/design-dna-23bp-v3.png" alt="Several GUVs gathered by 23-bp DNA on the left and a close-up of one 23-bp duplex between GUV1 and GUV2 on the right">
+                        <img src="images/design-dna-23bp-v5.png" alt="Several GUVs gathered by 23-bp DNA on the left and a close-up of one 23-bp duplex between GUV1 and GUV2 on the right">
                         <figcaption><strong>Fig. 8 Strong binding by 23-bp DNA.</strong> Left: only a few duplexes are enough to hold two GUVs together, and because the binding is strong, further GUVs keep attaching, so the number of partners is not controlled. Right: close-up of one 23-bp duplex between GUV1 and GUV2.</figcaption>
                     </figure>
                     <p>
