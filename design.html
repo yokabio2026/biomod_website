@@ -56,26 +56,23 @@
                     </figure>
 
                     <p>
-                        ALiGN is a reproduction of a cell-to-cell network using GUVs.
-                        In this project, we aim to realize a network of three GUVs (GUV1, GUV2 and GUV3).
-                        Connecting three GUVs requires two different connections, GUV1–GUV2 and GUV2–GUV3, which must not interfere with each other.
-                        If these two connections can be designed independently, the same idea can be extended to three, four or more connections, and to larger networks of GUVs.
+                        ALiGN is a reproduction of a cell-to-cell network that uses GUVs. In this project, we aim to realize a network of three GUVs (GUV1, GUV2 and GUV3). To connect three GUVs, we need two different connections, GUV1–GUV2 and GUV2–GUV3. These two connections must not interfere with each other. If we can design these two connections independently, the same idea can be extended to three, four or more connections, and to larger networks of GUVs.
                     </p>
 
                     <p>
-                        The four elements required to reproduce a cell-to-cell network are achieved as follows.
+                        We achieve the four elements required to reproduce a cell-to-cell network as follows.
                     </p>
 
                     <p>
                         <strong>Connection</strong> (see <a href="#specific-connection">Specific Connection Between GUVs</a>)<br>
-                        1. <a href="#sequence-specific-binding">Connecting with intended partners</a>: DNA strands with different sequences on the GUV surface let each GUV connect only to its intended partner (sequence-specific binding).<br>
-                        2. <a href="#weak-binding">Connecting with an intended number of partners</a>: very short DNA strands with weak binding, together with a tuned DNA surface density, prevent aggregation so that each GUV connects only to the intended number of partners (weak binding and surface density control).
+                        1. <a href="#sequence-specific-binding">Connecting with intended partners</a>: DNA strands with different sequences on the GUV surface connect each GUV only to its intended partner (sequence-specific binding).<br>
+                        2. <a href="#weak-binding">Connecting with an intended number of partners</a>: very short DNA strands with weak binding and a tuned DNA surface density prevent aggregation, so each GUV connects only with an intended number of partners (weak binding and surface density control).
                     </p>
 
                     <p>
                         <strong>Material exchange</strong> (see <a href="#pore-formation">Pore Formation for Material Exchange</a>)<br>
-                        3. <a href="#alpha-hemolysin">Exchanging contents between connected GUVs</a>: α-hemolysin forms pores in the GUV membrane, opening a path for contents to move between connected GUVs.<br>
-                        4. <a href="#trimeb-lid">Preventing leakage from unconnected GUVs</a>: TRIMEB acts as a lid on the pores, which prevents the contents of GUVs that are not connected from leaking out.
+                        3. <a href="#alpha-hemolysin">Exchanging contents between connected GUVs</a>: α-hemolysin makes pores in the GUV membrane. This makes a path for the contents to move between connected GUVs.<br>
+                        4. <a href="#trimeb-lid">Preventing leakage from unconnected GUVs</a>: TRIMEB works as a lid on the pores. It prevents the contents of unconnected GUVs from leaking out.
                     </p>
 
                 </div>
@@ -87,7 +84,7 @@
             <div class="content-space">
                 <div class="section-text">
                     <p>
-                        In ALiGN, connections between GUVs are controlled in two ways: connecting with intended partners (sequence-specific binding) and connecting with an intended number of partners (weak binding and surface density control).
+                        In ALiGN, we control the connections between GUVs in two ways: connecting with intended partners (sequence-specific binding) and connecting with an intended number of partners (weak binding and surface density control).
                     </p>
 
                     <h3 class="sub-title" id="sequence-specific-binding">Sequence-Specific Binding</h3>
@@ -97,13 +94,11 @@
                     </figure>
 
                     <p>
-                        To connect only the intended partners, we place single-stranded DNA on the surface of each GUV and use the complementarity of DNA. A GUV can bind only to a GUV that carries the complementary strand.
+                        To connect only with intended partners, we place single-stranded DNA on the surface of each GUV and use the complementarity of DNA. A GUV can bind only to a GUV that has the complementary strand.
                     </p>
 
                     <p>
-                        We prepare two DNA pairs with different sequences: one for the GUV1–GUV2 connection and one for the GUV2–GUV3 connection.
-                        Because the sequences are different, each pair recognizes only its own partner, and the two connections do not interfere with each other.
-                        As a result, GUV1 connects to GUV2 and GUV2 connects to GUV3, but GUV1 does not connect to GUV3.
+                        We prepare two pairs of DNA with different sequences: one for the GUV1–GUV2 connection and one for the GUV2–GUV3 connection. Because the sequences are different, each pair recognizes only its own partner. The two connections do not interfere with each other. As a result, GUV1 connects to GUV2 and GUV2 connects to GUV3, but GUV1 does not connect to GUV3.
                     </p>
 
                     <h3 class="sub-title" id="weak-binding">Weak Binding and Surface Density Control</h3>
@@ -117,16 +112,11 @@
                     </figure>
 
                     <p>
-                        Connecting with intended partners is not enough to control the number of connections. Even with specific DNA, a GUV could connect to many partners of the right type at the same time, and GUVs could form large aggregates.
-                        In the study of Hadorn et al., GUVs carrying complementary DNA formed assemblies that were visible by eye <a href="#ref-1" id="cite-1">[1]</a>.
-                        If only a few DNA strands were enough to keep a connection, GUVs would keep aggregating.
+                        Connecting with intended partners is not enough to control the number of connections. Even if the DNA is specific, a GUV may connect to many partners of the same type at the same time, and GUVs may form large aggregates. In the study by Hadorn et al., GUVs with complementary DNA formed assemblies that were visible to the naked eye <a href="#ref-1" id="cite-1">[1]</a>. If a small number of DNA strands is enough to keep a connection, GUVs keep aggregating.
                     </p>
 
                     <p>
-                        Therefore, we use very short 6-nt DNA strands and design each duplex to be very weak.
-                        Only 4 of the 6 bases actually pair; the remaining two bases, TT, sit next to the membrane as a spacer.
-                        Using sticky ends as short as four bases has been proposed for micrometer-sized DNA-coated particles as a way to avoid aggregation <a href="#ref-2" id="cite-2">[2]</a>.
-                        A single duplex cannot hold two GUVs together; a connection holds only when many strands bind at the same time.
+                        Therefore, we use very short 6-nt DNA strands and design each duplex to be very weak. Only 4 of the 6 bases actually pair. The remaining two bases (TT) work as a spacer next to the membrane. Using sticky ends as short as four bases has been proposed as a way to avoid aggregation for micrometer-sized particles coated with DNA <a href="#ref-2" id="cite-2">[2]</a>. One duplex cannot hold two GUVs together. A connection is kept only when many strands bind at the same time.
                     </p>
 
                     <h4 style="margin:32px 0 12px;color:#2b1055;font-size:1.2rem;font-weight:bold;line-height:1.4;">Surface Density Control</h4>
@@ -160,9 +150,7 @@
                     </figure>
 
                     <p>
-                        Once a GUV connects to its intended partner, most of the strands on the facing surfaces are used in that connection.
-                        The few strands left over are not enough to hold an extra partner, so the GUV does not connect any further.
-                        The key parameter is therefore the surface density of DNA on each GUV. By tuning it, we aim to obtain many sets of exactly three GUVs connected as GUV1–GUV2–GUV3.
+                        When a GUV connects to its intended partner, most of the strands on the facing surfaces are used for that connection. The few remaining strands cannot hold another partner, so the GUV does not connect any further. Therefore, the key parameter is the density of DNA on the surface of each GUV. By adjusting it, we aim to obtain many sets of exactly three GUVs connected as GUV1–GUV2–GUV3.
                     </p>
 
                 </div>
@@ -174,10 +162,7 @@
             <div class="content-space">
                 <div class="section-text">
                     <p>
-                        Controlling the connections between GUVs alone does not satisfy the four elements that ALiGN requires.
-                        Connected GUVs must also be able to exchange contents with each other, like cells that communicate.
-                        To achieve this, two conditions must be met at the same time: connected GUVs can exchange their contents, and GUVs that are not connected do not leak their contents to the outside.
-                        Exchanging contents between connected GUVs is achieved with α-hemolysin, and preventing leakage from unconnected GUVs is achieved with TRIMEB.
+                        Controlling the connections between GUVs alone does not satisfy the four elements that ALiGN needs. Connected GUVs must also be able to exchange contents with each other, like cells that communicate with each other. To do this, we must meet two conditions at the same time: connected GUVs can exchange their contents, and unconnected GUVs do not leak their contents to the outside. We realize the exchange of contents between connected GUVs with α-hemolysin, and the prevention of leakage from unconnected GUVs with TRIMEB.
                     </p>
 
                     <h3 class="sub-title" id="alpha-hemolysin">α-Hemolysin as a Pore</h3>
@@ -187,9 +172,7 @@
                     </figure>
 
                     <p>
-                        α-Hemolysin is a pore-forming protein from <em>Staphylococcus aureus</em>. Its seven subunits assemble in a lipid membrane and form a pore that is 1.4 nm wide at its narrowest point and lets small molecules pass through <a href="#ref-3" id="cite-3">[3]</a>.
-                        Engineered α-hemolysin added to the outside of GUVs forms pores in the membrane and lets an encapsulated dye leak out <a href="#ref-4" id="cite-4">[4]</a>.
-                        By forming α-hemolysin pores in the GUV membrane, we open a path for the contents of a GUV to move to its partner GUV.
+                        α-Hemolysin is a pore-forming protein from <em>Staphylococcus aureus</em>. Seven subunits gather in a lipid membrane and form a pore. The pore is 1.4 nm wide at its narrowest point, and small molecules can pass through it <a href="#ref-3" id="cite-3">[3]</a>. When engineered α-hemolysin is added to the outside of GUVs, pores form in the membrane, and an encapsulated dye leaks out <a href="#ref-4" id="cite-4">[4]</a>. By making α-hemolysin pores in the GUV membrane, we open a path for the contents of a GUV to move to its partner GUV.
                     </p>
 
                     <h3 class="sub-title" id="trimeb-lid">TRIMEB as a Lid</h3>
@@ -199,15 +182,11 @@
                     </figure>
 
                     <p>
-                        An open pore alone would let the contents leak out through the surface of a GUV even when the GUV is not connected to any partner.
-                        To prevent this, we use TRIMEB (heptakis(2,3,6-tri-O-methyl)-β-cyclodextrin), a derivative of β-cyclodextrin that binds reversibly in the lumen of the α-hemolysin pore and blocks it like a lid <a href="#ref-3">[3]</a>.
-                        The more TRIMEB is present, the more slowly the contents leak through the pore <a href="#ref-3">[3]</a>.
+                        If the pores are only open, the contents leak out through the surface of a GUV even when the GUV is not connected to any partner. To prevent this, we use TRIMEB (heptakis(2,3,6-tri-O-methyl)-β-cyclodextrin), a derivative of β-cyclodextrin. TRIMEB binds reversibly inside the α-hemolysin pore and blocks it like a lid <a href="#ref-3">[3]</a>. The more TRIMEB there is, the more slowly the contents leak through the pore <a href="#ref-3">[3]</a>.
                     </p>
 
                     <p>
-                        While a GUV is floating alone, the lid prevents its contents from leaking out.
-                        When two GUVs are connected and their membranes come close to each other, the two GUVs become able to exchange contents <a href="#ref-5" id="cite-5">[5]</a>.
-                        In this way, material exchange takes place mainly between connected GUVs.
+                        While a GUV is floating alone, the lid prevents its contents from leaking out. When two GUVs are connected and their membranes come close to each other, the two GUVs can exchange contents <a href="#ref-5" id="cite-5">[5]</a>. In this way, material exchange happens mainly between connected GUVs.
                     </p>
                     <p><a href="#what-is-align">↩ Back to What is the ALiGN</a></p>
 
@@ -220,13 +199,12 @@
             <div class="content-space">
                 <div class="section-text">
                     <p>
-                        These are the DNA strands used in ALiGN. Each strand that sits on a GUV carries a thiol (SH) modification, which anchors it to the GUV membrane.
+                        These are the DNA strands used in ALiGN. Each strand on a GUV has a thiol (SH) modification, and the thiol fixes the strand to the GUV membrane.
                     </p>
 
                     <h3 class="sub-title" id="dna-6nt">6-nt DNA (Main Design)</h3>
                     <p>
-                        These are weak-binding strands for connecting GUVs with an intended number of partners (see <a href="#weak-binding">Weak Binding and Surface Density Control</a>).
-                        Each strand has a 4-nt binding part (ACAC / GTGT or AGAG / CTCT) and a TT spacer on the membrane side. All strands carry SH at the 3′ end.
+                        These are weakly binding strands for connecting GUVs with an intended number of partners (see <a href="#weak-binding">Weak Binding and Surface Density Control</a>). Each strand has a 4-nt binding part (ACAC / GTGT or AGAG / CTCT) and a TT spacer on the membrane side. All strands have SH at the 3′ end.
                     </p>
 
                     <figure class="media-wide">
@@ -246,23 +224,19 @@
 
                     <h3 class="sub-title" id="dna-23bp">23-bp DNA (Supporting Design)</h3>
                     <p>
-                        These are strongly binding strands that form a stable 23-bp duplex. We use them first to show that DNA can control the GUV1–GUV2 and GUV2–GUV3 connections separately (see <a href="#sequence-specific-binding">Sequence-Specific Binding</a>).
-                        SH is at the 3′ end on the L side and at the 5′ end on the R side.
+                        These are strongly binding strands that form a stable 23-bp duplex. We use them first to show that DNA can control the GUV1–GUV2 connection and the GUV2–GUV3 connection separately (see <a href="#sequence-specific-binding">Sequence-Specific Binding</a>). SH is at the 3′ end on the L side and at the 5′ end on the R side.
                     </p>
 
                     <p>
-                        The 23-nt sequences themselves are taken from a published set of orthonormal 23-mers <a href="#ref-6" id="cite-6">[6]</a>.
-                        Every sequence in that set binds only to its own complement and not to the other sequences in the set, so the GUV1–GUV2 pair and the GUV2–GUV3 pair do not interfere with each other.
+                        The 23-nt sequences are taken from a published set of orthonormal 23-mers <a href="#ref-6" id="cite-6">[6]</a>. Every sequence in this set binds only to its own complementary strand and not to the other sequences in the set. Therefore, the GUV1–GUV2 pair and the GUV2–GUV3 pair do not interfere with each other.
                     </p>
 
                     <p>
-                        We make these strands long because a 23-bp duplex is strong and hardly comes apart, so only a few duplexes are enough to hold two GUVs together.
-                        With such strong binding, a GUV keeps taking new partners, so the number of partners is not controlled. When we use the 23-bp DNA, we do not aim to control the number of partners; we only use it to show that the sequence can control the choice of partners, that is, the GUV1–GUV2 and GUV2–GUV3 connections.
+                        We make these strands long because a 23-bp duplex is strong and hardly comes apart, so a few duplexes are enough to hold two GUVs together. If the binding is this strong, a GUV keeps taking new partners, so the number of partners is not controlled. When we use the 23-bp DNA, we do not aim to control the number of partners. We use it only to show that sequences can control the choice of partners, that is, the GUV1–GUV2 and GUV2–GUV3 connections.
                     </p>
 
                     <p>
-                        The way the two strands are joined also matters. A duplex is about 0.34 nm long per base pair, so a 23-bp duplex standing between the two membranes would hold them about 8 nm apart, which makes the exchange of contents through α-hemolysin harder.
-                        We therefore anchor one strand at its 3′ end and the other at its 5′ end, so that the two strands pair side by side starting from the point where the membranes touch, and the duplex extends outwards along the membranes instead of standing between them. The two membranes can then come close to each other.
+                        How the two strands are joined is also important. A duplex is about 0.34 nm per base pair, so a 23-bp duplex standing between two membranes keeps the membranes about 8 nm apart. This makes the exchange of contents through α-hemolysin difficult. Therefore, we fix one strand at its 3′ end and the other at its 5′ end. The two strands pair side by side from the point where the membranes touch. The duplex then extends outward along the membranes, and does not stand between them. In this way, the two membranes can come close to each other.
                     </p>
 
                     <figure class="media-wide">
@@ -282,8 +256,7 @@
 
                     <h3 class="sub-title" id="dna-63nt">63-nt Scaffold DNA (Backup Plan)</h3>
                     <p>
-                        The 63-nt scaffold DNA is a backup plan in case the weak 6-nt binding alone rarely starts a connection.
-                        The 63-nt scaffold DNA has a 23-nt end that hybridizes to the 23-bp anchor strand on one GUV, and the remaining 40 nt is a repeat (CA or CT, ten 4-nt units) that gathers many 6-nt strands of the partner GUV at one spot, creating a trigger for connection.
+                        The 63-nt scaffold DNA is a backup plan for the case where the weak 6-nt binding alone rarely starts a connection. The 23-nt end of the 63-nt scaffold DNA binds to the 23-bp anchor strand on one GUV. The remaining 40 nt is a repeat sequence (CA or CT, ten 4-nt units). It gathers many 6-nt strands of the partner GUV at one spot and creates a trigger for the connection.
                     </p>
 
                     <figure class="media-wide">
