@@ -11,12 +11,8 @@
     <link rel="stylesheet" href="sandbox.css">
     <!-- 文章の強調（背景の色・文字の色）：下の「text colors」の見本で使う。本物のページに入れるときも、この1行を足すだけ -->
     <link rel="stylesheet" href="text-style.css">
-    <!-- ページ左の目次（項目別ジャンプ）：見出しから、自動で作られる。本物のページに入れるときも、この1行（toc.css）と、下の toc.js の1行を足すだけ -->
-    <link rel="stylesheet" href="toc.css">
     <!-- 画像を左右にめくるスライダー：下の「image slider」の見本で使う。本物のページに入れるときも、この1行（carousel.css）と、下の carousel.js の1行を足すだけ -->
     <link rel="stylesheet" href="carousel.css">
-    <!-- ページの一番下の「Previous page / Next page」ボタン：下の「page navigation」の見本で使う。本物のページに入れるときも、この1行（page-nav.css）と、下の page-nav.js の1行を足すだけ -->
-    <link rel="stylesheet" href="page-nav.css">
 </head>
 <body>
     <header class="navbar">
@@ -400,73 +396,6 @@
                 </div>
             </div>
         </div>
-        <!-- 前後のページへのボタンの見本の説明（不要になったら、この <div class="content-section"> ごと消してOK） -->
-        <div class="content-section">
-            <h2 class="section-title">page navigation</h2>
-            <div class="content-space">
-                <div class="section-text">
-                    <p>
-                        ページの一番下に、前のページ・次のページへ進むボタンを出せます（このページの一番下にも、見本があります）。
-                        順番は、上のメニューと同じです（Home → Project → Design → Simulation → Experiment → Future → ELSI → Team）。
-                    </p>
-
-                    <h3 class="sub-title">Examples</h3>
-                    <p>① 途中のページ（例：Project）：前は Home、次は Design</p>
-                    <nav class="page-pager page-pager--demo" data-pager-as="project.html"></nav>
-
-                    <p>② 最初のページ（Home）：戻るページがないので、Previous は出ません</p>
-                    <nav class="page-pager page-pager--demo" data-pager-as="index.html"></nav>
-
-                    <p>③ 最後のページ（Team）：次のページがないので、Next は出ません</p>
-                    <nav class="page-pager page-pager--demo" data-pager-as="team.html"></nav>
-
-                    <h3 class="sub-title">How to add it to a page</h3>
-                    <p>
-                        ページに入れるときは、次の2行を足すだけです。ボタンは、ページの一番下に、自動で入ります。
-                        メニューの並びを変えたり、ページを足したりしても、ボタンは自動で変わります。
-                    </p>
-                    <p>
-                        <code>&lt;link rel="stylesheet" href="page-nav.css"&gt;</code>（<code>&lt;/head&gt;</code> の前）<br>
-                        <code>&lt;script src="page-nav.js"&gt;&lt;/script&gt;</code>（<code>&lt;/body&gt;</code> の前）
-                    </p>
-                </div>
-            </div>
-        </div>
-        <!-- 左の目次の見本の説明（不要になったら、この <div class="content-section"> ごと消してOK） -->
-        <div class="content-section">
-            <h2 class="section-title">contents sidebar</h2>
-            <div class="content-space">
-                <div class="section-text">
-                    <p>
-                        このページの左にある目次が、「項目別にジャンプできる目次」の見本です。
-                        項目を押すと、その見出しまで移動します。読んでいる項目には、色がつきます。
-                    </p>
-
-                    <h3 class="sub-title">How it is made</h3>
-                    <p>
-                        目次は、ページの見出しから、自動で作られます。
-                        大見出し（<code>&lt;h2 class="section-title"&gt;</code>）が目次の大きな項目、
-                        小見出し（<code>&lt;h3 class="sub-title"&gt;</code>）が、その下の小さな項目になります。
-                        目次の中身を、自分で書く必要はありません。
-                    </p>
-
-                    <h3 class="sub-title">How to add it to a page</h3>
-                    <p>ページに入れるときは、次の2行を足すだけです。</p>
-                    <p>
-                        <code>&lt;link rel="stylesheet" href="toc.css"&gt;</code>（<code>&lt;/head&gt;</code> の前）<br>
-                        <code>&lt;script src="toc.js"&gt;&lt;/script&gt;</code>（<code>&lt;/body&gt;</code> の前）
-                    </p>
-
-                    <h3 class="sub-title">On a phone</h3>
-                    <p>
-                        画面が狭いとき（スマホなど）は、左下の「Contents」ボタンを押すと、目次が横から開きます。
-                        項目を選ぶと、閉じて移動します。
-                    </p>
-                </div>
-            </div>
-        </div>
-        <!-- ページの一番下の、前後のページへのボタンの見本（Project ページのときの見え方。本物のページでは、自動で入るので、この1行は、書かなくてよい） -->
-        <nav class="page-pager" data-pager-as="project.html"></nav>
         <!-- ▲ ここまで ▲ -->
     </main>
 
@@ -475,11 +404,7 @@
     </footer>
 
     <script src="script.js"></script>
-    <!-- 左の目次を作る（見出しが2つ以上あるページで、自動で動く） -->
-    <script src="toc.js"></script>
     <!-- 画像のスライダー（<div class="carousel"> を、自動で、めくれるようにする） -->
     <script src="carousel.js"></script>
-    <!-- ページの一番下に、前後のページへのボタンを出す（メニューの並びから、自動で作る） -->
-    <script src="page-nav.js"></script>
 </body>
 </html>
