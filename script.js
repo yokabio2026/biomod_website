@@ -296,6 +296,7 @@ function initDnaCursor() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
 
+    const AFTERIMAGE_ENABLED = false;          // カーソルの後ろに残る「残像」（小さな螺旋と光の粒）を出すか。false = 出さない（カーソルについてくる、メインの螺旋だけ）。戻したいときは true
     const MAIN_COLOR = ['#4a7dff', '#7fd8ff']; // 後ろ側が青、進行方向側がシアン
     const MAIN_FOLLOW = 0.5;                   // 位置のlerp係数（カーソルからほとんど遅れない）
     const ANGLE_FOLLOW = 0.15;                 // 向きのlerp係数
@@ -626,9 +627,11 @@ function initDnaCursor() {
             main.y += (mouseY - Math.sin(main.angle) * reach - main.y) * follow;
             main.alpha += ((pointerInside ? 1 : 0) - main.alpha) * Math.min(1, 0.15 * frames);
 
-            // マウスではなく、追従しているメイン螺旋の移動距離で残像を生成する
-            spawnFromMainTail(now);
-            spawnTailSparks(now);
+            // マウスではなく、追従しているメイン螺旋の移動距離で残像を生成する（AFTERIMAGE_ENABLED が false のときは、出さない）
+            if (AFTERIMAGE_ENABLED) {
+                spawnFromMainTail(now);
+                spawnTailSparks(now);
+            }
 
             if (main.alpha > 0.01) {
                 // 位相をゆっくり進めて、螺旋がゆっくり回っているように見せる
