@@ -165,6 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // いま開いているページのメニューを、マウスを重ねていなくても、光らせたままにする（ピンクの文字＋下線）
+    markCurrentNav();
+
     // マウスに追従するDNA二重螺旋のカーソルエフェクトを開始する
     initDnaCursor();
 
@@ -289,6 +292,16 @@ function drawHelix(ctx, x, y, angle, scale, color, alpha, phase = 0, glow = 8, l
     strokeAll();
 
     ctx.restore();
+}
+
+// メニューの中で、いま開いているページのリンクに aria-current="page" をつける（見た目は style.css の .nav-links a[aria-current="page"]）。
+// ページのファイル名で決める（アドレスが「…/biomod_website/」のように、ファイル名がないときは index.html）。メニューにないページ（sandbox など）は、どれも光らない
+function markCurrentNav() {
+    const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    document.querySelectorAll('.nav-links a').forEach((a) => {
+        const target = (a.getAttribute('href') || '').split('#')[0].split('?')[0].split('/').pop().toLowerCase();
+        if (target === file) a.setAttribute('aria-current', 'page');
+    });
 }
 
 function initDnaCursor() {
