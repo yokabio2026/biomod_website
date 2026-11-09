@@ -70,11 +70,152 @@
         </div>
 
         <div class="content-section">
-            <h2 class="section-title">Model</h2>
+            <h2 class="section-title" id="guv-model-title">Model</h2>
             <div class="content-space">
                 <div class="section-text">
                     <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
+                    <p>
+                        This model simulates the motion and aggregation of two types of equally
+                        sized GUVs in three dimensions. It combines Brownian motion, DNA-mediated
+                        binding and dissociation, and the recruitment of membrane-bound DNA into
+                        contact regions. The numbers of monomers, dimers and larger clusters are
+                        tracked over time to examine how DNA surface density and DNA bond lifetime
+                        affect aggregation.
+                    </p>
+                    <p>
+                        The flowchart below summarizes the simulation procedure, followed by
+                        a brief explanation of each step.
+                    </p>
+                    <!-- Paste this style and section where you want the flowchart to appear on your webpage. -->
+                    <style>
+                    .guv-simple-en-flow {
+                      max-width: 780px;
+                      margin: 24px auto;
+                      color: #18384d;
+                      font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif;
+                    }
+                    #guv-model-title { font-size: 32px; }
+                    .guv-simple-en-flow h2 { margin: 0 0 12px; font-size: 26px; color: #18384d; }
+                    .guv-simple-en-flow .flow-scroll { overflow-x: auto; }
+                    .guv-simple-en-flow svg { display: block; width: 100%; min-width: 500px; height: auto; }
+                    .guv-simple-en-flow svg text { font-family: inherit; fill: #18384d; font-size: 18px; text-anchor: middle; }
+                    .guv-simple-en-flow svg .shape { stroke: #46677d; stroke-width: 1.8; }
+                    .guv-simple-en-flow svg .process { fill: #f0f6fa; }
+                    .guv-simple-en-flow svg .decision { fill: #fff5dc; }
+                    .guv-simple-en-flow svg .io { fill: #edf7f1; }
+                    .guv-simple-en-flow svg .terminal { fill: #183f59; }
+                    .guv-simple-en-flow svg .terminal-label { fill: #fff; }
+                    .guv-simple-en-flow svg .edge { fill: none; stroke: #46677d; stroke-width: 1.8; marker-end: url(#guv-simple-en-arrow); }
+                    .guv-simple-en-flow svg .branch { font-size: 16px; }
+                    .guv-simple-en-flow .flow-explanation { margin-top: 24px; }
+                    .guv-simple-en-flow .flow-explanation h3 { margin: 0 0 12px; font-size: 24px; color: #18384d; }
+                    .guv-simple-en-flow .flow-explanation ol { display: block; margin: 0; padding-left: 24px; list-style: decimal outside; }
+                    .guv-simple-en-flow .flow-explanation li { display: list-item; margin: 0 0 10px; font-size: 16px; line-height: 1.7; }
+
+.guv-simple-en-flow .flow-explanation > ol > li::marker { font-size: 20px; font-weight: 700; }
+.guv-simple-en-flow .flow-explanation > ol > li > strong { display: block; margin-bottom: 8px; font-size: 20px; line-height: 1.4; }
+.guv-simple-en-flow .flow-explanation h4 { margin: 26px 0 12px; font-size: 18px; color: #18384d; }
+.guv-simple-en-flow .flow-explanation p { margin: 12px 0 20px; font-size: 16px; line-height: 1.8; }
+.guv-simple-en-flow .flow-explanation > ol > li { margin-bottom: 28px; }
+.guv-simple-en-flow .guv-equation { display: block; box-sizing: border-box; width: 100%; margin: 22px 0; padding: 20px 12px; overflow-x: auto; text-align: center; background: #f4f8fb; border-radius: 8px; }
+.guv-simple-en-flow .guv-equation math { display: block math; width: max-content; min-width: min-content; max-width: none; margin: 0 auto; font-size: 1.65rem; font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", math; color: #18384d; }
+@media (max-width: 600px) { .guv-simple-en-flow .guv-equation { padding: 16px 8px; } .guv-simple-en-flow .guv-equation math { font-size: 1.35rem; } }
+                    </style>
+                    
+                    <section lang="en" class="guv-simple-en-flow" aria-labelledby="guv-simple-en-title">
+                      <h2 id="guv-simple-en-title">GUV Simulation Workflow</h2>
+                      <div class="flow-scroll">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 1180" role="img" aria-labelledby="guv-simple-en-svg-title guv-simple-en-svg-desc">
+                          <title id="guv-simple-en-svg-title">Flowchart from setup to simulation and saving results</title>
+                          <desc id="guv-simple-en-svg-desc">For each DNA surface density, calculate distances and the time step, then repeat dissociation, DNA recruitment, new bond formation, and GUV motion. Count clusters at recording times and save results when the simulation ends. Finish after all conditions have been processed.</desc>
+                          <defs>
+                            <marker id="guv-simple-en-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                              <path d="M 0 0 L 10 5 L 0 10 Z" fill="#46677d"/>
+                            </marker>
+                          </defs>
+                    
+                          <!-- Start and end: terminator symbols -->
+                          <rect class="shape terminal" x="280" y="16" width="200" height="48" rx="24" ry="24"/>
+                          <text class="terminal-label" x="380" y="47">Start</text>
+                          <path class="edge" d="M 380 64 V 95"/>
+                    
+                          <!-- Input: parallelogram -->
+                          <polygon class="shape io" points="200,95 600,95 560,155 160,155"/>
+                          <text x="380" y="132">Read settings and arguments</text>
+                          <path class="edge" d="M 380 155 V 190"/>
+                    
+                          <!-- Process: rectangle -->
+                          <rect class="shape process" x="180" y="190" width="400" height="64"/>
+                          <text x="380" y="216">Select DNA surface density</text>
+                          <text x="380" y="240">Initialize GUVs, DNA and time</text>
+                          <path class="edge" d="M 380 254 V 290"/>
+                    
+                          <rect class="shape process" x="180" y="290" width="400" height="64"/>
+                          <text x="380" y="316">Calculate distances and contact areas</text>
+                          <text x="380" y="340">Determine the time step Δt</text>
+                          <path class="edge" d="M 380 354 V 390"/>
+                    
+                          <rect class="shape process" x="180" y="390" width="400" height="84"/>
+                          <text x="380" y="417">1. Test existing pairs for dissociation</text>
+                          <text x="380" y="441">2. Recruit DNA into contact regions</text>
+                          <text x="380" y="465">3. Test for new bond formation</text>
+                          <path class="edge" d="M 380 474 V 510"/>
+                    
+                          <rect class="shape process" x="180" y="510" width="400" height="64"/>
+                          <text x="380" y="536">Move GUVs: forces + Brownian motion</text>
+                          <text x="380" y="560">Apply periodic boundaries; update time</text>
+                          <path class="edge" d="M 380 574 V 600"/>
+                    
+                          <!-- Decision: diamond, with Yes and No branches -->
+                          <polygon class="shape decision" points="380,600 535,642 380,684 225,642"/>
+                          <text x="380" y="648">Recording time reached?</text>
+                          <path class="edge" d="M 380 684 V 722"/>
+                          <text class="branch" x="406" y="708">Yes</text>
+                    
+                          <rect class="shape process" x="180" y="722" width="400" height="56"/>
+                          <text x="380" y="755">Count monomers, dimers and multimers</text>
+                          <path class="edge" d="M 380 778 V 820"/>
+                          <path class="edge" d="M 535 642 H 625 V 800 H 380 V 820"/>
+                          <text class="branch" x="582" y="631">No</text>
+                    
+                          <polygon class="shape decision" points="380,820 535,862 380,904 225,862"/>
+                          <text x="380" y="868">End time reached?</text>
+                          <path class="edge" d="M 225 862 H 100 V 322 H 180"/>
+                          <text class="branch" x="165" y="851">No</text>
+                          <path class="edge" d="M 380 904 V 942"/>
+                          <text class="branch" x="406" y="928">Yes</text>
+                    
+                          <!-- Output: parallelogram -->
+                          <polygon class="shape io" points="200,942 600,942 560,1002 160,1002"/>
+                          <text x="380" y="979">Save results as CSV files and plots</text>
+                          <path class="edge" d="M 380 1002 V 1030"/>
+                    
+                          <polygon class="shape decision" points="380,1030 555,1072 380,1114 205,1072"/>
+                          <text x="380" y="1078">More density conditions?</text>
+                          <path class="edge" d="M 555 1072 H 700 V 222 H 580"/>
+                          <text class="branch" x="610" y="1061">Yes</text>
+                          <path class="edge" d="M 380 1114 V 1132"/>
+                          <text class="branch" x="427" y="1129">No</text>
+                    
+                          <rect class="shape terminal" x="280" y="1132" width="200" height="40" rx="20" ry="20"/>
+                          <text class="terminal-label" x="380" y="1158">End</text>
+                        </svg>
+                      </div>
+                      <div class="flow-explanation">
+<h3>Simulation steps and equations</h3>
+<ol>
+<li><strong>Read the settings.</strong> Load the simulation parameters and command-line arguments. DNA bond lifetime and surface density are input parameters.</li>
+<li><strong>Initialize the system.</strong> Select a DNA surface density and initialize the GUV positions, DNA populations, bond states and time.<div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Initial DNA population"><mrow><msub><mi>N</mi><mtext>total,i</mtext></msub><mo>=</mo><mrow><mn>4</mn><mi>π</mi><msup><mi>R</mi><mn>2</mn></msup><msub><mi>ρ</mi><mtext>i</mtext></msub></mrow></mrow></math></div><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Stokes–Einstein diffusion coefficient"><mrow><msub><mi>D</mi><mtext>i</mtext></msub><mo>=</mo><mfrac><mrow><msub><mi>k</mi><mtext>B</mtext></msub><mi>T</mi></mrow><mrow><mn>6</mn><mi>π</mi><mi>η</mi><mi>R</mi></mrow></mfrac></mrow></math></div><p><i>R</i> is the common GUV radius, ρ<sub>i</sub> is its DNA surface density, <i>T</i> is temperature, and η is solvent viscosity. The diffusion coefficient is calculated in SI units and converted to µm²/s. Initially, all DNA is free and no GUV pairs are bonded.</p></li>
+<li><strong>Calculate geometry and timing.</strong> Calculate separations using the minimum-image convention and approximate the contact area for equal-radius spheres.<div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Minimum-image displacement"><mrow><msub><mi mathvariant="bold">d</mi><mtext>ij</mtext></msub><mo>=</mo><mrow><mrow><msub><mi mathvariant="bold">x</mi><mtext>i</mtext></msub><mo>−</mo><msub><mi mathvariant="bold">x</mi><mtext>j</mtext></msub></mrow><mo>−</mo><mi>L</mi><mrow><mi>nint</mi><mrow><mo>(</mo><mfrac><mrow><mo>(</mo><mrow><msub><mi mathvariant="bold">x</mi><mtext>i</mtext></msub><mo>−</mo><msub><mi mathvariant="bold">x</mi><mtext>j</mtext></msub></mrow><mo>)</mo></mrow><mi>L</mi></mfrac><mo>)</mo></mrow></mrow></mrow></mrow></math></div><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="GUV separation and contact area"><mrow><msub><mi>r</mi><mtext>ij</mtext></msub><mo>=</mo><mo>‖</mo><msub><mi mathvariant="bold">d</mi><mtext>ij</mtext></msub><mo>‖</mo><mo>,</mo><msub><mi>S</mi><mtext>ij</mtext></msub><mo>=</mo><mi>π</mi><mi>R</mi><mrow><mi>max</mi><mrow><mo>(</mo><mrow><mn>2</mn><mi>R</mi><mo>+</mo><msub><mi>d</mi><mtext>l</mtext></msub><mo>−</mo><msub><mi>r</mi><mtext>ij</mtext></msub><mo>,</mo><mn>0</mn></mrow><mo>)</mo></mrow></mrow></mrow></math></div><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Adaptive time-step selection"><mrow><mrow><mi>Δ</mi><mi>t</mi></mrow><mo>=</mo><mrow><mi>min</mi><mrow><mo>(</mo><mrow><msub><mi>Δt</mi><mtext>max</mtext></msub><mo>,</mo><msub><mi>Δt</mi><mtext>force</mtext></msub><mo>,</mo><msub><mi>Δt</mi><mtext>contact</mtext></msub><mo>,</mo><msub><mi>Δt</mi><mtext>prob</mtext></msub><mo>,</mo><msub><mi>t</mi><mtext>next</mtext></msub><mo>−</mo><mi>t</mi></mrow><mo>)</mo></mrow></mrow></mrow></math></div><p><i>L</i> is the box length, <i>d</i><sub>l</sub> is the DNA reach, and nint rounds each coordinate to the nearest integer. The adaptive time step obeys the implemented force-stability, contact-resolution and probability limits, and stops at the next recording time. If the required step is below the configured minimum, the calculation stops.</p></li>
+<li><strong>Update DNA-mediated connections.</strong> Apply the following three operations in order. Free DNA populations used in each operation reflect the preceding updates.<h4>4.1 Dissociation of existing pairs</h4><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Whole-pair dissociation probability"><mrow><msub><mi>P</mi><mtext>off,ij</mtext></msub><mo>=</mo><msup><mrow><mo>[</mo><mrow><mn>1</mn><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mfrac><mrow><mi>Δ</mi><mi>t</mi></mrow><msub><mi>τ</mi><mtext>off</mtext></msub></mfrac></mrow></msup></mrow><mo>]</mo></mrow><msub><mi>B</mi><mtext>ij</mtext></msub></msup></mrow></math></div><p>A bonded pair dissociates when a uniform random number <i>u</i> ∈ [0, 1) is smaller than this probability. Here <i>B</i><sub>ij</sub> = <i>q</i><sub>ij</sub> is the effective bridge count, which can be non-integer. Dissociation removes the entire pair connection and returns its allocated DNA to both GUVs; individual partial breakage is not tracked.</p><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Return allocated DNA after dissociation"><mrow><msub><mi>N</mi><mtext>free,i</mtext></msub><mo>←</mo><msub><mi>N</mi><mtext>free,i</mtext></msub><mo>+</mo><msub><mi>q</mi><mtext>ij</mtext></msub><mo>,</mo><msub><mi>N</mi><mtext>free,j</mtext></msub><mo>←</mo><msub><mi>N</mi><mtext>free,j</mtext></msub><mo>+</mo><msub><mi>q</mi><mtext>ij</mtext></msub><mo>,</mo><msub><mi>q</mi><mtext>ij</mtext></msub><mo>←</mo><mn>0</mn></mrow></math></div><p>The DNA bond lifetime τ<sub>off</sub> is specified directly as an input parameter in seconds.</p><h4>4.2 DNA recruitment into surviving contacts</h4><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Remaining recruitment capacity"><mrow><msub><mi>m</mi><mtext>ij</mtext></msub><mo>=</mo><mrow><mi>max</mi><mrow><mo>(</mo><mrow><mn>0</mn><mo>,</mo><mrow><mi>min</mi><mrow><mo>(</mo><mrow><msub><mi>N</mi><mtext>free,i</mtext></msub><mo>,</mo><msub><mi>N</mi><mtext>free,j</mtext></msub><mo>,</mo><mfrac><msub><mi>S</mi><mtext>ij</mtext></msub><msub><mi>a</mi><mtext>DNA</mtext></msub></mfrac><mo>−</mo><msub><mi>q</mi><mtext>ij</mtext></msub></mrow><mo>)</mo></mrow></mrow></mrow><mo>)</mo></mrow></mrow></mrow></math></div><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Membrane recruitment time"><mrow><msub><mi>τ</mi><mtext>l,ij</mtext></msub><mo>=</mo><mrow><msub><mi>log</mi><mn>10</mn></msub><mrow><mo>[</mo><mrow><mfrac><mn>1</mn><mn>1.55</mn></mfrac><msup><mrow><mo>(</mo><mfrac><msub><mi>S</mi><mtext>ij</mtext></msub><mrow><mn>2</mn><mi>π</mi><msup><mi>R</mi><mn>2</mn></msup></mrow></mfrac><mo>)</mo></mrow><mrow><mo>−</mo><mn>2.26</mn></mrow></msup></mrow><mo>]</mo></mrow><mfrac><msup><mi>R</mi><mn>2</mn></msup><msub><mi>D</mi><mtext>l</mtext></msub></mfrac></mrow></mrow></math></div><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Requested DNA recruitment increment"><mrow><msub><mi>g</mi><mtext>ij</mtext></msub><mo>=</mo><mrow><msub><mi>m</mi><mtext>ij</mtext></msub><mrow><mo>(</mo><mrow><mn>1</mn><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mfrac><mrow><mi>Δ</mi><mi>t</mi></mrow><msub><mi>τ</mi><mtext>l,ij</mtext></msub></mfrac></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></math></div><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Scale competing recruitment requests to conserve DNA"><mrow><msub><mi>s</mi><mtext>i</mtext></msub><mo>=</mo><mrow><mi>min</mi><mrow><mo>(</mo><mrow><mn>1</mn><mo>,</mo><mfrac><msub><mi>N</mi><mtext>free,i</mtext></msub><mrow><munder><mo>∑</mo><mtext>k</mtext></munder><msub><mi>g</mi><mtext>ik</mtext></msub></mrow></mfrac></mrow><mo>)</mo></mrow></mrow><mo>,</mo><msub><mi>Δq</mi><mtext>ij</mtext></msub><mo>=</mo><msub><mi>g</mi><mtext>ij</mtext></msub><mrow><mi>min</mi><mrow><mo>(</mo><mrow><msub><mi>s</mi><mtext>i</mtext></msub><mo>,</mo><msub><mi>s</mi><mtext>j</mtext></msub></mrow><mo>)</mo></mrow></mrow></mrow></math></div><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Update contact and free DNA populations"><mrow><msub><mi>q</mi><mtext>ij</mtext></msub><mo>←</mo><msub><mi>q</mi><mtext>ij</mtext></msub><mo>+</mo><msub><mi>Δq</mi><mtext>ij</mtext></msub><mo>,</mo><msub><mi>N</mi><mtext>free,i</mtext></msub><mo>←</mo><msub><mi>N</mi><mtext>free,i</mtext></msub><mo>−</mo><msub><mi>Δq</mi><mtext>ij</mtext></msub><mo>,</mo><msub><mi>N</mi><mtext>free,j</mtext></msub><mo>←</mo><msub><mi>N</mi><mtext>free,j</mtext></msub><mo>−</mo><msub><mi>Δq</mi><mtext>ij</mtext></msub></mrow></math></div><p><i>a</i><sub>DNA</sub> is the footprint per linker and <i>D</i><sub>l</sub> is the membrane diffusion coefficient. Recruitment is evaluated only for surviving contacts with positive area. The scaling factor is 1 when there are no requests. After recruitment, <i>B</i><sub>ij</sub> is set to <i>q</i><sub>ij</sub>. Shrinking contact area limits further recruitment but does not remove existing bridges.</p><h4>4.3 Formation of new bonds</h4><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="First-bridge formation probability"><mrow><msub><mi>P</mi><mtext>on,ij</mtext></msub><mo>=</mo><mrow><mrow><mi>min</mi><mrow><mo>(</mo><mrow><mfrac><mrow><msub><mi>N</mi><mtext>free,i</mtext></msub><msub><mi>S</mi><mtext>ij</mtext></msub></mrow><mrow><mn>4</mn><mi>π</mi><msup><mi>R</mi><mn>2</mn></msup></mrow></mfrac><mo>,</mo><mfrac><mrow><msub><mi>N</mi><mtext>free,j</mtext></msub><msub><mi>S</mi><mtext>ij</mtext></msub></mrow><mrow><mn>4</mn><mi>π</mi><msup><mi>R</mi><mn>2</mn></msup></mrow></mfrac></mrow><mo>)</mo></mrow></mrow><mrow><mo>(</mo><mrow><mn>1</mn><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mfrac><mrow><mi>Δ</mi><mi>t</mi></mrow><msub><mi>τ</mi><mtext>h</mtext></msub></mfrac></mrow></msup></mrow><mo>)</mo></mrow></mrow></mrow></math></div><p>For an eligible unbound A–B pair, a new bridge forms if a fresh uniform random number <i>u</i> ∈ [0, 1) is smaller than <i>P</i><sub>on,ij</sub>. Each GUV must have at least one free linker, and the contact capacity must be at least one. A pair that dissociated in this step cannot rebind in the same step. τ<sub>h</sub> is the hybridization time parameter; probabilities are not clipped.</p><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Create one bridge and allocate one linker from each GUV"><mrow><msub><mi>q</mi><mtext>ij</mtext></msub><mo>=</mo><msub><mi>B</mi><mtext>ij</mtext></msub><mo>=</mo><mn>1</mn><mo>,</mo><msub><mi>N</mi><mtext>free,i</mtext></msub><mo>←</mo><msub><mi>N</mi><mtext>free,i</mtext></msub><mo>−</mo><mn>1</mn><mo>,</mo><msub><mi>N</mi><mtext>free,j</mtext></msub><mo>←</mo><msub><mi>N</mi><mtext>free,j</mtext></msub><mo>−</mo><mn>1</mn></mrow></math></div></li>
+<li><strong>Move the GUVs.</strong> Calculate repulsive and bond forces, update the GUV positions, and apply periodic boundaries.<div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Dimensionless WCA repulsive force"><mrow><msub><msup><mi mathvariant="bold">f</mi><mtext>WCA</mtext></msup><mtext>ij</mtext></msub><mo>=</mo><mrow><mfrac><mrow><mn>24</mn><msup><mi>ε</mi><mo>*</mo></msup></mrow><msup><msub><mi>r</mi><mtext>ij</mtext></msub><mn>2</mn></msup></mfrac><mrow><mo>[</mo><mrow><mn>2</mn><msup><mrow><mo>(</mo><mfrac><mi>σ</mi><msub><mi>r</mi><mtext>ij</mtext></msub></mfrac><mo>)</mo></mrow><mn>12</mn></msup><mo>−</mo><msup><mrow><mo>(</mo><mfrac><mi>σ</mi><msub><mi>r</mi><mtext>ij</mtext></msub></mfrac><mo>)</mo></mrow><mn>6</mn></msup></mrow><mo>]</mo></mrow><msub><mi mathvariant="bold">d</mi><mtext>ij</mtext></msub></mrow></mrow></math></div><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Dimensionless FENE force for bonded pairs"><mrow><msub><msup><mi mathvariant="bold">f</mi><mtext>FENE</mtext></msup><mtext>ij</mtext></msub><mo>=</mo><mrow><mo>−</mo><mfrac><mi>κ</mi><mrow><mn>1</mn><mo>−</mo><msup><mrow><mo>(</mo><mfrac><msub><mi>r</mi><mtext>ij</mtext></msub><msub><mi>r</mi><mtext>max</mtext></msub></mfrac><mo>)</mo></mrow><mn>2</mn></msup></mrow></mfrac><msub><mi mathvariant="bold">d</mi><mtext>ij</mtext></msub></mrow></mrow></math></div><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Force-model parameters"><mrow><mi>σ</mi><mo>=</mo><mfrac><mrow><mn>2</mn><mi>R</mi></mrow><msup><mn>2</mn><mfrac><mn>1</mn><mn>6</mn></mfrac></msup></mfrac><mo>,</mo><mi>κ</mi><mo>=</mo><mfrac><msub><mi>k</mi><mtext>factor</mtext></msub><msup><mi>R</mi><mn>2</mn></msup></mfrac><mo>,</mo><msub><mi>r</mi><mtext>max</mtext></msub><mo>=</mo><mn>2</mn><mi>R</mi><msub><mi>f</mi><mtext>max</mtext></msub></mrow></math></div><p>Forces are expressed as <b>f</b> = <b>F</b>/(<i>k</i><sub>B</sub><i>T</i>). The WCA term applies for <i>r</i><sub>ij</sub> &lt; 2<i>R</i> and is zero otherwise. The FENE term applies only to bonded pairs and is not multiplied by the bridge count. ε* is <code>epsilon_kbt</code>, <i>k</i><sub>factor</sub> is <code>fene_stiffness_factor</code>, and <i>f</i><sub>max</sub> is <code>fene_max_distance_factor</code>. Their defaults are 10, 7.5 and 1.5, respectively. The total <b>f</b><sub>i</sub> is the sum of pair forces.</p><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Overdamped Brownian position update"><mrow><msub><msup><mi mathvariant="bold">x</mi><mo>′</mo></msup><mtext>i</mtext></msub><mo>=</mo><mrow><msub><mi mathvariant="bold">x</mi><mtext>i</mtext></msub><mo>+</mo><msub><mi>D</mi><mtext>i</mtext></msub><msub><mi mathvariant="bold">f</mi><mtext>i</mtext></msub><mrow><mi>Δ</mi><mi>t</mi></mrow><mo>+</mo><msqrt><mrow><mn>2</mn><msub><mi>D</mi><mtext>i</mtext></msub><mrow><mi>Δ</mi><mi>t</mi></mrow></mrow></msqrt><msub><mi mathvariant="bold">ξ</mi><mtext>i</mtext></msub></mrow></mrow></math></div><div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Periodic wrapping and time update"><mrow><msub><mi mathvariant="bold">x</mi><mtext>i</mtext></msub><mo>←</mo><msub><msup><mi mathvariant="bold">x</mi><mo>′</mo></msup><mtext>i</mtext></msub><mo>−</mo><mi>L</mi><mo>⌊</mo><mfrac><msub><msup><mi mathvariant="bold">x</mi><mo>′</mo></msup><mtext>i</mtext></msub><mi>L</mi></mfrac><mo>⌋</mo><mo>,</mo><mi>t</mi><mo>←</mo><mi>t</mi><mo>+</mo><mrow><mi>Δ</mi><mi>t</mi></mrow></mrow></math></div><p>Each component of <b>ξ</b><sub>i</sub> is an independent standard normal random variable. Coordinates, diffusion coefficients and time are used consistently in µm, µm²/s and s. Periodic wrapping is applied component by component.</p></li>
+<li><strong>Count clusters.</strong> At each recording time, classify the current connected components.<div class="guv-equation" role="group"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Count connected components by cluster size"><mrow><msub><mi>C</mi><mn>1</mn></msub><mo>=</mo><mrow><munder><mo>∑</mo><mtext>c ∈ 𝒞</mtext></munder><mrow><mi>𝟙</mi><mrow><mo>[</mo><mrow><mo>|</mo><mi>c</mi><mo>|</mo><mo>=</mo><mn>1</mn></mrow><mo>]</mo></mrow></mrow></mrow><mo>,</mo><msub><mi>C</mi><mn>2</mn></msub><mo>=</mo><mrow><munder><mo>∑</mo><mtext>c ∈ 𝒞</mtext></munder><mrow><mi>𝟙</mi><mrow><mo>[</mo><mrow><mo>|</mo><mi>c</mi><mo>|</mo><mo>=</mo><mn>2</mn></mrow><mo>]</mo></mrow></mrow></mrow><mo>,</mo><msub><mi>C</mi><mtext>3+</mtext></msub><mo>=</mo><mrow><munder><mo>∑</mo><mtext>c ∈ 𝒞</mtext></munder><mrow><mi>𝟙</mi><mrow><mo>[</mo><mrow><mo>|</mo><mi>c</mi><mo>|</mo><mo>≥</mo><mn>3</mn></mrow><mo>]</mo></mrow></mrow></mrow></mrow></math></div><p>𝒞 is the set of connected components formed by the currently bonded GUV pairs, including isolated GUVs; |<i>c</i>| is the number of GUVs in a component. Each dimer or larger cluster counts as one cluster. No equilibrium calculation or waiting period is required for this classification.</p></li>
+<li><strong>Repeat the calculation.</strong> Repeat steps 3–6 until the specified end time is reached. The time step is recomputed as the configuration changes.</li>
+<li><strong>Save the results.</strong> Save the simulation results as CSV files and plots.</li>
+<li><strong>Continue or finish.</strong> Repeat the simulation for the next DNA surface density, or finish when all conditions have been completed.</li>
+</ol>
+</div>
+                    </section>
                 </div>
             </div>
         </div>
