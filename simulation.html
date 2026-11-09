@@ -89,13 +89,15 @@
                     <!-- Paste this style and section where you want the flowchart to appear on your webpage. -->
                     <style>
                     .guv-simple-en-flow {
-                      max-width: 780px;
-                      margin: 24px auto;
+                      width: 100%;
+                      max-width: none;
+                      box-sizing: border-box;
+                      margin: 24px 0;
                       color: #18384d;
                       font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif;
                     }
                     .guv-simple-en-flow h2 { margin: 0 0 12px; font-size: 26px; color: #18384d; }
-                    .guv-simple-en-flow .flow-scroll { overflow-x: auto; }
+                    .guv-simple-en-flow .flow-scroll { width: 100%; max-width: 780px; margin: 0 auto; overflow-x: auto; }
                     .guv-simple-en-flow svg { display: block; width: 100%; min-width: 500px; height: auto; }
                     .guv-simple-en-flow svg text { font-family: inherit; fill: #18384d; font-size: 18px; text-anchor: middle; }
                     .guv-simple-en-flow svg .shape { stroke: #46677d; stroke-width: 1.8; }
@@ -109,12 +111,12 @@
                     .guv-simple-en-flow .flow-explanation { margin-top: 24px; }
                     .guv-simple-en-flow .flow-explanation h3 { margin: 0 0 12px; font-size: 24px; color: #18384d; }
                     .guv-simple-en-flow .flow-explanation ol { display: block; margin: 0; padding-left: 24px; list-style: decimal outside; }
-                    .guv-simple-en-flow .flow-explanation li { display: list-item; margin: 0 0 10px; font-size: 16px; line-height: 1.7; }
+                    .guv-simple-en-flow .flow-explanation li { display: list-item; margin: 0 0 10px; line-height: 1.7; }
 
 .guv-simple-en-flow .flow-explanation > ol > li::marker { font-size: 20px; font-weight: 700; }
 .guv-simple-en-flow .flow-explanation > ol > li > strong { display: block; margin-bottom: 8px; font-size: 20px; line-height: 1.4; }
 .guv-simple-en-flow .flow-explanation h4 { margin: 26px 0 12px; font-size: 18px; color: #18384d; }
-.guv-simple-en-flow .flow-explanation p { margin: 12px 0 20px; font-size: 16px; line-height: 1.8; }
+.guv-simple-en-flow .flow-explanation p { margin: 12px 0 20px; line-height: 1.8; }
 .guv-simple-en-flow .flow-explanation > ol > li { margin-bottom: 28px; }
 .guv-simple-en-flow .guv-equation { display: block; box-sizing: border-box; width: 100%; margin: 22px 0; padding: 20px 12px; overflow-x: auto; text-align: center; background: #f4f8fb; border-radius: 8px; }
 .guv-simple-en-flow .guv-equation math { display: block math; width: max-content; min-width: min-content; max-width: none; margin: 0 auto; font-size: 1.65rem; font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", math; color: #18384d; }
@@ -224,19 +226,19 @@
             <div class="content-space">
                 <div class="section-text">
 <style>
-#simulation-results .results-intro { font-size: 1.1rem; line-height: 1.8; }
+#simulation-results .results-intro { line-height: 1.8; }
 #simulation-results h3 { font-size: 24px; line-height: 1.4; margin: 40px 0 16px; }
 #simulation-results h4 { font-size: 18px; line-height: 1.4; margin: 0 0 12px; }
 #simulation-results p { line-height: 1.8; }
 #simulation-results .result-table-wrap { overflow-x: auto; }
-#simulation-results table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; }
+#simulation-results table { width: 100%; border-collapse: collapse; margin: 20px 0; }
 #simulation-results th, #simulation-results td { padding: 12px 16px; border-bottom: 1px solid #dce4ec; text-align: left; }
 #simulation-results th { background: #f4f8fb; }
 #simulation-results .result-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; }
 #simulation-results .result-panel { min-width: 0; padding: 14px; border: 1px solid #dce4ec; border-radius: 8px; background: white; }
 #simulation-results .result-panel img { display: block; width: 100%; height: auto; margin: 0; }
 #simulation-results .result-figure { margin: 24px 0 32px; }
-#simulation-results figcaption { font-size: 15px; line-height: 1.7; margin-top: 14px; }
+#simulation-results figcaption { line-height: 1.7; margin-top: 14px; }
 @media(max-width: 700px) { #simulation-results .result-grid { grid-template-columns: 1fr; } }
 /* Shared heading color; main section sizes use style.css (.section-title). */
 .content .section-title,
@@ -247,6 +249,9 @@
 .guv-simple-en-flow .flow-explanation > ol > li::marker,
 #simulation-results h3,
 #simulation-results h4 { color: #2b1055; }
+
+
+.content .section-text .guv-matched-body-size { font-size: var(--guv-body-font-size) !important; }
 </style><p class="results-intro">We varied DNA bond lifetime to examine how it changes GUV aggregation at a fixed DNA surface density. The results identify a candidate lifetime range in which dimers form while larger aggregates remain limited. Repeated runs also reveal substantial variation in aggregation between random seeds.</p>
 <h3>1. Simulation conditions</h3>
 <div class="result-table-wrap"><table><thead><tr><th scope="col">Parameter</th><th scope="col">Value</th></tr></thead><tbody>
@@ -260,12 +265,20 @@
 </tbody></table></div>
 <p>In the figures below, the vertical axis counts <strong>GUVs belonging to each cluster category</strong>, rather than the number of clusters. A dimer contributes two GUVs. Blue, orange and green indicate GUVs in monomers, dimers and multimers (three or more GUVs), respectively. These figures show individual simulation runs.</p>
 <h3>2. Bond lifetime changes aggregation behavior</h3>
-<p>At τ<sub>off</sub> = 10⁻⁵ s, almost all GUVs remained monomers throughout the one-hour simulation. At 1 s, the number of GUVs in larger clusters increased over time. The intermediate example, 2 × 10⁻⁴ s, showed an increase in dimers with fewer GUVs in multimers.</p>
-<figure class="result-figure"><div class="result-grid"><div class="result-panel"><h4>A. Short lifetime: 10⁻⁵ s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>B. Intermediate lifetime: 2 × 10⁻⁴ s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>C. Long lifetime: 1 s</h4><!-- Insert a figure here. --></div></div><figcaption><strong>Fig. 1.</strong> Representative time courses at three DNA bond lifetimes. All panels show 0–3,600 s and a total of 100 GUVs.</figcaption></figure><h3>3. Comparing candidate lifetimes</h3>
-<p>We compared lifetimes from 2 × 10⁻⁴ to 5 × 10⁻⁴ s in more detail. All four displayed runs formed dimers, but differed in the onset of aggregation and the extent of multimer formation. The 2 × 10⁻⁴ s run combined an increase in dimers with relatively limited multimer formation, making this lifetime a candidate for further investigation.</p>
-<p>These individual runs do not establish an optimal lifetime or a monotonic trend within this narrow range. Both dimer formation and multimer formation need to be compared across repeated runs.</p><figure class="result-figure"><div class="result-grid"><div class="result-panel"><h4>A. τ_off = 2 × 10⁻⁴ s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>B. τ_off = 3 × 10⁻⁴ s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>C. τ_off = 4 × 10⁻⁴ s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>D. τ_off = 5 × 10⁻⁴ s</h4><!-- Insert a figure here. --></div></div><figcaption><strong>Fig. 2.</strong> Individual time courses in the candidate lifetime range. The comparison considers GUVs in dimers together with GUVs in larger clusters; curves are not averages across seeds.</figcaption></figure><h3>4. Variation between random seeds</h3>
+<p>We first compared DNA bond lifetimes of 10⁻¹⁰, 1 and 10¹⁰ s. At 10⁻¹⁰ s, almost all GUVs remained monomers throughout the one-hour simulation. At both 1 and 10¹⁰ s, the number of GUVs in multimers increased over time. These results motivated a closer examination of lifetimes between the shortest condition and 1 s.</p>
+<figure class="result-figure"><div class="result-grid"><div class="result-panel"><h4>A. τ<sub>off</sub> = 10⁻¹⁰ s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>B. τ<sub>off</sub> = 1 s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>C. τ<sub>off</sub> = 10¹⁰ s</h4><!-- Insert a figure here. --></div></div><figcaption><strong>Fig. 1.</strong> Initial comparison of three DNA bond lifetimes, corresponding to the first comparison in the simulation report. All panels cover 0–3,600 s with 100 GUVs.</figcaption></figure>
+<h3>3. Comparing candidate lifetimes</h3>
+<p>We next tested 10⁻⁵ s. Most GUVs still remained monomers, so we examined longer lifetimes.</p>
+<figure class="result-figure"><div class="result-grid"><div class="result-panel"><h4>A. τ<sub>off</sub> = 10⁻⁵ s</h4><!-- Insert a figure here. --></div></div><figcaption><strong>Fig. 2.</strong> Additional short-lifetime trial; most GUVs remain monomers during the observation period.</figcaption></figure>
+<p>We then compared 10⁻⁴, 10⁻³, 10⁻² and 10⁻¹ s. The 10⁻⁴ s run remained mostly monomeric, whereas the longer-lifetime runs developed persistent aggregates. This comparison motivated a finer search between 10⁻⁴ and 10⁻³ s.</p>
+<figure class="result-figure"><div class="result-grid"><div class="result-panel"><h4>A. τ<sub>off</sub> = 10⁻⁴ s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>B. τ<sub>off</sub> = 10⁻³ s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>C. τ<sub>off</sub> = 10⁻² s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>D. τ<sub>off</sub> = 10⁻¹ s</h4><!-- Insert a figure here. --></div></div><figcaption><strong>Fig. 3.</strong> Comparison over four successive orders of magnitude in DNA bond lifetime.</figcaption></figure>
+<p>At 5 × 10⁻⁴ s, the displayed run ended with more GUVs in dimers than in multimers, although a substantial multimer population remained.</p>
+<figure class="result-figure"><div class="result-grid"><div class="result-panel"><h4>A. τ<sub>off</sub> = 5 × 10⁻⁴ s</h4><!-- Insert a figure here. --></div></div><figcaption><strong>Fig. 4.</strong> Intermediate-lifetime trial used to guide the subsequent finer search.</figcaption></figure>
+<p>We subsequently tested 2 × 10⁻⁴, 3 × 10⁻⁴ and 4 × 10⁻⁴ s. The 2 × 10⁻⁴ s run combined an increase in dimers with relatively limited multimer formation, making it a candidate for additional random-seed trials. These individual trajectories do not establish an optimal lifetime or a monotonic trend within this narrow range.</p>
+<figure class="result-figure"><div class="result-grid"><div class="result-panel"><h4>A. τ<sub>off</sub> = 2 × 10⁻⁴ s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>B. τ<sub>off</sub> = 3 × 10⁻⁴ s</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>C. τ<sub>off</sub> = 4 × 10⁻⁴ s</h4><!-- Insert a figure here. --></div></div><figcaption><strong>Fig. 5.</strong> Finer comparison of three candidate lifetimes. Each panel represents an individual run, not an average across seeds.</figcaption></figure>
+<h3>4. Variation between random seeds</h3>
 <p>Four additional runs at τ<sub>off</sub> = 2 × 10⁻⁴ s used random seeds 84, 126, 168 and 210. Three displayed runs showed a sustained increase in dimers, with different aggregation onset times. In the seed-210 run, nearly all GUVs remained monomers within the one-hour observation period.</p>
-<p>This variation means that the candidate condition does not consistently produce the same outcome within one hour. Individual trajectories should therefore be considered alongside any future summary statistics.</p><figure class="result-figure"><div class="result-grid"><div class="result-panel"><h4>A. Seed 84</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>B. Seed 126</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>C. Seed 168</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>D. Seed 210</h4><!-- Insert a figure here. --></div></div><figcaption><strong>Fig. 3.</strong> Four additional random-seed runs at the same bond lifetime and surface density. The seed-210 trajectory shows little persistent aggregation during the observation period.</figcaption></figure><h3>5. Interpretation and next step</h3>
+<p>This variation means that the candidate condition does not consistently produce the same outcome within one hour. Individual trajectories should therefore be considered alongside any future summary statistics.</p><figure class="result-figure"><div class="result-grid"><div class="result-panel"><h4>A. Seed 84</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>B. Seed 126</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>C. Seed 168</h4><!-- Insert a figure here. --></div><div class="result-panel"><h4>D. Seed 210</h4><!-- Insert a figure here. --></div></div><figcaption><strong>Fig. 6.</strong> Four additional random-seed runs at the same bond lifetime and surface density. The seed-210 trajectory shows little persistent aggregation during the observation period.</figcaption></figure><h3>5. Interpretation and next step</h3>
 <p>Under the conditions examined, DNA bond lifetime changes the balance between persistent monomers, dimer formation and larger aggregates. Intermediate lifetimes provide a candidate region for forming dimers while limiting multimers, although substantial run-to-run variation remains.</p>
 <p>DNA surface density was fixed in these simulations, so its effect has not yet been assessed in this dataset. The next step is to vary surface density around the candidate lifetime range and compare repeated runs using both the fraction of GUVs in dimers and the fraction in multimers.</p>
                 </div>
@@ -299,6 +312,27 @@ Molecular dynamics simulation for polymers in the presence of a heat bath.
                 </div>
             </div>
         </div>
+        <script>
+// Use the site's original Purpose paragraph size as the reference.
+(function () {
+  function matchPurposeTextSize() {
+    const heading = Array.from(document.querySelectorAll('.section-title'))
+      .find(el => el.textContent.trim() === 'Purpose');
+    if (!heading) return;
+    const section = heading.closest('.content-section');
+    const paragraph = section.querySelector('.section-text p');
+    if (!paragraph) return;
+    const size = getComputedStyle(paragraph).fontSize;
+    document.documentElement.style.setProperty('--guv-body-font-size', size);
+    document.querySelectorAll('.content .section-text p, .content .section-text li, .content .section-text th, .content .section-text td, .content .section-text figcaption').forEach(el => {
+      if (!section.contains(el)) el.classList.add('guv-matched-body-size');
+    });
+  }
+  matchPurposeTextSize();
+  window.addEventListener('load', matchPurposeTextSize);
+  window.addEventListener('resize', matchPurposeTextSize);
+})();
+</script>
     </main>
 
     <footer class="site-footer">
