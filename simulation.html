@@ -73,6 +73,29 @@
             <h2 class="section-title" id="guv-model-title">Model</h2>
             <div class="content-space">
                 <div class="section-text">
+                    <style>
+                        .guv-model-videos {
+                            display: grid;
+                            grid-template-columns: repeat(2, minmax(0, 1fr));
+                            gap: 24px;
+                            width: 100%;
+                            margin: 0 0 28px;
+                        }
+                        .guv-model-videos video {
+                            display: block;
+                            width: 100%;
+                            height: auto;
+                            min-width: 0;
+                        }
+                        @media (max-width: 700px) {
+                            .guv-model-videos { grid-template-columns: 1fr; }
+                        }
+                    </style>
+                    <div class="guv-model-videos">
+                        <video src="videos/simulation_guv_brownian.mp4" autoplay loop muted playsinline aria-label="GUV Brownian motion"></video>
+                        <video src="videos/simulation_clusters_timeline.mp4" autoplay loop muted playsinline aria-label="GUV cluster timeline"></video>
+                    </div>
+
                     <!-- ▼ ここに文章を書く -->
                     <p>
                         This model simulates the motion and aggregation of two types of equally
