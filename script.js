@@ -782,6 +782,11 @@ function initMemberDrag() {
         mascotHitMinSpeed: 250, // 【YOKABIOくんとの衝突】これ以上の速さでぶつかったときだけ、怒りの回数に数える(px/秒)
         mascotHitCooldownMs: 300, // 【YOKABIOくんとの衝突】同じ写真が、続けて回数に数えられるまでの間(ミリ秒)
         alignNeededPx: 10,     // 【YOKABIOくん】写真が1枚でも、初期配置からこの距離(px)以上ずれていれば、「整列が必要」とみなす
+        bondGap: 18,           // 【DNAがつながる】2枚の写真の、ふちとふちの距離(px)が、これ以下になったら、DNAでつながる（近づけたときだけ）。写真どうしは、gap（8px）より近づけないので、ほぼ接するくらい
+        bondApproach: 6,       // 【DNAがつながる】元の位置のときより、中心どうしの距離が、これ(px)以上、近づいていること（最初から近い並びで、勝手につながらないように）
+        bondRestGap: 70,       // 【DNAがつながる】つながったDNAの、自然な長さ（写真のふちからふちまで）(px)。これより離すと、DNAが引き寄せる
+        bondMaxGroup: 3,       // 【DNAがつながる】つながった写真の「かたまり」の、最大の枚数。4枚以上には、連結しない
+        bondFadeMs: 360,       // 【DNAが外れる】YOKABIOくんを押したとき、DNAが消えるまでの時間(ミリ秒)
         dnaPickPx: 10,         // 【DNAの優先】主鎖・横棒から、この距離(px)以内を押したら、写真が重なっていても、DNAをつまむ（マウス）
         dnaPickTouchPx: 12,    // 【DNAの優先】同じく、タッチ操作のとき
         tutorialIdleMs: 3000,  // 【チュートリアル】（以前は5000）写真・DNAが操作されないまま、この時間(ミリ秒)たつと、実演を始める
@@ -828,7 +833,9 @@ function initMemberDrag() {
     let contactNow = new Set();  // いま触れている写真の組（衝突を「新しい衝突」かどうか見分けるため）
     let simId = 0;
     let lastT = 0;
-    let pairs = [];              // DNAでつなぐ写真の組（同じ行で、となりどうし）。l0 は元の並びでの中心間の距離
+    let pairs = [];              // いま、DNAでつながっている写真の組。最初は空。写真を近づけると増える（tryBond）。YOKABIOくんを押すと、すべてなくなる。l0 は、DNAの自然な長さ（中心間の距離）
+    let pairSeq = 0;             // つないだ順番（待機のゆらぎの位相を、ずらすため）
+    let linkFade = null;         // DNAが外れるときの、消える演出 { t0, ms }
 
     /* ---- 写真どうしをつなぐDNA（SVG）。細い紫の線画。写真より奥に描く ---- */
     const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -905,64 +912,134 @@ function initMemberDrag() {
         boundsCache = null;
     }
 
-    // 動かす前の位置から、「同じ行のとなりどうし」を調べる。バネの自然長は、このときの距離
-    function computePairs() {
-        measureHomes();
+    // つながりを、すべてなくす（DNAのパス・操作判定領域も、取りのぞく）
+    function clearPairs() {
         hitEls.forEach((h) => h.remove());
         hitEls = [];
         pairs = [];
-        const list = Array.from(members);
-        for (let i = 0; i + 1 < list.length; i++) {
-            const a = list[i];
-            const b = list[i + 1];
-            if (groupOf.get(a) !== groupOf.get(b)) continue;
-            const ha = homes.get(a);
-            const hb = homes.get(b);
-            if (Math.abs(ha.y - hb.y) > 4 || hb.x <= ha.x) continue;   // 行が変わるところはつなげない
-            const l0 = Math.hypot(hb.x - ha.x, hb.y - ha.y);
-            // 写真のあいだに見える部分（円と円のすきま）に、もとの量＋DNA_EXTRA_TURNS 節ぶんのらせんが入るようにする
-            const visible = Math.max(40, l0 - radii.get(a) - radii.get(b));
-            const turns = l0 / DNA_PERIOD + DNA_EXTRA_TURNS * (l0 / visible);
-            pairs.push({ a: a, b: b, l0: l0, turns: turns, pluck: null, releasedAt: 0, hit: null, hp: null, glow: 0, hovG: 0, glowT: 0, wasHot: false, gAxis: null,
-                bul: { u: 0.5, w: 0, v: 0 },   // 膨らみ：位置(u)・大きさ(w)・速さ(v)。見た目だけ
-                hov: { u: 0.5, dx: 0, dy: 0, vx: 0, vy: 0, tx: 0, ty: 0, inside: false },
-                idleW: 0, idlePhase: pairs.length * 1.7 + 0.9, idlePeriod: 2 + ((pairs.length * 53) % 100) / 100 });
-        }
+    }
+
+    // 写真の元の位置を測り直して、つながりを、すべてなくす（最初・画面の幅が変わったとき）。
+    // DNAは、最初は、つながっていない。写真を近づけると、tryBond が、つなぐ
+    function computePairs() {
+        measureHomes();
+        clearPairs();
+    }
+
+    // 2枚の写真 a, b を、DNAでつなぐ。l0 = DNAの自然な長さ（中心間の距離）
+    function makePair(a, b, l0) {
+        // 写真のあいだに見える部分（円と円のすきま）に、もとの量＋DNA_EXTRA_TURNS 節ぶんのらせんが入るようにする
+        const visible = Math.max(40, l0 - radii.get(a) - radii.get(b));
+        const turns = l0 / DNA_PERIOD + DNA_EXTRA_TURNS * (l0 / visible);
+        const seq = pairSeq++;
+        const pair = { a: a, b: b, l0: l0, turns: turns, pluck: null, releasedAt: 0, hit: null, hp: null, glow: 0, hovG: 0, glowT: 0, wasHot: false, gAxis: null,
+            bul: { u: 0.5, w: 0, v: 0 },   // 膨らみ：位置(u)・大きさ(w)・速さ(v)。見た目だけ
+            hov: { u: 0.5, dx: 0, dy: 0, vx: 0, vy: 0, tx: 0, ty: 0, inside: false },
+            idleW: 0, idlePhase: seq * 1.7 + 0.9, idlePeriod: 2 + ((seq * 53) % 100) / 100 };
         // DNAをつまむための、透明な操作判定領域（見た目は変えない）。写真より奥にあるので、重なる所では写真が優先される
-        pairs.forEach((pair) => {
-            // つまんでいる間だけ使う、色が変わるパス（そのDNAだけに適用する）
-            // 線の太さの段階ごとに、1本ずつ持つ（段階 k の太さは、更新のたびに決める）
-            const lvPaths = (color, width, opacity) => Array.from({ length: THICK_LEVELS }, () => addPath(color, width, opacity));
-            pair.hp = { back: lvPaths(DNA_COLOR, 1.4, 0.28), rungs: lvPaths(DNA_RUNG_COLOR, 1.1, 0.5), front: lvPaths(DNA_COLOR, 1.8, 0.6) };
-            hitEls.push(...pair.hp.back, ...pair.hp.rungs, ...pair.hp.front);
-            pair.gs = makeGradient();   // 線用
-            pair.gr = makeGradient();   // 横棒用（ふだんの色が、線と少しちがうため、別に持つ）
-            hitEls.push(pair.gs.el, pair.gr.el);
-            const h = document.createElementNS(SVG_NS, 'path');
-            h.setAttribute('class', 'dna-hit');
-            h.setAttribute('fill', 'none');
-            h.setAttribute('stroke', 'transparent');
-            h.setAttribute('stroke-width', '30');
-            h.setAttribute('stroke-linecap', 'round');
-            h.setAttribute('stroke-linejoin', 'round');
-            h.style.pointerEvents = 'stroke';
-            h.style.cursor = 'grab';
-            h.addEventListener('pointerdown', (e) => startPluck(pair, e));
-            // ホバー（マウスがある端末だけ）：DNAに重ねると、重ねた付近が、カーソルの方向へ、わずかに曲がる
-            if (hoverCapable && !reduceMotion) {
-                const aim = (e) => { if (e.pointerType === 'mouse') dnaHoverAim(pair, e); };
-                h.addEventListener('pointerenter', aim);
-                h.addEventListener('pointermove', aim);
-                h.addEventListener('pointerleave', (e) => {
-                    if (e.pointerType !== 'mouse') return;
-                    pair.hov.inside = false;
-                    wakeHover();
-                });
+        // つまんでいる間だけ使う、色が変わるパス（そのDNAだけに適用する）
+        // 線の太さの段階ごとに、1本ずつ持つ（段階 k の太さは、更新のたびに決める）
+        const lvPaths = (color, width, opacity) => Array.from({ length: THICK_LEVELS }, () => addPath(color, width, opacity));
+        pair.hp = { back: lvPaths(DNA_COLOR, 1.4, 0.28), rungs: lvPaths(DNA_RUNG_COLOR, 1.1, 0.5), front: lvPaths(DNA_COLOR, 1.8, 0.6) };
+        hitEls.push(...pair.hp.back, ...pair.hp.rungs, ...pair.hp.front);
+        pair.gs = makeGradient();   // 線用
+        pair.gr = makeGradient();   // 横棒用（ふだんの色が、線と少しちがうため、別に持つ）
+        hitEls.push(pair.gs.el, pair.gr.el);
+        const h = document.createElementNS(SVG_NS, 'path');
+        h.setAttribute('class', 'dna-hit');
+        h.setAttribute('fill', 'none');
+        h.setAttribute('stroke', 'transparent');
+        h.setAttribute('stroke-width', '30');
+        h.setAttribute('stroke-linecap', 'round');
+        h.setAttribute('stroke-linejoin', 'round');
+        h.style.pointerEvents = 'stroke';
+        h.style.cursor = 'grab';
+        h.addEventListener('pointerdown', (e) => startPluck(pair, e));
+        // ホバー（マウスがある端末だけ）：DNAに重ねると、重ねた付近が、カーソルの方向へ、わずかに曲がる
+        if (hoverCapable && !reduceMotion) {
+            const aim = (e) => { if (e.pointerType === 'mouse') dnaHoverAim(pair, e); };
+            h.addEventListener('pointerenter', aim);
+            h.addEventListener('pointermove', aim);
+            h.addEventListener('pointerleave', (e) => {
+                if (e.pointerType !== 'mouse') return;
+                pair.hov.inside = false;
+                wakeHover();
+            });
+        }
+        svg.appendChild(h);
+        hitEls.push(h);
+        pair.hit = h;
+        pairs.push(pair);
+        return pair;
+    }
+
+    // いま、つながっている写真の「かたまり」。find(el) = そのかたまりの代表、size = かたまりごとの枚数
+    function bondGroups() {
+        const parent = new Map();
+        members.forEach((el) => parent.set(el, el));
+        const find = (x) => {
+            while (parent.get(x) !== x) {
+                parent.set(x, parent.get(parent.get(x)));
+                x = parent.get(x);
             }
-            svg.appendChild(h);
-            hitEls.push(h);
-            pair.hit = h;
+            return x;
+        };
+        pairs.forEach((p) => {
+            const ra = find(p.a);
+            const rb = find(p.b);
+            if (ra !== rb) parent.set(ra, rb);
         });
+        const size = new Map();
+        members.forEach((el) => { const r = find(el); size.set(r, (size.get(r) || 0) + 1); });
+        return { find: find, size: size };
+    }
+
+    /* ---- 近づけると、DNAでつながる ----
+            ・ページ全体の、どの2枚でも。ふちとふちの距離が bondGap 以下で、元の位置のときより、近づいているとき
+            ・つながった写真の「かたまり」は、最大 bondMaxGroup 枚（3枚）まで。4枚目は、つながらない
+              （かたまりどうしを、つなぐときは、合わせて3枚以内。同じかたまりの中を、さらにつなぐことは、しない）
+            ・つながったDNAは、YOKABIOくんを押すまで、外れない。自然な長さは、bondRestGap（このあいだは、引き寄せない。引っぱると、引き寄せる） */
+    function tryBond() {
+        if (resetting || linkFade) return;
+        const list = Array.from(members);
+        const cands = [];
+        for (let i = 0; i < list.length; i++) {
+            for (let j = i + 1; j < list.length; j++) {
+                const a = list[i];
+                const b = list[j];
+                if (pairs.some((p) => (p.a === a && p.b === b) || (p.a === b && p.b === a))) continue;
+                const oa = offsets.get(a);
+                const ob = offsets.get(b);
+                const ha = homes.get(a);
+                const hb = homes.get(b);
+                const d = Math.hypot((hb.x + ob.x) - (ha.x + oa.x), (hb.y + ob.y) - (ha.y + oa.y));
+                const gap = d - radii.get(a) - radii.get(b);
+                if (gap > T.bondGap) continue;
+                if (d > Math.hypot(hb.x - ha.x, hb.y - ha.y) - T.bondApproach) continue;   // 近づけたときだけ
+                cands.push({ a: a, b: b, d: d, gap: gap });
+            }
+        }
+        if (!cands.length) return;
+        cands.sort((p, q) => p.gap - q.gap);   // 近い組から、つなぐ
+        let formed = false;
+        cands.forEach((c) => {
+            const g = bondGroups();
+            const ra = g.find(c.a);
+            const rb = g.find(c.b);
+            if (ra === rb) return;                                             // すでに、同じかたまり
+            if (g.size.get(ra) + g.size.get(rb) > T.bondMaxGroup) return;      // 4枚以上には、連結しない
+            makePair(c.a, c.b, Math.max(c.d, radii.get(c.a) + radii.get(c.b) + T.bondRestGap));
+            formed = true;
+        });
+        if (formed) drawLinks();
+    }
+
+    // YOKABIOくんを押したとき：つながっていたDNAが、すっと消えて、外れる（写真が元の位置に戻るあいだに）
+    function detachLinks() {
+        if (!pairs.length) return;
+        if (reduceMotion) { clearPairs(); return; }
+        pairs.forEach((p) => { p.hit.style.pointerEvents = 'none'; });   // 消えている間は、つまめない
+        linkFade = { t0: performance.now(), ms: T.bondFadeMs };
     }
 
     const fmt = (x, y) => x.toFixed(1) + ' ' + y.toFixed(1);
@@ -1021,11 +1098,18 @@ function initMemberDrag() {
         return pts;
     }
 
+    let appliedFade = 1;   // DNAの線の濃さに、いま掛けている倍率（外れる演出のあいだだけ、1より小さくなる）
     function drawLinks() {
         const out = {
             n: { back: '', rungs: '', front: '' },   // ふだんのDNA
             h: null
         };
+        // 外れる演出：線が、だんだん薄くなる。消えきったら、つながりを、すべてなくして、濃さを元に戻す
+        let fadeF = 1;
+        if (linkFade) {
+            fadeF = 1 - clamp((performance.now() - linkFade.t0) / linkFade.ms, 0, 1);
+            if (fadeF <= 0) { linkFade = null; clearPairs(); fadeF = 1; }
+        }
         pairs.forEach((pair) => {
             const ca = photoCenter(pair.a);
             const cb = photoCenter(pair.b);
@@ -1228,6 +1312,12 @@ function initMemberDrag() {
         pathBack.setAttribute('d', out.n.back);
         pathRungs.setAttribute('d', out.n.rungs);
         pathFront.setAttribute('d', out.n.front);
+        if (fadeF !== appliedFade) {
+            appliedFade = fadeF;
+            pathBack.setAttribute('stroke-opacity', String(0.28 * fadeF));
+            pathRungs.setAttribute('stroke-opacity', String(0.5 * fadeF));
+            pathFront.setAttribute('stroke-opacity', String(0.6 * fadeF));
+        }
     }
 
     // 元の位置に戻るアニメーションの間、毎フレームDNAを描き直す
@@ -2037,6 +2127,7 @@ function initMemberDrag() {
         lastSimAt = now;
         step(dt);
         trailUpdate();
+        tryBond();   // 近づいた写真を、DNAでつなぐ
         drawLinks();
         simId = simActive() ? requestAnimationFrame(simLoop) : 0;
     }
@@ -2933,6 +3024,8 @@ function initMemberDrag() {
             const t = tut.tgts[i];
             if (t.state === 'done' || !t.inView || t.rounds >= T.tutorialRounds || now < t.nextAt) continue;
             if (now - Math.max(t.since, t.lastAct) < T.tutorialIdleMs) continue;
+            // DNAは、最初はつながっていない。この写真がつながっていなければ、DNAの実演は、飛ばして、つぎの写真の実演へ
+            if (t.kind === 'dna' && !tutPairOf(t)) { t.kind = 'photo'; t.rounds++; t.nextAt = now + T.tutorialDnaGap; continue; }
             if (!tutGeometryOk(t, t.kind)) continue;
             if (hover.get(t.el).inside) continue;
             if (t.kind === 'dna' && tutPairOf(t).pluck) continue;
@@ -3132,6 +3225,7 @@ function initMemberDrag() {
         finish();
         finishPluck(false);
         pairs.forEach((p) => { p.pluck = null; p.glow = 0; p.hovG = 0; p.bul.w = 0; p.bul.v = 0; });
+        detachLinks();           // つながっていたDNAも、外す（すっと消える）
         stopSim();               // 物理をいったん止める（速さもゼロにする）
         resetting = true;
         fadeTrails();            // 残っている軌跡は、すばやく消す。新しくは出さない
@@ -3197,7 +3291,7 @@ function initMemberDrag() {
 
     // 写真が、初期配置から、実際に動いているか（物理の位置が、alignNeededPx 以上ずれた写真が、1枚でもあるか）
     function needsAlign() {
-        let moved = false;
+        let moved = pairs.length > 0;   // DNAでつながっていたら、外すために、整列が必要
         members.forEach((el) => {
             const o = offsets.get(el);
             if (Math.hypot(o.x, o.y) >= T.alignNeededPx) moved = true;
@@ -3308,7 +3402,7 @@ function initMemberDrag() {
     computePairs();
     drawLinks();
     window.addEventListener('load', () => {
-        computePairs();
+        measureHomes();   // 画像が読み込まれて、大きさが決まったので、測り直す（つながったDNAは、そのまま）
         drawLinks();
     });
 }
