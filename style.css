@@ -254,6 +254,12 @@ a.search-result-item:hover {
     margin: 0 0 24px;
 }
 
+/* 本文（段落・箇条書き）は、長文が読みやすい明朝体（セリフ体）にする。見出しは、そのままゴシック体 */
+.section-text p,
+.section-text li {
+    font-family: "Times New Roman", Times, "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+}
+
 .section-text p:last-child {
     margin-bottom: 0;
 }
@@ -331,6 +337,147 @@ a.search-result-item:hover {
 /* 説明文つきの画像（図）：<figure> の中に画像、<figcaption> に出典などの説明を書く */
 .section-text figure {
     margin: 24px 0;
+}
+
+/* 図と文字の配置：画面が広いときは、図を右に寄せ（幅 36%）、文字を左に回り込ませる。
+   小さい文字のある図や、パネルが並ぶ図には、class="fig-wide" を付けて、本文の幅いっぱいに置く。
+   画面が狭いとき（スマホなど）は、縦に積む */
+@media (min-width: 1000px) {
+    .float-figs .section-text figure {
+        float: right;
+        width: 36%;
+        margin: 6px 0 20px 32px;
+    }
+
+    .float-figs .section-text figure.fig-wide {
+        float: none;
+        clear: both;
+        width: 78%;
+        margin: 24px auto;
+    }
+
+    /* 4 つの要素の注釈つきの全体像など、文字の多い図は、少し大きめ（幅 50%）に右へ寄せる */
+    .float-figs .section-text figure.fig-mid {
+        width: 50%;
+    }
+
+    /* 先行研究の説明と図：左に文字、右に図を、横に並べる */
+    .section-text .study-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 32px;
+        align-items: center;
+        clear: both;
+        margin: 8px 0 28px;
+    }
+
+    .float-figs .section-text .study-row figure {
+        float: none;
+        width: 100%;
+        margin: 6px 0 0;
+    }
+
+    .section-text .study-row p {
+        margin: 0 0 16px;
+    }
+
+    /* 縦長の図は、行の中で、幅を半分にして右に寄せる */
+    .float-figs .section-text .study-row figure.fig-narrow {
+        width: 60%;
+    }
+
+    /* 行の中で、さらに小さくする図 */
+    .float-figs .section-text .study-row figure.fig-narrow.fig-xs {
+        width: 48%;
+    }
+
+    /* 縦長の図は、さらに細くする */
+    .float-figs .section-text figure.fig-narrow {
+        width: 24%;
+    }
+
+    .section-text .sub-title,
+    .section-text h4 {
+        clear: both;
+    }
+
+    /* 4 つの要素の宣言や 1〜4 の項目は、図と対にせず、大きく目立たせる */
+    .section-text .key-block {
+        clear: both;
+        font-size: 1.2em;
+        line-height: 1.6;
+        font-weight: 600;
+        margin: 16px 0;
+    }
+
+    /* 表面密度の図：上に斜面、下に 3 枚の画像と説明 */
+    .float-figs .section-text figure.fig-full {
+        float: none;
+        clear: both;
+        width: 100%;
+        margin: 24px 0;
+    }
+
+    .fig-density .density-ramp {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin-bottom: 8px;
+    }
+
+    .fig-density .density-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+    }
+
+    .fig-density .density-cell img {
+        display: block;
+        width: 100%;
+        margin: 0;
+    }
+
+    .fig-density .density-cell p {
+        margin: 10px 0 0;
+        font-size: 1.05em;
+    }
+
+    .content-space::after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+
+    /* 4 つの要素の注釈つき全体像：図を大きく見せ、説明は図の下に置く */
+    .float-figs .section-text figure.fig-hero {
+        float: none;
+        clear: both;
+        width: 52%;
+        margin: 12px auto;
+    }
+
+    /* パネルが 4 枚並ぶ図：幅を少し絞る */
+    .float-figs .section-text figure.fig-wide.fig-compact {
+        width: 62%;
+    }
+
+    .float-figs .section-text figure.fig-compact .media-row {
+        margin: 8px 0;
+    }
+
+    /* 小さめに、中央へ置く図（本文と一緒に見える大きさ） */
+    .float-figs .section-text figure.fig-block.fig-small {
+        width: 52%;
+        margin: 20px auto;
+    }
+
+    /* 図を、本文の中に、そのまま（右寄せにも横並びにもせず）置く */
+    .float-figs .section-text figure.fig-block {
+        float: none;
+        clear: both;
+        width: auto;
+        margin: 24px 0;
+    }
 }
 
 .section-text figure img,
