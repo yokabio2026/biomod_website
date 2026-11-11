@@ -1060,7 +1060,7 @@ a.search-result-item:hover {
 .align-badge {
     position: absolute;
     z-index: 800;
-    transform: translate(-50%, -50%);
+    translate: -50% -50%;   /* 文字の中心を、left / top の位置に置く。個別プロパティ translate は、scale（小さくなる動き・出るときの弾み）より、外側に掛かるので、小さくなっても、中心が動かない */
     pointer-events: none;
     user-select: none;
     -webkit-user-select: none;

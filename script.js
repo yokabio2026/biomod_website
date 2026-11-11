@@ -793,8 +793,8 @@ function initMemberDrag() {
         badgeNear: 9,          // 【ALiGNの文字】3枚が、この広がり（写真の半径の何倍か）より近いあいだは、はっきり出る
         badgeFar: 13,          // 【ALiGNの文字】3枚が、これ以上離れると、文字は消える（近いと、くっついている、とみなす）
         badgeHoldMs: 1500,     // 【ALiGNの文字】出てから、はっきり見えている時間(ミリ秒)
-        badgeFadeMs: 1400,     // 【ALiGNの文字】そのあと、小さくなりながら消えていくまでの時間(ミリ秒)。消えたら、3枚がつながっているあいだは、もう出ない
-        badgeShrink: 0.7,      // 【ALiGNの文字】消えていくあいだに、小さくなる割合（0.7 = 最後は、もとの大きさの3割まで小さくなる）
+        badgeFadeMs: 1200,     // 【ALiGNの文字】そのあと、真ん中の写真へ吸い込まれて消えるまでの時間(ミリ秒)。消えたら、3枚がつながっているあいだは、もう出ない
+        badgeShrink: 0.97,     // 【ALiGNの文字】吸い込まれるあいだに、小さくなる割合（0.97 = 最後は、ほとんど点になる）
         dnaPickPx: 10,         // 【DNAの優先】主鎖・横棒から、この距離(px)以内を押したら、写真が重なっていても、DNAをつまむ（マウス）
         dnaPickTouchPx: 12,    // 【DNAの優先】同じく、タッチ操作のとき
         tutorialIdleMs: 3000,  // 【チュートリアル】（以前は5000）写真・DNAが操作されないまま、この時間(ミリ秒)たつと、実演を始める
@@ -1108,7 +1108,8 @@ function initMemberDrag() {
 
     /* ---- 3枚が、DNAでつながると、「ALiGN」の文字が、3枚の上に出る ----
             ・つながった写真の「かたまり」が、ちょうど bondMaxGroup 枚（3枚）になったときに、1回だけ出る。3枚の真ん中に、3枚の幅いっぱいに
-            ・ぽんっと出て、badgeHoldMs のあいだ見えて、そのあと、badgeFadeMs かけて、だんだん小さくなりながら、消えていく。消えたら、その3枚がつながっているあいだは、もう出ない
+            ・ぽんっと出て、badgeHoldMs のあいだ見えて、そのあと、badgeFadeMs かけて、3枚の真ん中の写真へ向かって、だんだん速く動きながら、小さくなって、吸い込まれるように消える。消えたら、その3枚がつながっているあいだは、もう出ない
+              （真ん中の写真 = 2枚と、つながっている写真。一列なら、まんなか。三角なら、3枚の真ん中にいちばん近い写真）
               （YOKABIOくんを押して、DNAが外れたあと、また3枚をつなげると、もう一度出る）
             ・出ているあいだは、写真を動かすと、文字も、いっしょに動く。3枚が離れると（badgeFar）、薄くなる。DNAが外れる（YOKABIOくんを押す）と、DNAといっしょに消える
             ・文字は、写真の上。操作は、じゃましない（pointer-events: none。見た目は style.css の .align-badge） */
@@ -1160,8 +1161,10 @@ function initMemberDrag() {
                 let minY = Infinity;
                 let maxY = -Infinity;
                 let rSum = 0;
+                const cs = new Map();
                 els.forEach((el) => {
                     const c = photoCenter(el);
+                    cs.set(el, c);
                     minX = Math.min(minX, c.x - c.r);
                     maxX = Math.max(maxX, c.x + c.r);
                     minY = Math.min(minY, c.y - c.r);
@@ -1175,9 +1178,9 @@ function initMemberDrag() {
                 // 近いあいだは、はっきり。離れると、薄くなって消える
                 const span = Math.hypot(W, H);
                 const vis = clamp((T.badgeFar * rAvg - span) / ((T.badgeFar - T.badgeNear) * rAvg), 0, 1);
+                const midX = (minX + maxX) / 2;
+                const midY = (minY + maxY) / 2;
                 b.el.style.fontSize = fs.toFixed(1) + 'px';
-                b.el.style.left = ((minX + maxX) / 2).toFixed(1) + 'px';
-                b.el.style.top = ((minY + maxY) / 2).toFixed(1) + 'px';
                 b.el.style.zIndex = String(Math.min(800, zTop + 5));   // 写真の上。YOKABIOくん（900）の下
                 // 時間：しばらく、はっきり見える → だんだん小さくなりながら、消えていく（小さくなっているあいだは、まだ見えている。最後のほうで、薄くなる）
                 const age = now - b.t0;
@@ -1189,8 +1192,23 @@ function initMemberDrag() {
                     return;
                 }
                 const gone = 1 - life;   // 消えていく進み具合（0 → 1）
-                const shrink = gone * gone * (3 - 2 * gone);   // 小さくなる動き：始まりと終わりが、ゆるやか
-                b.el.style.opacity = (vis * fadeF * (1 - gone * gone)).toFixed(3);   // 薄くなるのは、あと半分で、急に（前半は、小さくなるのが、よく見える）
+                // 吸い込まれる先：真ん中の写真（2枚と、つながっている写真。同じなら、3枚の真ん中にいちばん近い写真）
+                let hub = els[0];
+                let hubDeg = -1;
+                let hubDist = Infinity;
+                els.forEach((el) => {
+                    let deg = 0;
+                    pairs.forEach((p) => { if ((p.a === el && els.includes(p.b)) || (p.b === el && els.includes(p.a))) deg++; });
+                    const c = cs.get(el);
+                    const dist = Math.hypot(c.x - midX, c.y - midY);
+                    if (deg > hubDeg || (deg === hubDeg && dist < hubDist)) { hub = el; hubDeg = deg; hubDist = dist; }
+                });
+                const hc = cs.get(hub);
+                const pull = reduceMotion ? 0 : Math.pow(gone, 2);        // 動き：はじめはゆっくり、だんだん速く（吸い込まれる）
+                const shrink = reduceMotion ? 0 : Math.pow(gone, 1.5);    // 小さくなる動き：吸い込まれるほど、急に小さくなる
+                b.el.style.left = (midX + (hc.x - midX) * pull).toFixed(1) + 'px';
+                b.el.style.top = (midY + (hc.y - midY) * pull).toFixed(1) + 'px';
+                b.el.style.opacity = (vis * fadeF * (1 - Math.pow(gone, 3))).toFixed(3);   // 薄くなるのは、いちばん最後。吸い込まれるあいだは、見えている
                 b.el.style.scale = reduceMotion ? '' : (1 - T.badgeShrink * shrink).toFixed(3);
             });
         }
