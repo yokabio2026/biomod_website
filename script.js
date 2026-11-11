@@ -661,10 +661,69 @@ function initDnaCursor() {
    Teamページ：メンバー写真のドラッグ移動と「Reset layout」
    ===================================================================== */
 
+/* ---- 写真のまわりの「脂質二重膜」（GUVのように） ----
+        ・写真（円）のまわりに、膜の絵を付ける。頭（丸）が外側と内側に並び、しっぽ（2本）が、膜の中央で向かいあう（脂質二重膜の、よくある絵）
+        ・絵は、SVG（円周に沿って、頭としっぽを並べたもの）。ここで作って、CSSの変数 --guv-ring に入れる。<main> に has-guv-ring をつけると、
+          style.css が、各写真（.member img）の背景として、使う（写真は、そのぶん、少し小さくなる。写真＋膜の外側の大きさは、そのまま）
+        ・膜は、写真と同じ要素の背景なので、写真がぷるぷる変形したり、動いたり、光ったりするときも、いっしょに動く
+        ・数値は、すべて、全体を100とした、絵の中での大きさ（実際の大きさは、写真の大きさに合わせて、自動で拡大・縮小される） */
+const GUV_RING = {
+    band: 7,          // 膜の厚さ（絵の中、半径に対する）。style.css の padding: 7% と同じにする
+    headsOuter: 100,  // 外側の頭の数
+    headsInner: 90,   // 内側の頭の数
+    headR: 1.0,       // 頭（丸）の半径
+    tailLen: 1.5,     // しっぽ1本の長さ（外側・内側とも、膜の中央で出あう）
+    tailGap: 0.55,    // 2本のしっぽの、中心からの左右のずれ
+    headColor: '#8650bd',
+    tailColor: '#b49ae6'
+};
+
+function initGuvRing() {
+    const G = GUV_RING;
+    const cx = 50;
+    const cy = 50;
+    const f = (v) => v.toFixed(2);
+    // 外側の頭：外のふちの内側。内側の頭：写真のふちのすぐ外
+    const rOut = 50 - G.headR;
+    const rIn = 50 - G.band + G.headR;
+    const rMid = (rOut + rIn) / 2;   // 膜の中央（しっぽの先が、出あう半径）
+    let heads = '';
+    let tails = '';
+    // leaflet: 1 つぶん（頭の半径 rHead に、n 個。しっぽは、中央 rMid に向かって、2本ずつ）
+    const leaflet = (n, rHead, phase) => {
+        const towardMid = rMid > rHead ? 1 : -1;   // 頭から見て、膜の中央は、外向き(+1)か、内向き(-1)か
+        for (let k = 0; k < n; k++) {
+            const a = (2 * Math.PI * (k + phase)) / n;
+            const ux = Math.cos(a);
+            const uy = Math.sin(a);
+            const vx = -uy;
+            const vy = ux;
+            heads += 'M' + f(cx + ux * rHead) + ' ' + f(cy + uy * rHead) + 'h0';
+            const r1 = rHead + towardMid * G.headR;                // しっぽの根もと（頭のふち）
+            const r2 = rMid;                                       // しっぽの先（膜の中央）
+            [-1, 1].forEach((s) => {
+                const tg = s * G.tailGap;
+                tails += 'M' + f(cx + ux * r1 + vx * tg) + ' ' + f(cy + uy * r1 + vy * tg) +
+                    'L' + f(cx + ux * r2 + vx * tg) + ' ' + f(cy + uy * r2 + vy * tg);
+            });
+        }
+    };
+    leaflet(G.headsOuter, rOut, 0);
+    leaflet(G.headsInner, rIn, 0.5);
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+        '<path d="' + tails + '" fill="none" stroke="' + G.tailColor + '" stroke-width="0.45" stroke-linecap="round"/>' +
+        '<path d="' + heads + '" fill="none" stroke="' + G.headColor + '" stroke-width="' + f(G.headR * 2) + '" stroke-linecap="round"/>' +
+        '</svg>';
+    document.documentElement.style.setProperty('--guv-ring', 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")');
+    const main = document.querySelector('main');
+    if (main) main.classList.add('has-guv-ring');
+}
+
 function initMemberDrag() {
     const members = document.querySelectorAll('.member');
     const main = document.querySelector('main');
     if (members.length === 0 || !main) return;
+    initGuvRing();   // 写真のまわりに、脂質二重膜をつける（GUVのように）
 
     const resetBtn = document.getElementById('reset-layout-btn');
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

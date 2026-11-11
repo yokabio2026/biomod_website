@@ -621,6 +621,15 @@ a.search-result-item:hover {
     border-radius: 50%;
 }
 
+/* 写真のまわりの、脂質二重膜（GUVのように）。script.js の initGuvRing が、膜の絵を --guv-ring に入れて、<main> に has-guv-ring をつける。
+   膜は、写真と同じ要素（img）の背景。padding の部分に、膜が見える。padding は、膜の厚さ（script.js の GUV_RING.band と同じ 7%）。
+   box-sizing: border-box なので、写真＋膜の外側の大きさは、これまでの写真と同じ（当たり判定・DNAの位置も、変わらない） */
+.has-guv-ring .member img {
+    box-sizing: border-box;
+    padding: 7%;
+    background: var(--guv-ring) center / 100% 100% no-repeat;
+}
+
 .member-name {
     margin: 16px 0 0;
     color: #2b1055;
