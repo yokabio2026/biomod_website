@@ -793,7 +793,8 @@ function initMemberDrag() {
         badgeNear: 9,          // 【ALiGNの文字】3枚が、この広がり（写真の半径の何倍か）より近いあいだは、はっきり出る
         badgeFar: 13,          // 【ALiGNの文字】3枚が、これ以上離れると、文字は消える（近いと、くっついている、とみなす）
         badgeHoldMs: 1500,     // 【ALiGNの文字】出てから、はっきり見えている時間(ミリ秒)
-        badgeFadeMs: 1000,     // 【ALiGNの文字】そのあと、ふわっと消えるまでの時間(ミリ秒)。消えたら、3枚がつながっているあいだは、もう出ない
+        badgeFadeMs: 1400,     // 【ALiGNの文字】そのあと、小さくなりながら消えていくまでの時間(ミリ秒)。消えたら、3枚がつながっているあいだは、もう出ない
+        badgeShrink: 0.7,      // 【ALiGNの文字】消えていくあいだに、小さくなる割合（0.7 = 最後は、もとの大きさの3割まで小さくなる）
         dnaPickPx: 10,         // 【DNAの優先】主鎖・横棒から、この距離(px)以内を押したら、写真が重なっていても、DNAをつまむ（マウス）
         dnaPickTouchPx: 12,    // 【DNAの優先】同じく、タッチ操作のとき
         tutorialIdleMs: 3000,  // 【チュートリアル】（以前は5000）写真・DNAが操作されないまま、この時間(ミリ秒)たつと、実演を始める
@@ -1107,7 +1108,7 @@ function initMemberDrag() {
 
     /* ---- 3枚が、DNAでつながると、「ALiGN」の文字が、3枚の上に出る ----
             ・つながった写真の「かたまり」が、ちょうど bondMaxGroup 枚（3枚）になったときに、1回だけ出る。3枚の真ん中に、3枚の幅いっぱいに
-            ・ぽんっと出て、badgeHoldMs のあいだ見えて、そのあと、badgeFadeMs かけて、ふわっと大きくなりながら、消えていく。消えたら、その3枚がつながっているあいだは、もう出ない
+            ・ぽんっと出て、badgeHoldMs のあいだ見えて、そのあと、badgeFadeMs かけて、だんだん小さくなりながら、消えていく。消えたら、その3枚がつながっているあいだは、もう出ない
               （YOKABIOくんを押して、DNAが外れたあと、また3枚をつなげると、もう一度出る）
             ・出ているあいだは、写真を動かすと、文字も、いっしょに動く。3枚が離れると（badgeFar）、薄くなる。DNAが外れる（YOKABIOくんを押す）と、DNAといっしょに消える
             ・文字は、写真の上。操作は、じゃましない（pointer-events: none。見た目は style.css の .align-badge） */
@@ -1178,7 +1179,7 @@ function initMemberDrag() {
                 b.el.style.left = ((minX + maxX) / 2).toFixed(1) + 'px';
                 b.el.style.top = ((minY + maxY) / 2).toFixed(1) + 'px';
                 b.el.style.zIndex = String(Math.min(800, zTop + 5));   // 写真の上。YOKABIOくん（900）の下
-                // 時間：しばらく、はっきり見える → ふわっと大きくなりながら、消えていく
+                // 時間：しばらく、はっきり見える → だんだん小さくなりながら、消えていく（小さくなっているあいだは、まだ見えている。最後のほうで、薄くなる）
                 const age = now - b.t0;
                 const life = age <= T.badgeHoldMs ? 1 : 1 - (age - T.badgeHoldMs) / T.badgeFadeMs;
                 if (life <= 0) {
@@ -1187,8 +1188,10 @@ function initMemberDrag() {
                     badgeDone.add(key);   // 出し終わった。この3枚が、つながっているあいだは、また出さない
                     return;
                 }
-                b.el.style.opacity = (vis * fadeF * life).toFixed(3);
-                b.el.style.scale = reduceMotion ? '' : (1 + 0.1 * (1 - life)).toFixed(3);
+                const gone = 1 - life;   // 消えていく進み具合（0 → 1）
+                const shrink = gone * gone * (3 - 2 * gone);   // 小さくなる動き：始まりと終わりが、ゆるやか
+                b.el.style.opacity = (vis * fadeF * (1 - gone * gone)).toFixed(3);   // 薄くなるのは、あと半分で、急に（前半は、小さくなるのが、よく見える）
+                b.el.style.scale = reduceMotion ? '' : (1 - T.badgeShrink * shrink).toFixed(3);
             });
         }
         badges.forEach((b, key) => {
