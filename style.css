@@ -267,6 +267,13 @@ a.search-result-item:hover {
     line-height: 1.4;
 }
 
+/* 大見出しの、すぐ下にくる小見出し・箇条書きは、上の余白をなくす（段落から始まるページと、同じ位置から文章が始まる） */
+.section-text > .sub-title:first-child,
+.section-text > ul:first-child,
+.section-text > ol:first-child {
+    margin-top: 0;
+}
+
 /* 後から文章を書き足すための、数行ぶんの空き。文章を書いたら、この class は外して（残して）も大丈夫 */
 .section-text .text-blank {
     min-height: 120px;
