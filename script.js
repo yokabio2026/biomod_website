@@ -792,6 +792,8 @@ function initMemberDrag() {
         badgeMinH: 0.7,        // 【ALiGNの文字】文字の大きさの下限（同上）
         badgeNear: 9,          // 【ALiGNの文字】3枚が、この広がり（写真の半径の何倍か）より近いあいだは、はっきり出る
         badgeFar: 13,          // 【ALiGNの文字】3枚が、これ以上離れると、文字は消える（近いと、くっついている、とみなす）
+        badgeHoldMs: 1500,     // 【ALiGNの文字】出てから、はっきり見えている時間(ミリ秒)
+        badgeFadeMs: 1000,     // 【ALiGNの文字】そのあと、ふわっと消えるまでの時間(ミリ秒)。消えたら、3枚がつながっているあいだは、もう出ない
         dnaPickPx: 10,         // 【DNAの優先】主鎖・横棒から、この距離(px)以内を押したら、写真が重なっていても、DNAをつまむ（マウス）
         dnaPickTouchPx: 12,    // 【DNAの優先】同じく、タッチ操作のとき
         tutorialIdleMs: 3000,  // 【チュートリアル】（以前は5000）写真・DNAが操作されないまま、この時間(ミリ秒)たつと、実演を始める
@@ -1104,10 +1106,15 @@ function initMemberDrag() {
     }
 
     /* ---- 3枚が、DNAでつながると、「ALiGN」の文字が、3枚の上に出る ----
-            ・つながった写真の「かたまり」が、ちょうど bondMaxGroup 枚（3枚）になったときに出る。3枚の真ん中に、3枚の幅いっぱいに
-            ・写真を動かすと、文字も、いっしょに動く。3枚が離れると（badgeFar）、すっと消える。DNAが外れる（YOKABIOくんを押す）と、DNAといっしょに消える
+            ・つながった写真の「かたまり」が、ちょうど bondMaxGroup 枚（3枚）になったときに、1回だけ出る。3枚の真ん中に、3枚の幅いっぱいに
+            ・ぽんっと出て、badgeHoldMs のあいだ見えて、そのあと、badgeFadeMs かけて、ふわっと大きくなりながら、消えていく。消えたら、その3枚がつながっているあいだは、もう出ない
+              （YOKABIOくんを押して、DNAが外れたあと、また3枚をつなげると、もう一度出る）
+            ・出ているあいだは、写真を動かすと、文字も、いっしょに動く。3枚が離れると（badgeFar）、薄くなる。DNAが外れる（YOKABIOくんを押す）と、DNAといっしょに消える
             ・文字は、写真の上。操作は、じゃましない（pointer-events: none。見た目は style.css の .align-badge） */
-    const badges = new Map();   // かたまりの目印（写真の番号を並べたもの） → { el, w100 }
+    const badges = new Map();   // かたまりの目印（写真の番号を並べたもの） → { el, w100, t0 }。出ている文字だけ
+    const badgeDone = new Set();   // もう1回出し終わった、かたまりの目印（その3枚がつながっているあいだは、また出さない）
+    let badgeRaf = 0;
+    let badgeFadeF = 1;
     const memberIndex = new Map();
     Array.from(members).forEach((el, i) => memberIndex.set(el, i));
     function measureBadge(b) {
@@ -1117,6 +1124,8 @@ function initMemberDrag() {
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => badges.forEach(measureBadge));   // 書体の読み込みが終わったら、測り直す
 
     function updateAlignBadges(fadeF) {
+        badgeFadeF = fadeF;
+        const now = performance.now();
         const live = new Set();
         if (pairs.length) {
             const g = bondGroups();
@@ -1130,6 +1139,7 @@ function initMemberDrag() {
             clusters.forEach((els) => {
                 const key = els.map((el) => memberIndex.get(el)).sort((p, q) => p - q).join('-');
                 live.add(key);
+                if (badgeDone.has(key)) return;   // もう出し終わった
                 let b = badges.get(key);
                 if (!b) {
                     const el = document.createElement('div');
@@ -1138,7 +1148,7 @@ function initMemberDrag() {
                     el.textContent = 'ALiGN';
                     el.style.opacity = '0';
                     main.appendChild(el);
-                    b = { el: el, w100: 270 };
+                    b = { el: el, w100: 270, t0: now };
                     measureBadge(b);
                     void el.offsetWidth;   // 最初の「0」を、確定させる（そのあと、薄い状態から、すっと出る）
                     badges.set(key, b);
@@ -1168,7 +1178,17 @@ function initMemberDrag() {
                 b.el.style.left = ((minX + maxX) / 2).toFixed(1) + 'px';
                 b.el.style.top = ((minY + maxY) / 2).toFixed(1) + 'px';
                 b.el.style.zIndex = String(Math.min(800, zTop + 5));   // 写真の上。YOKABIOくん（900）の下
-                b.el.style.opacity = (vis * fadeF).toFixed(3);
+                // 時間：しばらく、はっきり見える → ふわっと大きくなりながら、消えていく
+                const age = now - b.t0;
+                const life = age <= T.badgeHoldMs ? 1 : 1 - (age - T.badgeHoldMs) / T.badgeFadeMs;
+                if (life <= 0) {
+                    b.el.remove();
+                    badges.delete(key);
+                    badgeDone.add(key);   // 出し終わった。この3枚が、つながっているあいだは、また出さない
+                    return;
+                }
+                b.el.style.opacity = (vis * fadeF * life).toFixed(3);
+                b.el.style.scale = reduceMotion ? '' : (1 + 0.1 * (1 - life)).toFixed(3);
             });
         }
         badges.forEach((b, key) => {
@@ -1176,6 +1196,11 @@ function initMemberDrag() {
             b.el.remove();   // かたまりが、なくなった
             badges.delete(key);
         });
+        badgeDone.forEach((key) => { if (!live.has(key)) badgeDone.delete(key); });   // かたまりが、なくなったら、また出せる
+        // 出ている文字が、ある間は、写真が止まっていても、時間で消えていくように、自分で描き直す
+        if (badges.size && !badgeRaf) {
+            badgeRaf = requestAnimationFrame(() => { badgeRaf = 0; updateAlignBadges(badgeFadeF); });
+        }
     }
 
     let appliedFade = 1;   // DNAの線の濃さに、いま掛けている倍率（外れる演出のあいだだけ、1より小さくなる）
