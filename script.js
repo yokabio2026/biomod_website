@@ -1190,11 +1190,41 @@ function initMemberDrag() {
     let badgeFadeF = 1;
     const memberIndex = new Map();
     Array.from(members).forEach((el, i) => memberIndex.set(el, i));
-    function measureBadge(b) {
-        b.el.style.fontSize = '100px';
-        b.w100 = b.el.offsetWidth || 270;   // 文字の幅を、100pxのときの値で覚える（大きさを、幅から決めるため）
+    /* 文字の寸法を、見えない同じ書体の文字（probe）で測る：
+         w100 = 100pxのときの、文字の幅（大きさを、幅から決めるため）
+         s1 = 「L」の真ん中、s2 = 「G」の真ん中の位置（文字の幅に対する %）。文字の色の境目に使う（style.css の .align-badge）
+       出るときの弾む動き（回転・拡大）に、測り方が、ひきずられないよう、動かない別の要素で測る */
+    const badgeMetrics = { w100: 270, s1: 38, s2: 66 };
+    let badgeProbe = null;
+    function measureBadgeMetrics() {
+        if (!badgeProbe) {
+            badgeProbe = document.createElement('div');
+            badgeProbe.className = 'align-badge align-badge-probe';
+            badgeProbe.setAttribute('aria-hidden', 'true');
+            badgeProbe.textContent = 'ALiGN';
+            main.appendChild(badgeProbe);
+        }
+        badgeProbe.style.fontSize = '100px';
+        const box = badgeProbe.getBoundingClientRect();
+        if (!box.width) return;
+        badgeMetrics.w100 = box.width;
+        const range = document.createRange();
+        const mid = (i) => {
+            range.setStart(badgeProbe.firstChild, i);
+            range.setEnd(badgeProbe.firstChild, i + 1);
+            const r = range.getBoundingClientRect();
+            return ((r.left + r.right) / 2 - box.left) / box.width * 100;
+        };
+        badgeMetrics.s1 = mid(1);   // 「L」の真ん中（A の左半分・L の左半分は、ここまで）
+        badgeMetrics.s2 = mid(3);   // 「G」の真ん中（L の右半分・i・G の左半分は、ここまで）
     }
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => badges.forEach(measureBadge));   // 書体の読み込みが終わったら、測り直す
+    function measureBadge(b) {
+        b.w100 = badgeMetrics.w100;
+        b.el.style.setProperty('--s1', badgeMetrics.s1.toFixed(1) + '%');
+        b.el.style.setProperty('--s2', badgeMetrics.s2.toFixed(1) + '%');
+    }
+    measureBadgeMetrics();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measureBadgeMetrics(); badges.forEach(measureBadge); });   // 書体の読み込みが終わったら、測り直す
 
     // 3枚の色の割りあて：真ん中の写真 = 黄緑。のこり2枚は、左 = オレンジ、右 = 青。
     // 真ん中の写真 = 2枚と、つながっている写真（一列なら、まんなか）。三角なら、3枚の真ん中にいちばん近い写真。
