@@ -184,12 +184,12 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    margin-left: 3px;
+    width: 40px;
+    height: 40px;
+    margin-left: -3px;                 /* 中心の位置（左から17px）は、そのまま。大きくした分だけ、左へ出す */
     padding: 0;
-    border: 1.5px solid transparent;   /* ふだんは、枠なし。カーソルを重ねたときだけ、枠が出る */
-    border-radius: 8px;                /* 角の丸い四角（円にしたいときは 50%） */
+    border: 2.5px solid transparent;   /* ふだんは、枠なし。カーソルを重ねたときだけ、枠が出る */
+    border-radius: 10px;               /* 角の丸い四角（円にしたいときは 50%） */
     background: transparent;
     color: #2b1055;
     cursor: pointer;
@@ -201,6 +201,11 @@ html {
     border-color: #2b1055;
     background: #f0eaf8;
     outline: none;
+}
+
+.toc-close svg {
+    width: 22px;
+    height: 22px;
 }
 
 /* 説明の文章（「Hide contents」）：カーソルを重ねたとき（キーボードで選んだときも）だけ、ボタンの右に、吹き出しで出る。
@@ -434,8 +439,9 @@ html {
 
     /* 目次を、左へ28px寄せて、画面の左はしの、むだな空きをなくす（右はしの位置は、そのまま。幅を、28px広げる） */
     .toc-side {
-        width: 258px;
-        margin-left: -28px;
+        width: 261px;
+        margin-left: -31px;      /* 28px寄せる＋「‹」の枠が切れないための3px。中身は、padding-left の3pxで、元の位置に戻す */
+        padding-left: 3px;
         box-sizing: border-box;
         transition: transform 0.3s ease, opacity 0.25s ease;
     }
