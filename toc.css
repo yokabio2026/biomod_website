@@ -103,6 +103,48 @@ html {
     color: #ffffff;
 }
 
+/* ---- 広い画面：目次を閉じる／開くボタン（1つのボタンで切り替える） ---- */
+.toc-collapse {
+    position: fixed;
+    left: 6px;
+    top: 74px;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1.5px solid #2b1055;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #2b1055;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(43, 16, 85, 0.18);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.toc-collapse:hover,
+.toc-collapse:focus-visible {
+    background: #2b1055;
+    color: #ffffff;
+}
+
+.toc-collapse:focus-visible {
+    outline: 3px solid #8650bd;
+    outline-offset: 2px;
+}
+
+/* 閉じているとき：目次をなくして、本文を、横いっぱいに広げる */
+.toc-layout.is-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+}
+
+.toc-layout.is-collapsed .toc-side {
+    display: none;
+}
+
 /* 狭い画面用のボタン・背景は、広い画面では出さない */
 .toc-toggle,
 .toc-backdrop {
@@ -113,6 +155,14 @@ html {
 @media (max-width: 999px) {
     .toc-layout {
         display: block;
+    }
+
+    .toc-collapse {
+        display: none;   /* 狭い画面は、「Contents」ボタンを使う */
+    }
+
+    .toc-layout.is-collapsed .toc-side {
+        display: block;  /* 狭い画面では、閉じた状態を使わない（横から開く） */
     }
 
     .toc-side {

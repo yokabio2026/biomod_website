@@ -101,6 +101,32 @@
     document.body.appendChild(toggle);
     document.body.appendChild(backdrop);
 
+    /* ---- 広い画面：1つのボタンで、目次を、閉じたり開いたりする ----
+       ・左上（メニューバーの下）に、小さなボタン。目次が開いているときは「‹」（閉じる）、閉じているときは「☰」（開く）
+       ・閉じると、本文が、画面いっぱいに広がる。開いたか閉じたかは、このブラウザに覚えておく（次に開いたときも、同じ状態）
+       ・狭い画面（スマホなど）では、このボタンは出さない（「Contents」ボタンを使う） */
+    var KEY = 'yokabio-toc-collapsed';
+    var collapse = document.createElement('button');
+    collapse.type = 'button';
+    collapse.className = 'toc-collapse';
+    document.body.appendChild(collapse);
+
+    function setCollapsed(on, remember) {
+        layout.classList.toggle('is-collapsed', on);
+        collapse.classList.toggle('is-collapsed', on);
+        collapse.setAttribute('aria-expanded', on ? 'false' : 'true');
+        collapse.setAttribute('aria-label', on ? 'Show contents' : 'Hide contents');
+        collapse.title = on ? 'Show contents' : 'Hide contents';
+        collapse.innerHTML = on
+            ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>'
+            : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+        if (remember) { try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) { /* 保存できなくても、何もしない */ } }
+    }
+    var saved = false;
+    try { saved = localStorage.getItem(KEY) === '1'; } catch (e) { /* 読めなくても、開いた状態で始める */ }
+    setCollapsed(saved, false);
+    collapse.addEventListener('click', function () { setCollapsed(!layout.classList.contains('is-collapsed'), true); });
+
     function openDrawer() {
         side.classList.add('is-open');
         backdrop.classList.add('is-open');
