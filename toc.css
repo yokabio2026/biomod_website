@@ -189,7 +189,7 @@ html {
     margin-left: 3px;
     padding: 0;
     border: 1.5px solid transparent;   /* ふだんは、枠なし。カーソルを重ねたときだけ、枠が出る */
-    border-radius: 50%;
+    border-radius: 8px;                /* 角の丸い四角（円にしたいときは 50%） */
     background: transparent;
     color: #2b1055;
     cursor: pointer;
@@ -203,14 +203,39 @@ html {
     outline: none;
 }
 
-/* 説明の文章（「Hide contents」）：カーソルを重ねたとき（キーボードで選んだときも）だけ、ボタンの右に出る */
+/* 説明の文章（「Hide contents」）：カーソルを重ねたとき（キーボードで選んだときも）だけ、ボタンの右に、吹き出しで出る。
+   ::after が、吹き出しの四角、::before が、ボタンを指す「しっぽ」（三角） */
+.toc-close::before,
+.toc-collapse::before {
+    content: "";
+    position: absolute;
+    left: calc(100% + 2px);
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 6px 6px 0;
+    border-color: transparent #1c1c24 transparent transparent;   /* 左向きの三角（吹き出しと同じ色） */
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-50%);
+    transition: opacity 0.15s ease;
+}
+
+.toc-close:hover::before,
+.toc-close:focus-visible::before,
+.toc-collapse:hover::before,
+.toc-collapse:focus-visible::before {
+    opacity: 1;
+}
+
 .toc-close::after {
     content: attr(data-tip);
     position: absolute;
     left: calc(100% + 8px);
     top: 50%;
     padding: 6px 12px;
-    border-radius: 6px;
+    border-radius: 8px;
     background: #1c1c24;
     color: #ffffff;
     font: 600 13px/1.3 "Helvetica Neue", Arial, sans-serif;
@@ -376,10 +401,10 @@ html {
 .toc-collapse::after {
     content: attr(data-tip);
     position: absolute;
-    left: calc(100% + 10px);
+    left: calc(100% + 8px);
     top: 50%;
     padding: 6px 12px;
-    border-radius: 6px;
+    border-radius: 8px;
     background: #1c1c24;
     color: #ffffff;
     font: 600 13px/1.3 "Helvetica Neue", Arial, sans-serif;
