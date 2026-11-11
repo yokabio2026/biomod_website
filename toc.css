@@ -116,6 +116,7 @@ html {
 
 .toc-fold svg {
     transform: rotate(90deg);   /* 開いているとき：下向き */
+    transition: transform 0.25s ease;   /* 向きが、くるっと変わる */
 }
 
 .toc-l1.is-folded > .toc-row .toc-fold svg {
@@ -140,8 +141,29 @@ html {
     background: rgba(255, 255, 255, 0.2);
 }
 
-.toc-l1.is-folded > .toc-sub {
-    display: none;             /* 閉じているとき：小見出しを、かくす */
+/* 小見出しの折りたたみ：高さが、0 までなめらかに縮む（開くときは、逆）。かくれている間は、キーボードでも選べない */
+.toc-sub-wrap {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.28s ease;
+}
+
+.toc-sub {
+    min-height: 0;
+    overflow: hidden;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease;
+}
+
+.toc-l1.is-folded > .toc-sub-wrap {
+    grid-template-rows: 0fr;
+}
+
+.toc-l1.is-folded > .toc-sub-wrap > .toc-sub {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0s 0.28s;   /* 縮み終わってから、かくす */
 }
 
 /* ---- 目次の上の「⋮」メニュー：すべて開く／すべて閉じる ---- */
@@ -319,14 +341,31 @@ html {
     opacity: 1;
 }
 
-/* 閉じているとき：目次をなくして、本文を、横いっぱいに広げる */
-.toc-layout.is-collapsed {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-}
+/* 閉じているとき：目次を、左へ滑らせて消し、本文を、横いっぱいに広げる（広い画面だけ。どちらも、なめらかに動く）。
+   目次の幅は、動かさずに、そのまま左へ出ていく（文字が折り返したりしないように） */
+@media (min-width: 1000px) {
+    .toc-layout {
+        transition: grid-template-columns 0.3s ease, gap 0.3s ease;
+    }
 
-.toc-layout.is-collapsed .toc-side {
-    display: none;
+    .toc-side {
+        width: 230px;
+        box-sizing: border-box;
+        transition: transform 0.3s ease, opacity 0.25s ease;
+    }
+
+    .toc-layout.is-collapsed {
+        grid-template-columns: 0px minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .toc-layout.is-collapsed .toc-side {
+        transform: translateX(-280px);
+        opacity: 0;
+        visibility: hidden;          /* 消えたあとは、キーボードでも選べない */
+        pointer-events: none;
+        transition: transform 0.3s ease, opacity 0.25s ease, visibility 0s 0.3s;
+    }
 }
 
 /* 狭い画面用のボタン・背景は、広い画面では出さない */
@@ -343,10 +382,6 @@ html {
 
     .toc-collapse {
         display: none;   /* 狭い画面は、「Contents」ボタンを使う */
-    }
-
-    .toc-layout.is-collapsed .toc-side {
-        display: block;  /* 狭い画面では、閉じた状態を使わない（横から開く） */
     }
 
     .toc-side {
@@ -416,9 +451,15 @@ html {
         scroll-behavior: auto;
     }
 
+    .toc-layout,
     .toc-side,
+    .toc-layout.is-collapsed .toc-side,
     .toc-backdrop,
-    .toc a {
+    .toc a,
+    .toc-sub-wrap,
+    .toc-sub,
+    .toc-l1.is-folded > .toc-sub-wrap > .toc-sub,
+    .toc-fold svg {
         transition: none;
     }
 }

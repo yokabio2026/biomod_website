@@ -67,9 +67,12 @@
         if (level === 2 && lastTop) {
             if (!lastTop.sub) {
                 // 最初の小見出しが来たとき、親の大きな項目に、小見出しの入れ物と、折りたたみの「›」を、つける
+                var wrap = document.createElement('div');   // 高さを、なめらかに変えるための包み（CSSで動かす）
+                wrap.className = 'toc-sub-wrap';
                 lastTop.sub = document.createElement('ul');
                 lastTop.sub.className = 'toc-sub';
-                lastTop.li.appendChild(lastTop.sub);
+                wrap.appendChild(lastTop.sub);
+                lastTop.li.appendChild(wrap);
                 var fold = document.createElement('button');
                 fold.type = 'button';
                 fold.className = 'toc-fold';
