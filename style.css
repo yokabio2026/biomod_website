@@ -573,7 +573,14 @@ a.search-result-item:hover {
 /* ホバー：カーソルを重ねると、影がわずかに強くなって、浮いて見える（動きは、JSがバネで行う） */
 .member img {
     cursor: grab;
-    transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease, filter 0.6s ease;
+}
+
+/* 3枚の写真が、DNAでつながったら（ALiGN）、その3枚のまわりが、ほんのり光る。
+   光は、drop-shadow（filter）で付ける。ホバー・ドラッグの影（box-shadow）とは、別のプロパティなので、ぶつからない。
+   色は、サイトの紫（#8650bd）と、DNAの青（#69AFF2）。強さは、rgba の最後の数字（0.8 と 0.6）。--align-glow は、JSが、DNAが外れるときに、1 → 0 にする */
+.member.is-aligned img {
+    filter: drop-shadow(0 0 8px rgba(134, 80, 189, calc(0.8 * var(--align-glow, 1)))) drop-shadow(0 0 20px rgba(105, 175, 242, calc(0.6 * var(--align-glow, 1))));
 }
 
 /* 写真の下に、やわらかい影。少し浮き上がったように見える。ホバー中の写真は、となりの写真より手前に */

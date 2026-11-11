@@ -1112,7 +1112,8 @@ function initMemberDrag() {
               （真ん中の写真 = 2枚と、つながっている写真。一列なら、まんなか。三角なら、3枚の真ん中にいちばん近い写真）
               （YOKABIOくんを押して、DNAが外れたあと、また3枚をつなげると、もう一度出る）
             ・出ているあいだは、写真を動かすと、文字も、いっしょに動く。3枚が離れると（badgeFar）、薄くなる。DNAが外れる（YOKABIOくんを押す）と、DNAといっしょに消える
-            ・文字は、写真の上。操作は、じゃましない（pointer-events: none。見た目は style.css の .align-badge） */
+            ・文字は、写真の上。操作は、じゃましない（pointer-events: none。見た目は style.css の .align-badge）
+            ・3枚つながっているあいだは、その3枚の写真のまわりが、ほんのり光る（文字が消えたあとも、続く。どの3枚が ALiGN になったか、分かるように） */
     const badges = new Map();   // かたまりの目印（写真の番号を並べたもの） → { el, w100, t0 }。出ている文字だけ
     const badgeDone = new Set();   // もう1回出し終わった、かたまりの目印（その3枚がつながっているあいだは、また出さない）
     let badgeRaf = 0;
@@ -1129,6 +1130,7 @@ function initMemberDrag() {
         badgeFadeF = fadeF;
         const now = performance.now();
         const live = new Set();
+        const alignedNow = new Set();   // いま、3枚つながっている写真（まわりが、光る。文字が消えたあとも、光っている）
         if (pairs.length) {
             const g = bondGroups();
             const clusters = new Map();
@@ -1141,6 +1143,7 @@ function initMemberDrag() {
             clusters.forEach((els) => {
                 const key = els.map((el) => memberIndex.get(el)).sort((p, q) => p - q).join('-');
                 live.add(key);
+                els.forEach((el) => alignedNow.add(el));
                 if (badgeDone.has(key)) return;   // もう出し終わった
                 let b = badges.get(key);
                 if (!b) {
@@ -1218,6 +1221,13 @@ function initMemberDrag() {
             badges.delete(key);
         });
         badgeDone.forEach((key) => { if (!live.has(key)) badgeDone.delete(key); });   // かたまりが、なくなったら、また出せる
+        // 3枚つながった写真は、まわりが、ほんのり光る（style.css の .member.is-aligned）。DNAが外れるあいだは、光も、DNAといっしょに薄くなる
+        members.forEach((el) => {
+            const on = alignedNow.has(el);
+            if (el.classList.contains('is-aligned') !== on) el.classList.toggle('is-aligned', on);
+            if (on) el.style.setProperty('--align-glow', fadeF.toFixed(3));
+            else if (el.style.getPropertyValue('--align-glow')) el.style.removeProperty('--align-glow');
+        });
         // 出ている文字が、ある間は、写真が止まっていても、時間で消えていくように、自分で描き直す
         if (badges.size && !badgeRaf) {
             badgeRaf = requestAnimationFrame(() => { badgeRaf = 0; updateAlignBadges(badgeFadeF); });
