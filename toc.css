@@ -60,6 +60,12 @@ html {
     transition: background-color 0.15s ease, color 0.15s ease;
 }
 
+/* 大きな項目（ページのタイトル・大見出し）：太字にして、少し大きく */
+.toc .toc-l1 a {
+    font-size: 17px;
+    font-weight: 700;
+}
+
 .toc .toc-l2 a {
     padding-left: 30px;
     font-size: 13.5px;
