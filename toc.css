@@ -248,16 +248,18 @@ html {
     width: 42px;
     height: 42px;
     margin: 22px 0 0 4px;
-    border: 2px solid #2b1055;
+    border: 2px solid transparent;   /* ふだんは、枠なし（「↑」だけ）。カーソルを重ねたときだけ、枠が出る */
     border-radius: 8px;
     color: #2b1055;
-    background: #ffffff;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    background: transparent;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.toc-top:hover {
-    background: #2b1055;
-    color: #ffffff;
+.toc-top:hover,
+.toc-top:focus-visible {
+    border-color: #2b1055;
+    background: #f0eaf8;
+    color: #2b1055;
 }
 
 /* ---- 広い画面：目次を閉じる／開くボタン（1つのボタンで切り替える） ---- */
