@@ -208,9 +208,10 @@ html {
     height: 22px;
 }
 
-/* 説明の文章（「Hide contents」）：カーソルを重ねたとき（キーボードで選んだときも）だけ、ボタンの右に、吹き出しで出る。
-   ::after が、吹き出しの四角、::before が、ボタンを指す「しっぽ」（三角） */
+/* 説明の文章（「Hide contents」「Back to top」など）：カーソルを重ねたとき（キーボードで選んだときも）だけ、ボタンの右に、吹き出しで出る。
+   ::after が、吹き出しの四角、::before が、ボタンを指す「しっぽ」（三角）。「‹」・「↑」・閉じているときの「開く」ボタンで、同じ形 */
 .toc-close::before,
+.toc-top::before,
 .toc-collapse::before {
     content: "";
     position: absolute;
@@ -229,12 +230,15 @@ html {
 
 .toc-close:hover::before,
 .toc-close:focus-visible::before,
+.toc-top:hover::before,
+.toc-top:focus-visible::before,
 .toc-collapse:hover::before,
 .toc-collapse:focus-visible::before {
     opacity: 1;
 }
 
-.toc-close::after {
+.toc-close::after,
+.toc-top::after {
     content: attr(data-tip);
     position: absolute;
     left: calc(100% + 8px);
@@ -252,7 +256,9 @@ html {
 }
 
 .toc-close:hover::after,
-.toc-close:focus-visible::after {
+.toc-close:focus-visible::after,
+.toc-top:hover::after,
+.toc-top:focus-visible::after {
     opacity: 1;
 }
 
@@ -322,6 +328,7 @@ html {
 
 /* いちばん下の「↑」：ページの先頭へ */
 .toc-top {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;

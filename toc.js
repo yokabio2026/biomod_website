@@ -163,6 +163,7 @@
     top.className = 'toc-top';
     top.href = '#';
     top.setAttribute('aria-label', 'Back to top');
+    top.setAttribute('data-tip', 'Back to top');   // 説明は、カーソルを重ねたときだけ、CSSで吹き出しに出す
     top.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>';
     top.addEventListener('click', function (e) {
         e.preventDefault();
