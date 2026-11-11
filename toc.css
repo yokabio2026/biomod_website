@@ -361,6 +361,27 @@ html {
     opacity: 1;
 }
 
+/* 開いているとき、最初の項目が「読んでいる項目」（紫の塗りつぶし）なら、その上に乗る「‹」は、白く */
+.toc-collapse.on-active:not(.is-collapsed) {
+    color: #ffffff;
+}
+
+.toc-collapse.on-active:not(.is-collapsed):hover,
+.toc-collapse.on-active:not(.is-collapsed):focus-visible {
+    border-color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 開いているとき（目次の中にある「‹」）：説明は、ボタンの下に、右そろえで出す */
+.toc-collapse:not(.is-collapsed)::after {
+    top: 100%;
+    right: 0;
+    left: auto;
+    margin-top: 8px;
+    transform: none;
+}
+
 /* 閉じているとき：目次を、左へ滑らせて消し、本文を、横いっぱいに広げる（広い画面だけ。どちらも、なめらかに動く）。
    目次の幅は、動かさずに、そのまま左へ出ていく（文字が折り返したりしないように） */
 @media (min-width: 1000px) {
@@ -368,10 +389,21 @@ html {
         transition: grid-template-columns 0.3s ease, gap 0.3s ease;
     }
 
+    /* 目次を、左へ28px寄せて、画面の左はしの、むだな空きをなくす（右はしの位置は、そのまま。幅を、28px広げる） */
     .toc-side {
-        width: 230px;
+        width: 258px;
+        margin-left: -28px;
         box-sizing: border-box;
         transition: transform 0.3s ease, opacity 0.25s ease;
+    }
+
+    /* 最初の項目の右はしに、「‹」（と、あれば「⋮」）が重なるので、文字が、重ならないように */
+    .toc-row.has-close > a {
+        padding-right: 42px;
+    }
+
+    .toc-row.has-close.has-tools > a {
+        padding-right: 76px;
     }
 
     .toc-layout.is-collapsed {
@@ -380,7 +412,7 @@ html {
     }
 
     .toc-layout.is-collapsed .toc-side {
-        transform: translateX(-280px);
+        transform: translateX(-320px);
         opacity: 0;
         visibility: hidden;          /* 消えたあとは、キーボードでも選べない */
         pointer-events: none;
