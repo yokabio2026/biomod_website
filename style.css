@@ -1056,7 +1056,7 @@ a.search-result-item:hover {
 }
 
 /* 3枚の写真が、DNAでつながると、3枚の上に出る「ALiGN」の文字（script.js の updateAlignBadges が、位置・大きさ・濃さを決める）。
-   写真の上・YOKABIOくんの下。操作は、じゃましない。白い文字に、濃い紫のふち取り（写真の上でも読める） */
+   写真の上・YOKABIOくんの下。操作は、じゃましない。濃い紺色の一色 */
 .align-badge {
     position: absolute;
     z-index: 800;
@@ -1069,11 +1069,8 @@ a.search-result-item:hover {
     line-height: 1;
     letter-spacing: 0.02em;
     white-space: nowrap;
-    color: #ffffff;
-    text-shadow:
-        0.03em 0 0 #2b1055, -0.03em 0 0 #2b1055, 0 0.03em 0 #2b1055, 0 -0.03em 0 #2b1055,
-        0.022em 0.022em 0 #2b1055, -0.022em 0.022em 0 #2b1055, 0.022em -0.022em 0 #2b1055, -0.022em -0.022em 0 #2b1055,
-        0 0.06em 0.18em rgba(43, 16, 85, 0.55);
+    color: #2b1055;   /* 文字は、濃い紺色の一色（中が白くならない）。ふち取りは、つけない（同じ色でふち取ると、文字がふくらんで、AやGの穴が、つぶれるため） */
+    text-shadow: 0 0.04em 0.14em rgba(43, 16, 85, 0.35);   /* 写真から、少し浮かせる、やわらかい影 */
     transition: opacity 0.25s ease;
     animation: align-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1);   /* 出るとき：ぽんっと、少し大きく弾んで、落ち着く（個別プロパティ scale / rotate を使うので、位置の transform とは、ぶつからない） */
 }
