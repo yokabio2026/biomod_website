@@ -63,6 +63,7 @@ html {
 /* 大きな項目（ページのタイトル・大見出し）：太字にして、少し大きく。左は、折りたたみの「›」のための、あき */
 .toc .toc-l1 > .toc-row > a {
     padding-left: 32px;
+    color: #3f3657;           /* 太字の項目は、小さな項目（#6f6a7c）より、濃い色に */
     font-size: 17px;
     font-weight: 700;
 }
@@ -78,9 +79,10 @@ html {
 }
 
 /* いま読んでいる項目：サイトの紫で、塗りつぶす */
-.toc a.is-active {
+.toc a.is-active,
+.toc .toc-l1 > .toc-row > a.is-active {
     background: #2b1055;
-    color: #ffffff;
+    color: #ffffff;           /* 大きな項目の「濃い色」より、優先する（紫の上で読めるように） */
     font-weight: 700;
 }
 
