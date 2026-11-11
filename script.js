@@ -678,6 +678,14 @@ const GUV_RING = {
     tailColor: '#b49ae6'
 };
 
+/* 3枚がつながったあとの色（「GUV1・GUV2・GUV3」の図と同じ配色）。左 = オレンジ、真ん中 = 黄緑、右 = 青。
+   head / tail = 膜の頭としっぽの色。glow は、まわりの光の色（style.css の --glow-a / --glow-b と同じにする） */
+const GUV_COLORS = {
+    orange: { head: '#ff8a5b', tail: '#ffc4a8' },
+    green: { head: '#77c46e', tail: '#bfe6b8' },
+    blue: { head: '#45b7f5', tail: '#a8dcfb' }
+};
+
 function initGuvRing() {
     const G = GUV_RING;
     const cx = 50;
@@ -710,11 +718,15 @@ function initGuvRing() {
     };
     leaflet(G.headsOuter, rOut, 0);
     leaflet(G.headsInner, rIn, 0.5);
-    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
-        '<path d="' + tails + '" fill="none" stroke="' + G.tailColor + '" stroke-width="0.45" stroke-linecap="round"/>' +
-        '<path d="' + heads + '" fill="none" stroke="' + G.headColor + '" stroke-width="' + f(G.headR * 2) + '" stroke-linecap="round"/>' +
-        '</svg>';
-    document.documentElement.style.setProperty('--guv-ring', 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")');
+    // 同じ形の膜を、色だけ変えて、4種類作る（ふだんの紫 ＋ オレンジ・黄緑・青）
+    const ringUrl = (headColor, tailColor) => 'url("data:image/svg+xml,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+        '<path d="' + tails + '" fill="none" stroke="' + tailColor + '" stroke-width="0.45" stroke-linecap="round"/>' +
+        '<path d="' + heads + '" fill="none" stroke="' + headColor + '" stroke-width="' + f(G.headR * 2) + '" stroke-linecap="round"/>' +
+        '</svg>') + '")';
+    const rootStyle = document.documentElement.style;
+    rootStyle.setProperty('--guv-ring', ringUrl(G.headColor, G.tailColor));
+    Object.keys(GUV_COLORS).forEach((name) => rootStyle.setProperty('--guv-ring-' + name, ringUrl(GUV_COLORS[name].head, GUV_COLORS[name].tail)));
     const main = document.querySelector('main');
     if (main) main.classList.add('has-guv-ring');
 }
@@ -1184,11 +1196,37 @@ function initMemberDrag() {
     }
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => badges.forEach(measureBadge));   // 書体の読み込みが終わったら、測り直す
 
+    // 3枚の色の割りあて：真ん中の写真 = 黄緑。のこり2枚は、左 = オレンジ、右 = 青。
+    // 真ん中の写真 = 2枚と、つながっている写真（一列なら、まんなか）。三角なら、3枚の真ん中にいちばん近い写真。
+    // 割りあては、つながった瞬間に、1回だけ決める（そのあと、写真を動かしても、色は変わらない）
+    const alignAssign = new Map();   // かたまりの目印 → { hub, colors: Map(写真 → 'orange' | 'green' | 'blue') }
+    function assignAlignColors(els) {
+        const cs = new Map(els.map((el) => [el, photoCenter(el)]));
+        let midX = 0;
+        let midY = 0;
+        els.forEach((el) => { midX += cs.get(el).x / els.length; midY += cs.get(el).y / els.length; });
+        let hub = els[0];
+        let hubDeg = -1;
+        let hubDist = Infinity;
+        els.forEach((el) => {
+            let deg = 0;
+            pairs.forEach((p) => { if ((p.a === el && els.includes(p.b)) || (p.b === el && els.includes(p.a))) deg++; });
+            const dist = Math.hypot(cs.get(el).x - midX, cs.get(el).y - midY);
+            if (deg > hubDeg || (deg === hubDeg && dist < hubDist)) { hub = el; hubDeg = deg; hubDist = dist; }
+        });
+        const others = els.filter((el) => el !== hub).sort((p, q) => cs.get(p).x - cs.get(q).x);   // 左から順に
+        const colors = new Map();
+        colors.set(hub, 'green');
+        colors.set(others[0], 'orange');
+        colors.set(others[1], 'blue');
+        return { hub: hub, colors: colors };
+    }
+
     function updateAlignBadges(fadeF) {
         badgeFadeF = fadeF;
         const now = performance.now();
         const live = new Set();
-        const alignedNow = new Set();   // いま、3枚つながっている写真（まわりが、光る。文字が消えたあとも、光っている）
+        const alignedNow = new Map();   // いま、3枚つながっている写真 → 色（膜と、まわりの光が、その色になる。文字が消えたあとも、続く）
         if (pairs.length) {
             const g = bondGroups();
             const clusters = new Map();
@@ -1201,7 +1239,9 @@ function initMemberDrag() {
             clusters.forEach((els) => {
                 const key = els.map((el) => memberIndex.get(el)).sort((p, q) => p - q).join('-');
                 live.add(key);
-                els.forEach((el) => alignedNow.add(el));
+                let asg = alignAssign.get(key);
+                if (!asg) { asg = assignAlignColors(els); alignAssign.set(key, asg); }
+                els.forEach((el) => alignedNow.set(el, asg.colors.get(el)));
                 if (badgeDone.has(key)) return;   // もう出し終わった
                 let b = badges.get(key);
                 if (!b) {
@@ -1256,17 +1296,8 @@ function initMemberDrag() {
                     return;
                 }
                 const gone = 1 - life;   // 消えていく進み具合（0 → 1。はっきり見えているあいだは、0）
-                // 吸い込まれる先：真ん中の写真（2枚と、つながっている写真。同じなら、3枚の真ん中にいちばん近い写真）
-                let hub = els[0];
-                let hubDeg = -1;
-                let hubDist = Infinity;
-                els.forEach((el) => {
-                    let deg = 0;
-                    pairs.forEach((p) => { if ((p.a === el && els.includes(p.b)) || (p.b === el && els.includes(p.a))) deg++; });
-                    const c = cs.get(el);
-                    const dist = Math.hypot(c.x - midX, c.y - midY);
-                    if (deg > hubDeg || (deg === hubDeg && dist < hubDist)) { hub = el; hubDeg = deg; hubDist = dist; }
-                });
+                // 吸い込まれる先：真ん中の写真（黄緑の写真）
+                const hub = asg.hub;
                 const hc = cs.get(hub);
                 const pull = reduceMotion ? 0 : Math.pow(gone, 2);        // 動き：はじめはゆっくり、だんだん速く（吸い込まれる）
                 const shrink = reduceMotion ? 0 : Math.pow(gone, 1.5);    // 小さくなる動き：吸い込まれるほど、急に小さくなる
@@ -1285,12 +1316,19 @@ function initMemberDrag() {
             badges.delete(key);
         });
         badgeDone.forEach((key) => { if (!live.has(key)) badgeDone.delete(key); });   // かたまりが、なくなったら、また出せる
+        alignAssign.forEach((v, key) => { if (!live.has(key)) alignAssign.delete(key); });   // 色の割りあても、なくす（つなぎ直したら、また決める）
         // 3枚つながった写真は、まわりが、ほんのり光る（style.css の .member.is-aligned）。DNAが外れるあいだは、光も、DNAといっしょに薄くなる
         members.forEach((el) => {
             const on = alignedNow.has(el);
             if (el.classList.contains('is-aligned') !== on) el.classList.toggle('is-aligned', on);
-            if (on) el.style.setProperty('--align-glow', fadeF.toFixed(3));
-            else if (el.style.getPropertyValue('--align-glow')) el.style.removeProperty('--align-glow');
+            if (on) {
+                const col = alignedNow.get(el);
+                if (el.dataset.guvColor !== col) el.dataset.guvColor = col;   // 色の印（style.css が、膜と光の色を決める）
+                el.style.setProperty('--align-glow', fadeF.toFixed(3));
+            } else {
+                if (el.dataset.guvColor) delete el.dataset.guvColor;
+                if (el.style.getPropertyValue('--align-glow')) el.style.removeProperty('--align-glow');
+            }
         });
         // 出ている文字が、ある間は、写真が止まっていても、時間で消えていくように、自分で描き直す
         if (badges.size && !badgeRaf) {
