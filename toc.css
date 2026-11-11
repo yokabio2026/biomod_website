@@ -14,7 +14,7 @@ html {
 
 /* ---- 目次から飛んだ先の見出し：背景が、黄色っぽく光って、消える ----
    toc.js が、移動が止まったときに、見出しに toc-flash をつける（1.8秒で消える）。枠や影は、つけない（背景の色だけ）。
-   色は、0%の行の rgba(255, 214, 64, 0.5) の、最後の数字（0.5）が濃さ。大きいほど、濃く光る */
+   背景の色は、0%の行の rgba(255, 214, 64, 0.5) の、最後の数字（0.5）が濃さ。大きいほど、濃く光る。文字の色は、color の行 */
 .content .toc-flash {
     border-radius: 6px;
     animation: toc-flash 1.8s ease-out;
@@ -24,9 +24,17 @@ html {
     animation: none;
 }
 
+/* 背景は、黄色っぽく光って消える。文字は、濃いオレンジ色（サイトの jump-link と同じ色）で光って、元の色に戻る（100%の行に、色を書かないと、元の色に戻る） */
 @keyframes toc-flash {
-    0% { background-color: rgba(255, 214, 64, 0.5); }
-    100% { background-color: rgba(255, 214, 64, 0); }
+    0% {
+        background-color: rgba(255, 214, 64, 0.5);
+        color: #b85408;
+        text-shadow: 0 0 12px rgba(255, 150, 0, 0.55);
+    }
+    100% {
+        background-color: rgba(255, 214, 64, 0);
+        text-shadow: 0 0 12px rgba(255, 150, 0, 0);
+    }
 }
 
 /* ---- 左に目次、右に本文 ---- */
