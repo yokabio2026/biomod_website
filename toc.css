@@ -60,14 +60,15 @@ html {
     transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-/* 大きな項目（ページのタイトル・大見出し）：太字にして、少し大きく */
-.toc .toc-l1 a {
+/* 大きな項目（ページのタイトル・大見出し）：太字にして、少し大きく。左は、折りたたみの「›」のための、あき */
+.toc .toc-l1 > .toc-row > a {
+    padding-left: 32px;
     font-size: 17px;
     font-weight: 700;
 }
 
 .toc .toc-l2 a {
-    padding-left: 30px;
+    padding-left: 46px;
     font-size: 13.5px;
 }
 
@@ -84,9 +85,135 @@ html {
 }
 
 /* 小見出しを読んでいるとき、その親の大見出しは、紫の文字で示す */
-.toc .is-parent > a {
+.toc .is-parent > .toc-row > a {
     color: #2b1055;
     font-weight: 700;
+}
+
+/* ---- 折りたたみ：大きな項目の左の「›」（開いているときは、下向き） ---- */
+.toc-row {
+    position: relative;
+}
+
+.toc-fold {
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-top: -12px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #6f6a7c;
+    cursor: pointer;
+}
+
+.toc-fold svg {
+    transform: rotate(90deg);   /* 開いているとき：下向き */
+}
+
+.toc-l1.is-folded > .toc-row .toc-fold svg {
+    transform: none;            /* 閉じているとき：右向き */
+}
+
+.toc-fold:hover {
+    background: #e2d8f2;
+    color: #2b1055;
+}
+
+.toc-fold:focus-visible {
+    outline: 3px solid #8650bd;
+    outline-offset: 1px;
+}
+
+.toc-row.is-current .toc-fold {
+    color: #ffffff;            /* 読んでいる項目（紫の塗りつぶし）の上でも、見えるように */
+}
+
+.toc-row.is-current .toc-fold:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.toc-l1.is-folded > .toc-sub {
+    display: none;             /* 閉じているとき：小見出しを、かくす */
+}
+
+/* ---- 目次の上の「⋮」メニュー：すべて開く／すべて閉じる ---- */
+.toc-tools {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2px;
+}
+
+.toc-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1.5px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    color: #4a4560;
+    cursor: pointer;
+}
+
+.toc-menu-btn:hover,
+.toc-menu-btn[aria-expanded="true"] {
+    background: #f0eaf8;
+    color: #2b1055;
+}
+
+.toc-menu-btn:focus-visible {
+    border-color: #8650bd;
+    outline: none;
+}
+
+.toc-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 5;
+    min-width: 176px;
+    padding: 6px;
+    border: 1px solid #e3dff0;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 6px 20px rgba(43, 16, 85, 0.18);
+}
+
+.toc-menu[hidden] {
+    display: none;
+}
+
+.toc-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #2b2540;
+    font: 500 14px/1.2 "Helvetica Neue", Arial, sans-serif;
+    text-align: left;
+    cursor: pointer;
+}
+
+.toc-menu-item:hover,
+.toc-menu-item:focus-visible {
+    background: #f0eaf8;
+    color: #2b1055;
+    outline: none;
 }
 
 /* いちばん下の「↑」：ページの先頭へ */

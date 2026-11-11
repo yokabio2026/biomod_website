@@ -2,6 +2,7 @@
    ・見出し（h2.section-title と h3.sub-title）から、自動で作る。ページのHTMLに、目次の中身を書く必要はない
    ・いま読んでいる項目を、目次の中で色つきで示す（スクロールに合わせて、切り替わる）
    ・項目を押すと、その見出しまで、なめらかに移動する。いちばん下の「↑」で、ページの先頭へ
+   ・大見出しの下に小見出しがあるときは、大見出しの左の「›」で、小見出しを、折りたたんだり、開いたりできる。目次の上の「⋮」から、「Expand all（すべて開く）」「Collapse all（すべて閉じる）」もできる
    ・画面が広いとき：左に固定（スクロールしても、ついてくる）／狭いとき（スマホなど）：「Contents」ボタンで、横から開く
    使いかた：ページの </body> の前に、<script src="toc.js"></script> を足す（style.css のあとに toc.css も読み込む）。
    見出しが2つより少ないページには、出さない */
@@ -43,16 +44,51 @@
     var list = document.createElement('ul');
     nav.appendChild(list);
 
-    var links = [];   // { a, head, level }
+    var links = [];   // { a, row, li, head, level, parent, sub, fold }
+    var lastTop = null;   // いちばん最近の、大きな項目（小見出しは、この下に入る）
+    function setFold(item, fold) {
+        item.li.classList.toggle('is-folded', fold);
+        item.fold.setAttribute('aria-expanded', fold ? 'false' : 'true');
+    }
+    function setAllFold(fold) {
+        links.forEach(function (it) { if (it.sub) setFold(it, fold); });
+    }
     function addItem(text, href, level, head) {
         var li = document.createElement('li');
         li.className = 'toc-l' + level;
+        var row = document.createElement('div');
+        row.className = 'toc-row';
         var a = document.createElement('a');
         a.href = href;
         a.textContent = text;
-        li.appendChild(a);
-        list.appendChild(li);
-        links.push({ a: a, head: head, level: level, li: li });
+        row.appendChild(a);
+        li.appendChild(row);
+        var item = { a: a, row: row, li: li, head: head, level: level, parent: null, sub: null, fold: null };
+        if (level === 2 && lastTop) {
+            if (!lastTop.sub) {
+                // 最初の小見出しが来たとき、親の大きな項目に、小見出しの入れ物と、折りたたみの「›」を、つける
+                lastTop.sub = document.createElement('ul');
+                lastTop.sub.className = 'toc-sub';
+                lastTop.li.appendChild(lastTop.sub);
+                var fold = document.createElement('button');
+                fold.type = 'button';
+                fold.className = 'toc-fold';
+                fold.setAttribute('aria-expanded', 'true');
+                fold.setAttribute('aria-label', 'Show or hide sub-items');
+                fold.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+                lastTop.fold = fold;
+                lastTop.row.insertBefore(fold, lastTop.row.firstChild);
+                (function (t) { fold.addEventListener('click', function () { setFold(t, !t.li.classList.contains('is-folded')); }); })(lastTop);
+            }
+            item.parent = lastTop;
+            lastTop.sub.appendChild(li);
+        } else {
+            list.appendChild(li);
+            if (level === 1) lastTop = item;
+        }
+        // 大きな項目の名前を押したときは、閉じていても、開く（移動先の小見出しが見えるように）
+        a.addEventListener('click', function () { if (item.sub) setFold(item, false); });
+        links.push(item);
     }
     // いちばん上：ページのタイトル（先頭へ）
     if (heroTitle) {
@@ -62,6 +98,53 @@
     heads.forEach(function (h) {
         addItem(h.textContent.trim(), '#' + ensureId(h), h.tagName === 'H2' ? 1 : 2, h);
     });
+
+    /* ---- 目次の上：「⋮」から、すべて開く／すべて閉じる（折りたためる項目があるときだけ） ---- */
+    var tools = null;
+    var menu = null;
+    var menuBtn = null;
+    if (links.some(function (it) { return it.sub; })) {
+        tools = document.createElement('div');
+        tools.className = 'toc-tools';
+        menuBtn = document.createElement('button');
+        menuBtn.type = 'button';
+        menuBtn.className = 'toc-menu-btn';
+        menuBtn.setAttribute('aria-label', 'Contents menu');
+        menuBtn.setAttribute('aria-haspopup', 'menu');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        menuBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+        menu = document.createElement('div');
+        menu.className = 'toc-menu';
+        menu.setAttribute('role', 'menu');
+        menu.hidden = true;
+        var chev = 'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+        [
+            { label: 'Expand all', fold: false, icon: '<svg viewBox="0 0 24 24" width="16" height="16" ' + chev + '><path d="M6 5l6 6 6-6"/><path d="M6 12l6 6 6-6"/></svg>' },
+            { label: 'Collapse all', fold: true, icon: '<svg viewBox="0 0 24 24" width="16" height="16" ' + chev + '><path d="M6 12l6-6 6 6"/><path d="M6 19l6-6 6 6"/></svg>' }
+        ].forEach(function (m) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'toc-menu-item';
+            b.setAttribute('role', 'menuitem');
+            b.innerHTML = m.icon + '<span>' + m.label + '</span>';
+            b.addEventListener('click', function () { setAllFold(m.fold); closeMenu(); });
+            menu.appendChild(b);
+        });
+        tools.appendChild(menuBtn);
+        tools.appendChild(menu);
+        menuBtn.addEventListener('click', function () {
+            var open = menu.hidden;
+            menu.hidden = !open;
+            menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function (e) { if (!tools.contains(e.target)) closeMenu(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
+    }
+    function closeMenu() {
+        if (!tools) return;
+        menu.hidden = true;
+        menuBtn.setAttribute('aria-expanded', 'false');
+    }
 
     var top = document.createElement('a');
     top.className = 'toc-top';
@@ -80,6 +163,7 @@
     layout.className = 'toc-layout';
     var side = document.createElement('aside');
     side.className = 'toc-side';
+    if (tools) side.appendChild(tools);
     side.appendChild(nav);
     side.appendChild(top);
     var body = document.createElement('div');
@@ -165,6 +249,7 @@
         if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) idx = links.length - 1;
         if (idx === current) return;
         current = idx;
+        if (links[idx].parent) setFold(links[idx].parent, false);   // 閉じている大きな項目の中の、小見出しを読み始めたら、その項目を開く（選ばれた項目が、見えるように）
         // 親（大見出し）を探す：小見出しが選ばれているときは、その親も、薄く示す
         var parent = -1;
         for (var p = idx; p >= 0; p--) { if (links[p].level === 1) { parent = p; break; } }
@@ -172,6 +257,7 @@
             var active = k === idx;
             it.a.classList.toggle('is-active', active);
             it.li.classList.toggle('is-parent', !active && k === parent && links[idx].level === 2);
+            it.row.classList.toggle('is-current', active);
             if (active) it.a.setAttribute('aria-current', 'true'); else it.a.removeAttribute('aria-current');
         });
         // 目次が長くて、はみ出しているときは、選ばれた項目が見えるように、目次の中だけ動かす
