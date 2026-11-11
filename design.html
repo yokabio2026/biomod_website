@@ -17,8 +17,8 @@
                 <li><a href="index.html">Home</a></li>
                 <li><a href="project.html">Project</a></li>
                 <li><a href="design.html">Design</a></li>
-                <li><a href="experiment.html">Experiment</a></li>
                 <li><a href="simulation.html">Simulation</a></li>
+                <li><a href="experiment.html">Experiment</a></li>
                 <li><a href="future.html">Future</a></li>
                 <li><a href="elsi.html">ELSI</a></li>
                 <li><a href="team.html">Team</a></li>
@@ -42,7 +42,7 @@
         <div id="search-results" class="search-results"></div>
     </div>
 
-    <main class="content">
+    <main class="content float-figs">
         <div class="page-hero-header page-hero-header--with-title">
             <h1>Design</h1>
         </div>
@@ -50,26 +50,27 @@
             <h2 class="section-title" id="what-is-align">What is the ALiGN</h2>
             <div class="content-space">
                 <div class="section-text">
-                    <figure>
-                        <img src="images/design-align-overview-v6.png" alt="Three connected GUVs (GUV1, GUV2, GUV3) with the four elements of ALiGN marked by circles and labels">
-                        <figcaption><strong>Fig. 1 An overview of ALiGN.</strong> Three GUVs are connected as GUV1–GUV2–GUV3, and the labels show where each of the four elements appears: (1) the DNA between two GUVs chooses the partner; (2) the surface density of the DNA sets how many partners a GUV takes; (3) the pores between connected membranes let the contents move; (4) TRIMEB closes the other pores to reduce leakage.</figcaption>
+                    <figure class="fig-hero">
+                        <img src="images/design-align-overview-v8.png" alt="Three connected GUVs (GUV1, GUV2, GUV3) with the four elements of ALiGN marked by circles and labels">
+                        <figcaption><strong>Fig. 1 An overview of ALiGN.</strong> Three GUVs are connected as GUV1–GUV2–GUV3, and the labels show where each of the four elements appears.</figcaption>
                     </figure>
 
-                    <p>
-                        ALiGN is a reproduction of a cell-to-cell network that uses GUVs. In this project, we aim to realize a network of three GUVs (GUV1, GUV2 and GUV3). To connect three GUVs, we need two different connections, GUV1–GUV2 and GUV2–GUV3. Also, these two connections must not interfere with each other. If we can design these two connections independently, the same idea can be extended to three, four or more connections, and to larger networks of GUVs.
+                            <p>
+                        ALiGN is a network of GUVs modeled on cell-to-cell networks. In this project, we aim to realize a network of three GUVs (GUV1, GUV2 and GUV3). To connect three GUVs, we need two different connections, GUV1–GUV2 and GUV2–GUV3. Also, these two connections must not interfere with each other. If we can design these two connections independently, the same idea can be extended to three, four or more connections, and to larger networks of GUVs.
+                    </p>
+                        
+
+                    <p class="key-block">
+                        We achieve the four elements required for a network modeled on cell-to-cell networks as follows.
                     </p>
 
-                    <p>
-                        We achieve the four elements required to reproduce a cell-to-cell network as follows.
-                    </p>
-
-                    <p>
+                    <p class="key-block">
                         <span style="font-size:1.15em;"><strong>Connection</strong> (see <a href="#specific-connection">Specific Connection Between GUVs</a>)</span><br>
                         <strong>1. Connecting with intended partners</strong>: <a href="#sequence-specific-binding">sequence-specific binding</a><br>
-                        <strong>2. Connecting with an intended number of partners</strong>: <a href="#weak-binding-method">weak binding</a> and <a href="#surface-density-control">surface density control</a>
+                        <strong>2. Connecting with an intended number of partners</strong>: <a href="#weak-binding-method">many weak bonds</a> and <a href="#surface-density-control">surface density of DNA</a>
                     </p>
 
-                    <p>
+                    <p class="key-block">
                         <span style="font-size:1.15em;"><strong>Material exchange</strong> (see <a href="#pore-formation">Pore Formation for Material Exchange</a>)</span><br>
                         <strong>3. Exchanging contents between connected GUVs</strong>: <a href="#alpha-hemolysin">α-hemolysin as a pore</a><br>
                         <strong>4. Reducing leakage from unconnected GUVs</strong>: <a href="#trimeb-lid">TRIMEB as a lid</a>
@@ -84,12 +85,12 @@
             <div class="content-space">
                 <div class="section-text">
                     <p>
-                        In ALiGN, we control the connections between GUVs in two ways: connecting with intended partners (sequence-specific binding) and connecting with an intended number of partners (weak binding and surface density control).
+                        In ALiGN, we control the connections between GUVs in two ways: connecting with intended partners (sequence-specific binding) and connecting with an intended number of partners (many weak bonds and surface density of DNA).
                     </p>
 
                     <h3 class="sub-title" id="sequence-specific-binding">Sequence-Specific Binding</h3>
-                    <figure>
-                        <img src="images/design-specific-binding-v3.png" alt="GUV1 connected to GUV2 and GUV2 connected to GUV3, with a second GUV1 and GUV3 below that are close to each other but not connected">
+                    <figure class="fig-wide">
+                        <img src="images/design-specific-binding-v11.png" alt="GUV1 connected to GUV2 and GUV2 connected to GUV3, with a second GUV1 and GUV3 below that are close to each other but not connected">
                         <figcaption><strong>Fig. 2 DNA with different sequences lets GUV1 bind GUV2 and GUV2 bind GUV3, while GUV1 and GUV3, which have no complementary sequences, do not connect.</strong></figcaption>
                     </figure>
 
@@ -101,14 +102,18 @@
                         We prepare two pairs of DNA with different sequences: one for the GUV1–GUV2 connection and one for the GUV2–GUV3 connection. Only GUV2 has two kinds of DNA on its surface: DNA for connecting to GUV1 and DNA for connecting to GUV3. Because the sequences are different, each pair recognizes only its own partner. The two connections do not interfere with each other. As a result, GUV1 connects to GUV2 and GUV2 connects to GUV3, but GUV1 does not connect to GUV3.
                     </p>
 
-                    <h3 class="sub-title" id="weak-binding">Weak Binding and Surface Density Control</h3>
-                    <h4 id="weak-binding-method" style="margin:32px 0 12px;color:#2b1055;font-size:1.2rem;font-weight:bold;line-height:1.4;">Weak Binding</h4>
-                    <figure>
+                    <h3 class="sub-title" id="weak-binding">Many Weak Bonds and Surface Density of DNA</h3>
+                    <h4 id="weak-binding-method" style="margin:32px 0 12px;color:#2b1055;font-size:1.2rem;font-weight:bold;line-height:1.4;">Many Weak Bonds</h4>
+                    <figure class="fig-wide fig-compact">
                         <div class="media-row">
-                            <img src="images/design-long-dna-binding-v2.png" alt="Panel A: a single long DNA pair holding the membranes of GUV1 and GUV2 together">
-                            <img src="images/design-weak-binding-v2.png" alt="Panel B: four pairs of short DNA strands holding the membranes of GUV1 and GUV2 together">
+                            <img src="images/design-long-dna-binding-v5.png" alt="A few strong bonds: a single long DNA pair holding the membranes of GUV1 and GUV2 together">
+                            <img src="images/design-weak-binding-v5.png" alt="Many weak bonds: four pairs of short DNA strands holding the membranes of GUV1 and GUV2 together">
                         </div>
-                        <figcaption><strong>Fig. 3 Weak binding.</strong> (A) A long DNA holds the two membranes together even as a single pair. (B) When there are only a few of them, short duplexes come apart, but many short duplexes together keep the two membranes connected.</figcaption>
+                        <div class="media-row">
+                            <img src="images/design-weak-overview-strong-v1.png" alt="A few strong bonds: the GUVs aggregate into a large cluster">
+                            <img src="images/design-weak-overview-weak-v1.png" alt="Many weak bonds: only the three intended GUVs, GUV1, GUV2 and GUV3, connect">
+                        </div>
+                        <figcaption><strong>Fig. 3 Many weak bonds instead of one strong bond.</strong> Left: a long DNA holds the two membranes together even as a single pair. Right: when there are only a few of them, short duplexes come apart, but many short duplexes together keep the two membranes connected. Below: the result for the whole network. With a few strong bonds, the GUVs aggregate (left); with many weak bonds, only the three intended GUVs connect (right).</figcaption>
                     </figure>
 
                     <p>
@@ -116,41 +121,44 @@
                     </p>
 
                     <p>
-                        Therefore, we use very short 6-nt DNA strands and design each duplex to be very weak. Only 4 of the 6 bases actually pair. The remaining two bases (TT) work as a spacer next to the membrane. Using sticky ends as short as four bases has been proposed as a way to avoid aggregation for micrometer-sized particles coated with DNA <a href="#ref-2" id="cite-2">[2]</a>. One duplex cannot hold two GUVs together. A connection is kept only when many strands bind at the same time.
+                        Therefore, we use very short DNA strands that are 6 nt long and design each duplex to be very weak. Only 4 of the 6 nucleotides actually pair, so two strands make a 4-bp duplex. The remaining two nucleotides (TT) work as a spacer next to the membrane. Using sticky ends as short as four nucleotides has been proposed as a way to avoid aggregation for micrometer-sized particles coated with DNA <a href="#ref-2" id="cite-2">[2]</a>. One duplex cannot hold two GUVs together. A connection is kept only when many strands bind at the same time.
                     </p>
 
-                    <h4 id="surface-density-control" style="margin:32px 0 12px;color:#2b1055;font-size:1.2rem;font-weight:bold;line-height:1.4;">Surface Density Control</h4>
+                    <h4 id="surface-density-control" style="margin:32px 0 12px;color:#2b1055;font-size:1.2rem;font-weight:bold;line-height:1.4;">Surface Density of DNA</h4>
 
-                    <figure>
-                        <div class="media-text">
-                            <img src="images/design-density-too-many-v2.png" alt="Panel A: too many DNA strands on each GUV, and the GUVs aggregate into a large cluster">
-                            <div>
+                    <figure class="fig-full fig-density">
+                        <svg class="density-ramp" viewBox="0 0 1000 86" role="img" aria-label="DNA density increases from left to right">
+                            <defs><linearGradient id="ramp-g" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#d9cdf0"/><stop offset="1" stop-color="#2b1055"/></linearGradient></defs>
+                            <polygon points="0,78 1000,78 1000,6" fill="url(#ramp-g)"/>
+                            <text x="6" y="48" font-size="30" font-weight="bold" fill="#2b1055" font-family="Helvetica Neue, Arial, sans-serif">DNA density</text>
+                            <text x="992" y="66" text-anchor="end" font-size="26" font-weight="bold" fill="#ffffff" font-family="Helvetica Neue, Arial, sans-serif">high</text>
+                            <text x="6" y="74" font-size="22" font-weight="bold" fill="#2b1055" font-family="Helvetica Neue, Arial, sans-serif" dy="0">low</text>
+                        </svg>
+                        <div class="density-row">
+                            <div class="density-cell">
+                                <img src="images/design-density-low-v6.png" alt="Low DNA density: too few DNA strands on each GUV, and the GUVs stay apart and do not connect">
                                 <p>
-                                    A: When there is too much DNA on the surface, the GUVs aggregate.
+                                    When there is too little DNA on the surface, the GUVs do not connect.
+                                </p>
+                            </div>
+                            <div class="density-cell">
+                                <img src="images/design-density-mid-v6.png" alt="Just-right DNA density: the right number of DNA strands on each GUV, and the GUVs connect only in sets of three">
+                                <p>
+                                    When there is just the right amount of DNA on the surface, the GUVs connect only in sets of three.
+                                </p>
+                            </div>
+                            <div class="density-cell">
+                                <img src="images/design-density-high-v6.png" alt="High DNA density: too many DNA strands on each GUV, and the GUVs aggregate into a large cluster">
+                                <p>
+                                    When there is too much DNA on the surface, the GUVs aggregate.
                                 </p>
                             </div>
                         </div>
-                        <div class="media-text">
-                            <img src="images/design-density-just-right-v2.png" alt="Panel B: the right number of DNA strands on each GUV, and the GUVs connect only in sets of three">
-                            <div>
-                                <p>
-                                    B: When there is just the right amount of DNA on the surface, the GUVs connect only in sets of three.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="media-text">
-                            <img src="images/design-density-too-few-v2.png" alt="Panel C: too few DNA strands on each GUV, and the GUVs stay apart and do not connect">
-                            <div>
-                                <p>
-                                    C: When there is too little DNA on the surface, the GUVs do not connect.
-                                </p>
-                            </div>
-                        </div>
-                        <figcaption><strong>Fig. 4 Surface density control.</strong> (A) With too much DNA on the surface, the GUVs aggregate. (B) With just the right amount of DNA, the GUVs connect only in sets of three. (C) With too little DNA, the GUVs do not connect.</figcaption>
+                        <figcaption><strong>Fig. 4 Surface density of DNA.</strong> With too much DNA on the surface, the GUVs aggregate. With just the right amount of DNA, the GUVs connect only in sets of three. With too little DNA, the GUVs do not connect.</figcaption>
                     </figure>
 
                     <p>
-                        When a GUV connects to its intended partner, most of the strands on the facing surfaces are used for that connection. The few remaining strands cannot hold another partner, so the GUV does not connect any further. Therefore, the key parameter is the density of DNA on the surface of each GUV. GUV1 and GUV3 each have one kind of DNA for connecting to GUV2. Only the central GUV2 has two kinds of DNA: one for connecting to GUV1 and one for connecting to GUV3. By adjusting the surface densities of these four kinds of DNA, we aim to obtain many sets of exactly three GUVs connected as GUV1–GUV2–GUV3.
+                        When a GUV connects to its intended partner, most of the strands on the facing surfaces are used for that connection. The few remaining strands cannot hold another partner, so the GUV does not connect any further. Therefore, the key parameter is the surface density of DNA (strands per unit area) on each GUV. GUV1 and GUV3 each have one kind of DNA for connecting to GUV2. Only the central GUV2 has two kinds of DNA: one for connecting to GUV1 and one for connecting to GUV3. By adjusting the surface densities of these four kinds of DNA, we aim to obtain many sets of exactly three GUVs connected as GUV1–GUV2–GUV3.
                     </p>
 
                 </div>
@@ -166,28 +174,33 @@
                     </p>
 
                     <h3 class="sub-title" id="alpha-hemolysin">α-Hemolysin as a Pore</h3>
-                    <figure>
+                    <div class="study-row">
+                        <div class="study-text">
+                            <p>
+                        α-Hemolysin is a pore-forming protein from <em>Staphylococcus aureus</em>. Seven subunits gather in a lipid membrane and form a pore. The pore is 1.4 nm wide at its narrowest point, and small molecules can pass through it <a href="#ref-3" id="cite-3">[3]</a>. When α-hemolysin is added to the outside of GUVs, pores form in the membrane, and the encapsulated contents leak out <a href="#ref-4" id="cite-4">[4]</a>. The leaked contents can then move into the inside of the connected partner GUV through the α-hemolysin pores on its surface.
+                    </p>
+                        </div>
+                        <figure>
                         <img src="images/design-pore-exchange-v4.png" alt="Connected membranes of GUV1 and GUV2 with open pores between them and a content molecule passing through a pore">
                         <figcaption><strong>Fig. 5 When the membranes are brought together by DNA, the pores between them are open and the contents can move between the two GUVs.</strong> The contents of GUV1 (red dots) and GUV2 (green dots) leave through the open pores and spread into the other GUV.</figcaption>
                     </figure>
-
-                    <p>
-                        α-Hemolysin is a pore-forming protein from <em>Staphylococcus aureus</em>. Seven subunits gather in a lipid membrane and form a pore. The pore is 1.4 nm wide at its narrowest point, and small molecules can pass through it <a href="#ref-3" id="cite-3">[3]</a>. When α-hemolysin is added to the outside of GUVs, pores form in the membrane, and the encapsulated contents leak out <a href="#ref-4" id="cite-4">[4]</a>. The leaked contents can then move into the inside of the connected partner GUV through the α-hemolysin pores on its surface.
-                    </p>
+                    </div>
 
                     <h3 class="sub-title" id="trimeb-lid">TRIMEB as a Lid</h3>
-                    <figure>
-                        <img src="images/design-trimeb-lid-v2.png" alt="A pore in the membrane of a GUV closed by TRIMEB, with the contents kept inside">
-                        <figcaption><strong>Fig. 6 On a membrane that is not connected to a partner, TRIMEB (purple) closes the pores and reduces leakage of the contents.</strong></figcaption>
-                    </figure>
-
-                    <p>
+                    <div class="study-row">
+                        <div class="study-text">
+                            <p>
                         If the pores are only open, the contents leak out through the surface of a GUV even when the GUV is not connected to any partner. To reduce this leakage, we use TRIMEB (heptakis(2,3,6-tri-O-methyl)-β-cyclodextrin), a derivative of β-cyclodextrin. TRIMEB binds reversibly inside the α-hemolysin pore and blocks it like a lid <a href="#ref-3">[3]</a>. The more TRIMEB there is, the more slowly the contents leak through the pore <a href="#ref-3">[3]</a>.
                     </p>
-
-                    <p>
+                            <p>
                         While a GUV is floating alone, TRIMEB in the surrounding solution blocks the pores and reduces the leakage of its contents. When two GUVs are connected, TRIMEB has difficulty entering the narrow gap between their membranes <a href="#ref-5" id="cite-5">[5]</a>. The pores that face the gap are therefore less likely to be blocked, and the contents can pass from one GUV to the other through two pores in a row <a href="#ref-5">[5]</a>. In this way, material exchange happens between GUVs.
                     </p>
+                        </div>
+                        <figure>
+                        <img src="images/design-trimeb-lid-v3.png" alt="A pore in the membrane of a GUV closed by TRIMEB, with the contents kept inside">
+                        <figcaption><strong>Fig. 6 On a membrane that is not connected to a partner, TRIMEB (purple) closes the pores and reduces leakage of the contents.</strong></figcaption>
+                    </figure>
+                    </div>
                     <p><a href="#what-is-align">↩ Back to What is the ALiGN</a></p>
 
                 </div>
@@ -204,22 +217,22 @@
 
                     <h3 class="sub-title" id="dna-6nt">6-nt DNA (Main Design)</h3>
                     <p>
-                        These are weakly binding strands for connecting GUVs with an intended number of partners (see <a href="#weak-binding">Weak Binding and Surface Density Control</a>). Each strand has a 4-nt binding part (ACAC / GTGT or AGAG / CTCT) and a TT spacer on the membrane side. All strands have SH at the 3′ end.
+                        These are weakly binding strands for connecting GUVs with an intended number of partners (see <a href="#weak-binding">Many Weak Bonds and Surface Density of DNA</a>). Each strand is 6 nt long, with a 4-nt binding part (ACAC / GTGT or AGAG / CTCT) and a 2-nt TT spacer on the membrane side. In this wiki, “nt” is the length of one strand, and “bp” is the length of a duplex. All strands have SH at the 3′ end.
                     </p>
 
-                    <figure>
-                        <img src="images/design-dna-6nt-v6.png" alt="Three connected GUVs on the left and a close-up of four evenly spaced 6-nt DNA pairs in the gap between GUV1 and GUV2 on the right">
-                        <figcaption><strong>Fig. 7 Weak binding by 6-nt DNA.</strong> Left: three GUVs connected. Right: close-up of the gap between GUV1 and GUV2, where a connection holds only when many strands bind at the same time.</figcaption>
+                    <figure class="fig-wide">
+                        <img src="images/design-dna-6nt-v7.png" alt="Three connected GUVs on the left and a close-up of four evenly spaced 6-nt DNA pairs in the gap between GUV1 and GUV2 on the right">
+                        <figcaption><strong>Fig. 7 Many weak bonds with 6-nt DNA.</strong> Left: three GUVs connected. Right: close-up of the gap between GUV1 and GUV2, where a connection holds only when many strands bind at the same time.</figcaption>
                     </figure>
                     <p>
                         <strong>Pair 1 (GUV1 – GUV2)</strong><br>
-                        Conn6_L1: 5′-<code>ACACTT</code>-3′ (SH)<br>
-                        Conn6_R1: 5′-<code>GTGTTT</code>-3′ (SH)
+                        Conn6_L1: <code>5′-ACACTT-3′ (SH)</code><br>
+                        Conn6_R1: <code>5′-GTGTTT-3′ (SH)</code>
                     </p>
                     <p>
                         <strong>Pair 2 (GUV2 – GUV3)</strong><br>
-                        Conn6_L2: 5′-<code>AGAGTT</code>-3′ (SH)<br>
-                        Conn6_R2: 5′-<code>CTCTTT</code>-3′ (SH)
+                        Conn6_L2: <code>5′-AGAGTT-3′ (SH)</code><br>
+                        Conn6_R2: <code>5′-CTCTTT-3′ (SH)</code>
                     </p>
 
                     <h3 class="sub-title" id="dna-23bp">23-bp DNA (Supporting Design)</h3>
@@ -239,36 +252,36 @@
                         How the two strands are joined is also important. A duplex is about 0.34 nm per base pair, so a 23-bp duplex standing between two membranes keeps the membranes about 8 nm apart. This makes the exchange of contents through α-hemolysin difficult. Therefore, we fix one strand at its 3′ end and the other at its 5′ end. The two strands pair side by side from the point where the membranes touch. The duplex then extends outward along the membranes, and does not stand between them. In this way, the two membranes can come close to each other.
                     </p>
 
-                    <figure>
+                    <figure class="fig-wide">
                         <img src="images/design-dna-23bp-v5.png" alt="Several GUVs gathered by 23-bp DNA on the left and a close-up of one 23-bp duplex between GUV1 and GUV2 on the right">
-                        <figcaption><strong>Fig. 8 Strong binding by 23-bp DNA.</strong> Left: only a few duplexes are enough to hold two GUVs together, and because the binding is strong, further GUVs keep attaching, so the number of partners is not controlled. Right: close-up of one 23-bp duplex between GUV1 and GUV2.</figcaption>
+                        <figcaption><strong>Fig. 8 A few strong bonds with 23-bp DNA.</strong> Left: only a few duplexes are enough to hold two GUVs together, and because the binding is strong, further GUVs keep attaching, so the number of partners is not controlled. Right: close-up of one 23-bp duplex between GUV1 and GUV2.</figcaption>
                     </figure>
                     <p>
                         <strong>Pair 1 (GUV1 – GUV2)</strong><br>
-                        Conn23_L1: 5′-<code>GCATCTACACTCAATACCCAGCC</code>-3′ (SH)<br>
-                        Conn23_R1: (SH) 5′-<code>GGCTGGGTATTGAGTGTAGATGC</code>-3′
+                        Conn23_L1: <code>5′-GCATCTACACTCAATACCCAGCC-3′ (SH)</code><br>
+                        Conn23_R1: <code>(SH) 5′-GGCTGGGTATTGAGTGTAGATGC-3′</code>
                     </p>
                     <p>
                         <strong>Pair 2 (GUV2 – GUV3)</strong><br>
-                        Conn23_L2: 5′-<code>CTAGTCCATTGTAACGAAGGCCA</code>-3′ (SH)<br>
-                        Conn23_R2: (SH) 5′-<code>TGGCCTTCGTTACAATGGACTAG</code>-3′
+                        Conn23_L2: <code>5′-CTAGTCCATTGTAACGAAGGCCA-3′ (SH)</code><br>
+                        Conn23_R2: <code>(SH) 5′-TGGCCTTCGTTACAATGGACTAG-3′</code>
                     </p>
 
                     <h3 class="sub-title" id="dna-63nt">63-nt Scaffold DNA (Backup Plan)</h3>
                     <p>
-                        The 63-nt scaffold DNA is a backup plan for the case where the weak 6-nt binding alone rarely starts a connection. The 23-nt end of the 63-nt scaffold DNA binds to the 23-bp anchor strand on one GUV. The remaining 40 nt is a repeat sequence (CA or CT, ten 4-nt units). It gathers many 6-nt strands of the partner GUV at one spot and creates a trigger for the connection.
+                        The 63-nt scaffold DNA is a backup plan for the case where the weak 6-nt binding alone rarely starts a connection. The 23-nt end of the 63-nt scaffold DNA binds to the 23-nt anchor strand on one GUV. The remaining 40 nt is a repeat sequence (CA or CT, ten 4-nt units). It gathers many 6-nt strands of the partner GUV at one spot and creates a trigger for the connection.
                     </p>
 
-                    <figure>
+                    <figure class="fig-wide">
                         <img src="images/design-dna-scaffold.png" alt="Close-up of the gap between GUV1 and GUV2, showing the 63-nt scaffold strand bound to the 23-nt anchor strand on GUV1 and gathering 6-nt strands of GUV2">
                         <figcaption><strong>Fig. 9 The 63-nt scaffold DNA in the gap between GUV1 and GUV2.</strong> It stays bound to the 23-nt anchor strand on GUV1 and gathers many 6-nt strands of GUV2 at one spot.</figcaption>
                     </figure>
                     <p>
-                        Conn6_L1X: 5′-<code style="word-break: break-all;">GGCTGGGTATTGAGTGTAGATGCCACACACACACACACACACACACACACACACACACACACA</code>-3′<br>
+                        Conn6_L1X: <code style="word-break: break-all;">5′-GGCTGGGTATTGAGTGTAGATGCCACACACACACACACACACACACACACACACACACACACA-3′</code><br>
                         (binds Conn23_L1 on GUV1; the CA repeat gathers Conn6_R1 on GUV2)
                     </p>
                     <p>
-                        Conn6_R2X: 5′-<code style="word-break: break-all;">CTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTAGTCCATTGTAACGAAGGCCA</code>-3′<br>
+                        Conn6_R2X: <code style="word-break: break-all;">5′-CTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTAGTCCATTGTAACGAAGGCCA-3′</code><br>
                         (binds Conn23_R2 on GUV3; the CT repeat gathers Conn6_L2 on GUV2)
                     </p>
                 </div>
