@@ -208,8 +208,8 @@
     }
     /* ボタンの縦の位置：ページの先頭では、上の大きな帯（タイトル）にかぶらないよう、目次のすぐ横（帯の下）に置く。
        スクロールしたら、画面の上から、BTN_TOP の位置に、固定される */
-    var BTN_TOP = 78;      // 固定されるときの、画面の上からの距離(px)
-    var BTN_GAP = 8;       // 目次の上はしから、ボタンまでの距離(px)
+    var BTN_TOP = 91;      // 固定されるときの、画面の上からの距離(px)。目次の上の「⋮」と、高さ（真ん中）がそろう値
+    var BTN_GAP = 7;       // 目次の上はしから、ボタンまでの距離(px)。同じく、「⋮」と、高さがそろう値
     function placeCollapse() {
         collapse.style.top = Math.max(BTN_TOP, layout.getBoundingClientRect().top + BTN_GAP) + 'px';
     }
