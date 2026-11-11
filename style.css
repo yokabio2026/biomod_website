@@ -1054,3 +1054,38 @@ a.search-result-item:hover {
     background: #4a2a85;
     color: #ffffff;
 }
+
+/* 3枚の写真が、DNAでつながると、3枚の上に出る「ALiGN」の文字（script.js の updateAlignBadges が、位置・大きさ・濃さを決める）。
+   写真の上・YOKABIOくんの下。操作は、じゃましない。白い文字に、濃い紫のふち取り（写真の上でも読める） */
+.align-badge {
+    position: absolute;
+    z-index: 800;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    font-family: "Baloo 2", "Nunito", "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    color: #ffffff;
+    text-shadow:
+        0.03em 0 0 #2b1055, -0.03em 0 0 #2b1055, 0 0.03em 0 #2b1055, 0 -0.03em 0 #2b1055,
+        0.022em 0.022em 0 #2b1055, -0.022em 0.022em 0 #2b1055, 0.022em -0.022em 0 #2b1055, -0.022em -0.022em 0 #2b1055,
+        0 0.06em 0.18em rgba(43, 16, 85, 0.55);
+    transition: opacity 0.25s ease;
+    animation: align-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1);   /* 出るとき：ぽんっと、少し大きく弾んで、落ち着く（個別プロパティ scale / rotate を使うので、位置の transform とは、ぶつからない） */
+}
+
+@keyframes align-pop {
+    0% { scale: 0.55; rotate: -5deg; }
+    100% { scale: 1; rotate: 0deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .align-badge {
+        animation: none;
+        transition: none;
+    }
+}

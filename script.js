@@ -787,6 +787,11 @@ function initMemberDrag() {
         bondRestGap: 70,       // 【DNAがつながる】つながったDNAの、自然な長さ（写真のふちからふちまで）(px)。これより離すと、DNAが引き寄せる
         bondMaxGroup: 3,       // 【DNAがつながる】つながった写真の「かたまり」の、最大の枚数。4枚以上には、連結しない
         bondFadeMs: 360,       // 【DNAが外れる】YOKABIOくんを押したとき、DNAが消えるまでの時間(ミリ秒)
+        badgeWidth: 0.82,      // 【ALiGNの文字】3枚のかたまり全体の幅に対する、文字の幅の割合
+        badgeMaxH: 2.0,        // 【ALiGNの文字】文字の大きさの上限（写真の半径に対する倍率）。縦に並んだときに、大きくなりすぎないように
+        badgeMinH: 0.7,        // 【ALiGNの文字】文字の大きさの下限（同上）
+        badgeNear: 9,          // 【ALiGNの文字】3枚が、この広がり（写真の半径の何倍か）より近いあいだは、はっきり出る
+        badgeFar: 13,          // 【ALiGNの文字】3枚が、これ以上離れると、文字は消える（近いと、くっついている、とみなす）
         dnaPickPx: 10,         // 【DNAの優先】主鎖・横棒から、この距離(px)以内を押したら、写真が重なっていても、DNAをつまむ（マウス）
         dnaPickTouchPx: 12,    // 【DNAの優先】同じく、タッチ操作のとき
         tutorialIdleMs: 3000,  // 【チュートリアル】（以前は5000）写真・DNAが操作されないまま、この時間(ミリ秒)たつと、実演を始める
@@ -1098,6 +1103,81 @@ function initMemberDrag() {
         return pts;
     }
 
+    /* ---- 3枚が、DNAでつながると、「ALiGN」の文字が、3枚の上に出る ----
+            ・つながった写真の「かたまり」が、ちょうど bondMaxGroup 枚（3枚）になったときに出る。3枚の真ん中に、3枚の幅いっぱいに
+            ・写真を動かすと、文字も、いっしょに動く。3枚が離れると（badgeFar）、すっと消える。DNAが外れる（YOKABIOくんを押す）と、DNAといっしょに消える
+            ・文字は、写真の上。操作は、じゃましない（pointer-events: none。見た目は style.css の .align-badge） */
+    const badges = new Map();   // かたまりの目印（写真の番号を並べたもの） → { el, w100 }
+    const memberIndex = new Map();
+    Array.from(members).forEach((el, i) => memberIndex.set(el, i));
+    function measureBadge(b) {
+        b.el.style.fontSize = '100px';
+        b.w100 = b.el.offsetWidth || 270;   // 文字の幅を、100pxのときの値で覚える（大きさを、幅から決めるため）
+    }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => badges.forEach(measureBadge));   // 書体の読み込みが終わったら、測り直す
+
+    function updateAlignBadges(fadeF) {
+        const live = new Set();
+        if (pairs.length) {
+            const g = bondGroups();
+            const clusters = new Map();
+            members.forEach((el) => {
+                const root = g.find(el);
+                if (g.size.get(root) !== T.bondMaxGroup) return;
+                if (!clusters.has(root)) clusters.set(root, []);
+                clusters.get(root).push(el);
+            });
+            clusters.forEach((els) => {
+                const key = els.map((el) => memberIndex.get(el)).sort((p, q) => p - q).join('-');
+                live.add(key);
+                let b = badges.get(key);
+                if (!b) {
+                    const el = document.createElement('div');
+                    el.className = 'align-badge';
+                    el.setAttribute('aria-hidden', 'true');
+                    el.textContent = 'ALiGN';
+                    el.style.opacity = '0';
+                    main.appendChild(el);
+                    b = { el: el, w100: 270 };
+                    measureBadge(b);
+                    void el.offsetWidth;   // 最初の「0」を、確定させる（そのあと、薄い状態から、すっと出る）
+                    badges.set(key, b);
+                }
+                // 3枚の、全体の幅・高さ・真ん中
+                let minX = Infinity;
+                let maxX = -Infinity;
+                let minY = Infinity;
+                let maxY = -Infinity;
+                let rSum = 0;
+                els.forEach((el) => {
+                    const c = photoCenter(el);
+                    minX = Math.min(minX, c.x - c.r);
+                    maxX = Math.max(maxX, c.x + c.r);
+                    minY = Math.min(minY, c.y - c.r);
+                    maxY = Math.max(maxY, c.y + c.r);
+                    rSum += c.r;
+                });
+                const rAvg = rSum / els.length;
+                const W = maxX - minX;
+                const H = maxY - minY;
+                const fs = clamp(100 * W * T.badgeWidth / b.w100, rAvg * T.badgeMinH, rAvg * T.badgeMaxH);
+                // 近いあいだは、はっきり。離れると、薄くなって消える
+                const span = Math.hypot(W, H);
+                const vis = clamp((T.badgeFar * rAvg - span) / ((T.badgeFar - T.badgeNear) * rAvg), 0, 1);
+                b.el.style.fontSize = fs.toFixed(1) + 'px';
+                b.el.style.left = ((minX + maxX) / 2).toFixed(1) + 'px';
+                b.el.style.top = ((minY + maxY) / 2).toFixed(1) + 'px';
+                b.el.style.zIndex = String(Math.min(800, zTop + 5));   // 写真の上。YOKABIOくん（900）の下
+                b.el.style.opacity = (vis * fadeF).toFixed(3);
+            });
+        }
+        badges.forEach((b, key) => {
+            if (live.has(key)) return;
+            b.el.remove();   // かたまりが、なくなった
+            badges.delete(key);
+        });
+    }
+
     let appliedFade = 1;   // DNAの線の濃さに、いま掛けている倍率（外れる演出のあいだだけ、1より小さくなる）
     function drawLinks() {
         const out = {
@@ -1318,6 +1398,7 @@ function initMemberDrag() {
             pathRungs.setAttribute('stroke-opacity', String(0.5 * fadeF));
             pathFront.setAttribute('stroke-opacity', String(0.6 * fadeF));
         }
+        updateAlignBadges(fadeF);   // 3枚つながっていれば、「ALiGN」の文字を出す
     }
 
     // 元の位置に戻るアニメーションの間、毎フレームDNAを描き直す
