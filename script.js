@@ -1278,7 +1278,13 @@ function initMemberDrag() {
                     const el = document.createElement('div');
                     el.className = 'align-badge';
                     el.setAttribute('aria-hidden', 'true');
-                    el.textContent = 'ALiGN';
+                    // 同じ文字を、3枚重ねる（色と枠の色が、レイヤーごとに違う。自分の担当の幅だけを、見せる。style.css の .align-badge-layer）
+                    ['green', 'orange', 'blue'].forEach((name) => {
+                        const layer = document.createElement('span');
+                        layer.className = 'align-badge-layer align-badge-layer--' + name;
+                        layer.textContent = 'ALiGN';
+                        el.appendChild(layer);
+                    });
                     el.style.opacity = '0';
                     main.appendChild(el);
                     b = { el: el, w100: 270, t0: now };

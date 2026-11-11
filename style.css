@@ -1102,7 +1102,12 @@ a.search-result-item:hover {
 }
 
 /* 3枚の写真が、DNAでつながると、3枚の上に出る「ALiGN」の文字（script.js の updateAlignBadges が、位置・大きさ・濃さを決める）。
-   写真の上・YOKABIOくんの下。操作は、じゃましない。濃い紺色の一色 */
+   写真の上・YOKABIOくんの下。操作は、じゃましない。
+   文字は、同じ「ALiGN」を、3枚重ねて作る（.align-badge-layer）。1枚ずつ、色と、枠の色が違い、自分の担当の幅（横の範囲）だけを切り出して見せる：
+       緑のレイヤー   … A と L の左半分     文字 = 緑         枠 = 濃い緑
+       オレンジのレイヤー … L の右半分・i・G の左半分   文字 = オレンジ   枠 = 赤
+       青のレイヤー   … G の右半分・N       文字 = 青         枠 = 濃い青
+   境目（--s1 = L の真ん中、--s2 = G の真ん中）は、script.js が、文字を測って決める。文字の色は、3枚の写真の色（GUV_COLORS）と、同じ */
 .align-badge {
     position: absolute;
     z-index: 800;
@@ -1110,36 +1115,46 @@ a.search-result-item:hover {
     pointer-events: none;
     user-select: none;
     -webkit-user-select: none;
+    display: grid;   /* 3枚のレイヤーを、同じ場所に、ぴったり重ねる */
     font-family: "Baloo 2", "Nunito", "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
     font-weight: 700;
     line-height: 1;
     letter-spacing: 0.02em;
     white-space: nowrap;
-    color: #2b1055;   /* 文字の色（色分けに対応していないブラウザでは、濃い紺色の一色）。ふち取りは、つけない（同じ色でふち取ると、文字がふくらんで、AやGの穴が、つぶれるため） */
-    /* 文字の枠（ふち取り）：白い枠を、文字の形に沿って、まわりに付ける（上下左右・ななめに、少しずらした影を重ねて作る。色が分かれた文字でも、使える）。
-       枠の太さは、0.014em の数字（大きいほど、太い）。色は、#ffffff。最後の影は、写真から少し浮かせる、やわらかい影 */
-    filter:
-        drop-shadow(0.014em 0 0 #ffffff) drop-shadow(-0.014em 0 0 #ffffff)
-        drop-shadow(0 0.014em 0 #ffffff) drop-shadow(0 -0.014em 0 #ffffff)
-        drop-shadow(0.01em 0.01em 0 #ffffff) drop-shadow(-0.01em 0.01em 0 #ffffff)
-        drop-shadow(0.01em -0.01em 0 #ffffff) drop-shadow(-0.01em -0.01em 0 #ffffff)
-        drop-shadow(0 0.04em 0.12em rgba(43, 16, 85, 0.35));
+    color: #2b1055;   /* レイヤーが無いとき（寸法を測る見えない文字）の色。ふだんは、使わない */
+    filter: drop-shadow(0 0.04em 0.12em rgba(43, 16, 85, 0.35));   /* 写真から、少し浮かせる、やわらかい影（3枚のレイヤー全体に、1回だけ） */
     transition: opacity 0.25s ease;
     animation: align-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1);   /* 出るとき：ぽんっと、少し大きく弾んで、落ち着く（個別プロパティ scale / rotate を使うので、位置の transform とは、ぶつからない） */
 }
 
-/* 文字の色分け：A と L の左半分 = 緑、L の右半分・i・G の左半分 = オレンジ、G の右半分・N = 青。
-   境目（--s1 = L の真ん中、--s2 = G の真ん中）は、script.js が、文字を測って、決める。色は、3枚の写真の色（GUV_COLORS）と、同じ */
-@supports (background-clip: text) or (-webkit-background-clip: text) {
-    .align-badge {
-        color: transparent;
-        background-image: linear-gradient(90deg,
-            #77c46e 0, #77c46e var(--s1, 38%),
-            #ff8a5b var(--s1, 38%), #ff8a5b var(--s2, 66%),
-            #45b7f5 var(--s2, 66%), #45b7f5 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-    }
+.align-badge-layer {
+    grid-area: 1 / 1;
+    /* 枠（ふち取り）：文字の形に沿って、まわりに付ける（上下左右・ななめに、少しずらした影を、重ねて作る）。
+       太さは、0.014em の数字（大きいほど、太い）。色は、レイヤーごとの --ol */
+    filter:
+        drop-shadow(0.014em 0 0 var(--ol)) drop-shadow(-0.014em 0 0 var(--ol))
+        drop-shadow(0 0.014em 0 var(--ol)) drop-shadow(0 -0.014em 0 var(--ol))
+        drop-shadow(0.01em 0.01em 0 var(--ol)) drop-shadow(-0.01em 0.01em 0 var(--ol))
+        drop-shadow(0.01em -0.01em 0 var(--ol)) drop-shadow(-0.01em -0.01em 0 var(--ol));
+}
+
+/* clip-path：自分の担当の幅だけを見せる（上下と、両はしの外側は、枠がはみ出すぶん、広めにとる）。境目は、すきまが見えないよう、0.3%だけ、重ねる */
+.align-badge-layer--green {
+    color: #77c46e;      /* 緑 */
+    --ol: #2e8b3d;       /* 枠：濃い緑 */
+    clip-path: inset(-0.2em calc(100% - var(--s1, 38%)) -0.2em -0.2em);
+}
+
+.align-badge-layer--orange {
+    color: #ff8a5b;      /* オレンジ */
+    --ol: #d93a22;       /* 枠：赤 */
+    clip-path: inset(-0.2em calc(100% - var(--s2, 66%)) -0.2em calc(var(--s1, 38%) - 0.3%));
+}
+
+.align-badge-layer--blue {
+    color: #45b7f5;      /* 青 */
+    --ol: #1b5fb0;       /* 枠：濃い青 */
+    clip-path: inset(-0.2em -0.2em -0.2em calc(var(--s2, 66%) - 0.3%));
 }
 
 /* 文字の寸法を測るための、見えない文字（script.js の measureBadgeMetrics）。動かさない・見せない */
