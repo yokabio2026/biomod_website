@@ -37,7 +37,6 @@
     }
 
     /* ---- 目次を作る ---- */
-    var heroTitle = main.querySelector('.page-hero-header h1');
     var nav = document.createElement('nav');
     nav.className = 'toc';
     nav.setAttribute('aria-label', 'Page contents');
@@ -93,11 +92,7 @@
         a.addEventListener('click', function () { if (item.sub) setFold(item, false); });
         links.push(item);
     }
-    // いちばん上：ページのタイトル（先頭へ）
-    if (heroTitle) {
-        ensureId(heroTitle);
-        addItem(heroTitle.textContent.trim(), '#' + heroTitle.id, 1, heroTitle);
-    }
+    // 目次には、上の大きな帯（ページのタイトル）は入れない。大見出し・小見出しだけ。ページの先頭へは、いちばん下の「↑」で戻れる
     heads.forEach(function (h) {
         addItem(h.textContent.trim(), '#' + ensureId(h), h.tagName === 'H2' ? 1 : 2, h);
     });
