@@ -102,12 +102,23 @@
     });
 
     /* ---- 目次の上：「⋮」から、すべて開く／すべて閉じる（折りたためる項目があるときだけ） ---- */
-    var tools = null;
+    /* 目次のいちばん上に、見出し行をつくる：左に「‹」（目次を閉じる）、右に「⋮」。
+       「‹」は、すぐ下の、項目の左の矢印（›）と、同じ縦の線にそろう */
+    var tools = document.createElement('div');
+    tools.className = 'toc-tools';
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'toc-close';
+    closeBtn.setAttribute('aria-label', 'Hide contents');
+    closeBtn.setAttribute('data-tip', 'Hide contents');   // 説明は、カーソルを重ねたときだけ、CSSで出す
+    closeBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+    closeBtn.addEventListener('click', function () {
+        if (WIDE.matches) { setCollapsed(true, true); placeCollapse(); } else closeDrawer();   // 広い画面：目次を閉じる／狭い画面：横から出した目次を閉じる
+    });
+    tools.appendChild(closeBtn);
     var menu = null;
     var menuBtn = null;
     if (links.some(function (it) { return it.sub; })) {
-        tools = document.createElement('div');
-        tools.className = 'toc-tools';
         menuBtn = document.createElement('button');
         menuBtn.type = 'button';
         menuBtn.className = 'toc-menu-btn';
@@ -143,7 +154,7 @@
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
     }
     function closeMenu() {
-        if (!tools) return;
+        if (!menu) return;
         menu.hidden = true;
         menuBtn.setAttribute('aria-expanded', 'false');
     }
@@ -165,11 +176,7 @@
     layout.className = 'toc-layout';
     var side = document.createElement('aside');
     side.className = 'toc-side';
-    links[0].row.classList.add('has-close');   // 最初の項目の右はしに、「‹」（目次を閉じる）が重なるので、文字が重ならないように、あきをあける（CSSで）
-    if (tools) {
-        links[0].row.appendChild(tools);   // 「⋮」は、単独の行にせず、最初の項目の右はしに置く（余分な空欄を作らない）
-        links[0].row.classList.add('has-tools');
-    }
+    side.appendChild(tools);
     side.appendChild(nav);
     side.appendChild(top);
     var body = document.createElement('div');
@@ -192,8 +199,8 @@
     document.body.appendChild(backdrop);
 
     /* ---- 広い画面：1つのボタンで、目次を、閉じたり開いたりする ----
-       ・目次が開いているときは、最初の項目の右はし（「⋮」の左）に、「‹」（閉じる）。閉じているときは、画面の左はしに、「☰」（開く）
-       ・目次は、画面の左はしの近くまで、寄せてある（「‹」のために、左はしを、あけておく必要がないように）
+       ・目次が開いているときは、目次のいちばん上の行（左に「‹」、右に「⋮」）の「‹」で閉じる。閉じているときは、画面の左はしに、「☰」（開く）
+       ・目次は、画面の左はしの近くまで、寄せてある。「‹」は、その下の項目の矢印（›）と、同じ縦の線にそろえてある
        ・閉じると、本文が、画面いっぱいに広がる。開いたか閉じたかは、このブラウザに覚えておく（次に開いたときも、同じ状態）
        ・狭い画面（スマホなど）では、このボタンは出さない（「Contents」ボタンを使う） */
     var KEY = 'yokabio-toc-collapsed';
@@ -213,21 +220,11 @@
             : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
         if (remember) { try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) { /* 保存できなくても、何もしない */ } }
     }
-    /* ボタンの位置：
-       ・縦：目次の、最初の項目（「⋮」と同じ行）の、真ん中にそろえる。ページの先頭では、上の大きな帯（タイトル）にかぶらない。
-             スクロールしたら、目次といっしょに、画面の上に固定される（目次の中だけがスクロールされていても、ずれないように、その分を足し戻す）
-       ・横：開いているときは、目次の右はしの近く（「⋮」の左となり）。閉じているときは、CSSの位置（画面の左はし） */
-    var SIDE_RIGHT = 230;   // 目次の右はしの位置：本文の列の左はし（目次の列）から、右はしまでの幅(px)。toc.css の grid-template-columns の 230px と同じ
-    var SIDE_PAD = 4;       // 目次の右の内側のあき(px)。toc.css の .toc-side の padding-right と同じ
-    var TOOLS_W = 35;       // 「⋮」ボタンが、行の右はしで、使う幅(px)（ボタン32px＋右のあき3px）
+    /* 「開く」ボタン（閉じているときだけ出る）の縦の位置：目次の、いちばん上の行（「‹」「⋮」の行）の、真ん中にそろえる。
+       ページの先頭では、上の大きな帯（タイトル）にかぶらない。スクロールしたら、目次といっしょに、画面の上に固定される */
     function placeCollapse() {
-        var r = links[0].row.getBoundingClientRect();
-        collapse.style.top = Math.round(r.top + side.scrollTop + r.height / 2 - collapse.offsetHeight / 2) + 'px';
-        if (layout.classList.contains('is-collapsed')) { collapse.style.left = ''; return; }   // 閉じているときは、CSSの位置（画面の左はし）
-        // 開いているとき：最初の項目の行の右はし（スクロールバーの幅を引く）から、「⋮」の分だけ左。目次が、横へ滑っている途中でも、ずれないように、ふだんの位置から計算する
-        var scrollbar = side.offsetWidth - side.clientWidth;
-        var rowRight = layout.getBoundingClientRect().left + SIDE_RIGHT - SIDE_PAD - scrollbar;
-        collapse.style.left = Math.round(rowRight - (tools ? TOOLS_W : 0) - 2 - collapse.offsetWidth) + 'px';
+        var r = tools.getBoundingClientRect();
+        collapse.style.top = Math.round(r.top + r.height / 2 - collapse.offsetHeight / 2) + 'px';
     }
     window.addEventListener('scroll', placeCollapse, { passive: true });
     window.addEventListener('resize', placeCollapse);
@@ -277,7 +274,6 @@
             it.a.classList.toggle('is-active', active);
             it.li.classList.toggle('is-parent', !active && k === parent && links[idx].level === 2);
             it.row.classList.toggle('is-current', active);
-            if (k === 0) collapse.classList.toggle('on-active', active);   // 「‹」が、紫の塗りつぶしの上に乗っているときは、白くする（CSSで）
             if (active) it.a.setAttribute('aria-current', 'true'); else it.a.removeAttribute('aria-current');
         });
         // 目次が長くて、はみ出しているときは、選ばれた項目が見えるように、目次の中だけ動かす

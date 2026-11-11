@@ -168,17 +168,62 @@ html {
     transition: opacity 0.2s ease, visibility 0s 0.28s;   /* 縮み終わってから、かくす */
 }
 
-/* ---- 目次の上の「⋮」メニュー：すべて開く／すべて閉じる ---- */
+/* ---- 目次のいちばん上の行：左に「‹」（閉じる）、右に「⋮」（すべて開く／すべて閉じる） ---- */
 .toc-tools {
-    position: absolute;      /* 最初の項目の行の、右はしに置く（単独の行にしない） */
-    top: 50%;
-    right: 3px;
-    z-index: 2;
-    margin-top: -16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+    padding-top: 6px;
 }
 
-.toc-row.has-tools > a {
-    padding-right: 42px;     /* 「⋮」と、文字が、かさならないように */
+/* 「‹」：すぐ下の、項目の左の矢印（›）（左から5px、幅24px）と、同じ縦の線にそろう（左から3px、幅28px） */
+.toc-close {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin-left: 3px;
+    padding: 0;
+    border: 1.5px solid transparent;   /* ふだんは、枠なし。カーソルを重ねたときだけ、枠が出る */
+    border-radius: 50%;
+    background: transparent;
+    color: #2b1055;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.toc-close:hover,
+.toc-close:focus-visible {
+    border-color: #2b1055;
+    background: #f0eaf8;
+    outline: none;
+}
+
+/* 説明の文章（「Hide contents」）：カーソルを重ねたとき（キーボードで選んだときも）だけ、ボタンの右に出る */
+.toc-close::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: #1c1c24;
+    color: #ffffff;
+    font: 600 13px/1.3 "Helvetica Neue", Arial, sans-serif;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-50%);
+    transition: opacity 0.15s ease;
+}
+
+.toc-close:hover::after,
+.toc-close:focus-visible::after {
+    opacity: 1;
 }
 
 .toc-menu-btn {
@@ -199,17 +244,6 @@ html {
 .toc-menu-btn[aria-expanded="true"] {
     background: #f0eaf8;
     color: #2b1055;
-}
-
-/* 最初の項目が、読んでいる項目（紫の塗りつぶし）のときは、「⋮」を白く */
-.toc-row.is-current .toc-menu-btn {
-    color: #ffffff;
-}
-
-.toc-row.is-current .toc-menu-btn:hover,
-.toc-row.is-current .toc-menu-btn[aria-expanded="true"] {
-    background: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
 }
 
 .toc-menu-btn:focus-visible {
@@ -361,25 +395,9 @@ html {
     opacity: 1;
 }
 
-/* 開いているとき、最初の項目が「読んでいる項目」（紫の塗りつぶし）なら、その上に乗る「‹」は、白く */
-.toc-collapse.on-active:not(.is-collapsed) {
-    color: #ffffff;
-}
-
-.toc-collapse.on-active:not(.is-collapsed):hover,
-.toc-collapse.on-active:not(.is-collapsed):focus-visible {
-    border-color: rgba(255, 255, 255, 0.7);
-    background: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-}
-
-/* 開いているとき（目次の中にある「‹」）：説明は、ボタンの下に、右そろえで出す */
-.toc-collapse:not(.is-collapsed)::after {
-    top: 100%;
-    right: 0;
-    left: auto;
-    margin-top: 8px;
-    transform: none;
+/* 画面に固定した「開く」ボタンは、閉じているときだけ出す（開いているときは、目次の中の「‹」を使う） */
+.toc-collapse:not(.is-collapsed) {
+    display: none;
 }
 
 /* 閉じているとき：目次を、左へ滑らせて消し、本文を、横いっぱいに広げる（広い画面だけ。どちらも、なめらかに動く）。
@@ -397,13 +415,16 @@ html {
         transition: transform 0.3s ease, opacity 0.25s ease;
     }
 
-    /* 最初の項目の右はしに、「‹」（と、あれば「⋮」）が重なるので、文字が、重ならないように */
-    .toc-row.has-close > a {
-        padding-right: 42px;
+    /* いちばん上の行（「‹」「⋮」）は、目次の中だけがスクロールされても、上に残る */
+    .toc-side {
+        padding-top: 0;
     }
 
-    .toc-row.has-close.has-tools > a {
-        padding-right: 76px;
+    .toc-tools {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        background: #fafafa;     /* ページの背景色（style.css の body と同じ） */
     }
 
     .toc-layout.is-collapsed {
