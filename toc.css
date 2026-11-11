@@ -135,6 +135,28 @@ html {
     outline-offset: 2px;
 }
 
+/* 閉じているとき：「開く」ボタンを、目立つように、紫でぬりつぶして、「Contents」の文字をつける */
+.toc-collapse.is-collapsed {
+    left: 10px;
+    top: 78px;
+    gap: 8px;
+    width: auto;
+    height: 40px;
+    padding: 0 18px 0 14px;
+    border: 2.5px solid #8650bd;   /* 濃い紫の背景（上の帯）の上でも、白い背景の上でも、見えるように、白地＋紫の太い枠 */
+    border-radius: 999px;
+    background: #ffffff;
+    color: #2b1055;
+    font: 700 15px/1 "Helvetica Neue", Arial, sans-serif;
+    box-shadow: 0 4px 14px rgba(43, 16, 85, 0.4);
+}
+
+.toc-collapse.is-collapsed:hover,
+.toc-collapse.is-collapsed:focus-visible {
+    background: #2b1055;
+    color: #ffffff;
+}
+
 /* 閉じているとき：目次をなくして、本文を、横いっぱいに広げる */
 .toc-layout.is-collapsed {
     grid-template-columns: minmax(0, 1fr);
