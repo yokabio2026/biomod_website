@@ -1,5 +1,7 @@
 /* ページの左に、項目別にジャンプできる目次（サイドバー）を出す。
-   ・見出し（h2.section-title と h3.sub-title）から、自動で作る。ページのHTMLに、目次の中身を書く必要はない
+   ・見出しから、自動で作る。ページのHTMLに、目次の中身を書く必要はない
+        大きな項目：<h2 class="section-title">／小さな項目：<h3 class="sub-title">。
+        class がついていない、ふつうの <h3>（や、入れ子の中の <h2>）も、小さな項目として、目次に入る（見えていない見出しは、入れない）
    ・いま読んでいる項目を、目次の中で色つきで示す（スクロールに合わせて、切り替わる）
    ・項目を押すと、その見出しまで、なめらかに移動する。いちばん下の「↑」で、ページの先頭へ
    ・大見出しの下に小見出しがあるときは、大見出しの左の「›」で、小見出しを、折りたたんだり、開いたりできる。目次の上の「⋮」から、「Expand all（すべて開く）」「Collapse all（すべて閉じる）」もできる
@@ -11,7 +13,9 @@
 
     var main = document.querySelector('main.content');
     if (!main) return;
-    var heads = Array.prototype.slice.call(main.querySelectorAll('h2.section-title, h3.sub-title'));
+    var heads = Array.prototype.slice.call(main.querySelectorAll('.content-section h2, .content-section h3')).filter(function (h) {
+        return h.textContent.trim() && h.getClientRects().length > 0;   // 文字が空の見出し・いま見えていない見出しは、入れない
+    });
     var sections = Array.prototype.slice.call(main.querySelectorAll(':scope > .content-section'));
     if (heads.length < 2 || !sections.length) return;
 
@@ -94,7 +98,7 @@
     }
     // 目次には、上の大きな帯（ページのタイトル）は入れない。大見出し・小見出しだけ。ページの先頭へは、いちばん下の「↑」で戻れる
     heads.forEach(function (h) {
-        addItem(h.textContent.trim(), '#' + ensureId(h), h.tagName === 'H2' ? 1 : 2, h);
+        addItem(h.textContent.trim(), '#' + ensureId(h), h.classList.contains('section-title') ? 1 : 2, h);   // section-title は大きな項目、それ以外は小さな項目
     });
 
     /* ---- 目次の上：「⋮」から、すべて開く／すべて閉じる（折りたためる項目があるときだけ） ---- */
