@@ -141,8 +141,8 @@ html {
     outline-offset: 2px;
 }
 
-/* 閉じているとき：「開く」ボタンは、文字なしの、大きな丸いアイコン。画面の左はしに、半分かくれる（つまみのように）。
-   濃い紫の背景（上の帯）の上でも、白い背景の上でも、見えるように、白地＋紫の太い枠 */
+/* 閉じているとき：「開く」ボタンは、文字なしの、大きな丸いアイコン（点つきリストの絵）。画面の左はしに、半分かくれる（つまみのように）。
+   うすい紫の塗り＋紫の太い枠で、影はつけない（平らな見た目） */
 .toc-collapse.is-collapsed {
     left: -18px;
     top: 74px;
@@ -150,9 +150,9 @@ html {
     height: 56px;
     padding: 0 0 0 18px;   /* 左のはみ出した分だけ、中身を右へ寄せて、見えている部分の真ん中に、アイコンを置く */
     border: 3px solid #8650bd;
-    background: #ffffff;
+    background: #e6dff3;
     color: #2b1055;
-    box-shadow: 0 4px 14px rgba(43, 16, 85, 0.35);
+    box-shadow: none;
 }
 
 .toc-collapse.is-collapsed svg {
@@ -162,8 +162,9 @@ html {
 
 .toc-collapse.is-collapsed:hover,
 .toc-collapse.is-collapsed:focus-visible {
-    background: #2b1055;
-    color: #ffffff;
+    background: #d3c6ec;
+    border-color: #2b1055;
+    color: #2b1055;
 }
 
 /* 説明の文章（「Show contents」など）：カーソルを重ねたとき（キーボードで選んだときも）だけ、ボタンの右に出る */
