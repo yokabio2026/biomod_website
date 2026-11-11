@@ -170,10 +170,15 @@ html {
 
 /* ---- 目次の上の「⋮」メニュー：すべて開く／すべて閉じる ---- */
 .toc-tools {
-    position: relative;
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 2px;
+    position: absolute;      /* 最初の項目の行の、右はしに置く（単独の行にしない） */
+    top: 50%;
+    right: 3px;
+    z-index: 2;
+    margin-top: -16px;
+}
+
+.toc-row.has-tools > a {
+    padding-right: 42px;     /* 「⋮」と、文字が、かさならないように */
 }
 
 .toc-menu-btn {
@@ -194,6 +199,17 @@ html {
 .toc-menu-btn[aria-expanded="true"] {
     background: #f0eaf8;
     color: #2b1055;
+}
+
+/* 最初の項目が、読んでいる項目（紫の塗りつぶし）のときは、「⋮」を白く */
+.toc-row.is-current .toc-menu-btn {
+    color: #ffffff;
+}
+
+.toc-row.is-current .toc-menu-btn:hover,
+.toc-row.is-current .toc-menu-btn[aria-expanded="true"] {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
 }
 
 .toc-menu-btn:focus-visible {

@@ -165,7 +165,10 @@
     layout.className = 'toc-layout';
     var side = document.createElement('aside');
     side.className = 'toc-side';
-    if (tools) side.appendChild(tools);
+    if (tools) {
+        links[0].row.appendChild(tools);   // 「⋮」は、単独の行にせず、最初の項目の右はしに置く（余分な空欄を作らない）
+        links[0].row.classList.add('has-tools');
+    }
     side.appendChild(nav);
     side.appendChild(top);
     var body = document.createElement('div');
@@ -208,12 +211,12 @@
             : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
         if (remember) { try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) { /* 保存できなくても、何もしない */ } }
     }
-    /* ボタンの縦の位置：ページの先頭では、上の大きな帯（タイトル）にかぶらないよう、目次のすぐ横（帯の下）に置く。
-       スクロールしたら、画面の上から、BTN_TOP の位置に、固定される */
-    var BTN_TOP = 91;      // 固定されるときの、画面の上からの距離(px)。目次の上の「⋮」と、高さ（真ん中）がそろう値
-    var BTN_GAP = 7;       // 目次の上はしから、ボタンまでの距離(px)。同じく、「⋮」と、高さがそろう値
+    /* ボタンの縦の位置：目次の、最初の項目（「⋮」と同じ行）の、真ん中にそろえる。
+       ページの先頭では、上の大きな帯（タイトル）にかぶらない。スクロールしたら、目次といっしょに、画面の上に固定される。
+       （目次の中だけがスクロールされていても、ずれないように、その分を足し戻す） */
     function placeCollapse() {
-        collapse.style.top = Math.max(BTN_TOP, layout.getBoundingClientRect().top + BTN_GAP) + 'px';
+        var r = links[0].row.getBoundingClientRect();
+        collapse.style.top = Math.round(r.top + side.scrollTop + r.height / 2 - collapse.offsetHeight / 2) + 'px';
     }
     window.addEventListener('scroll', placeCollapse, { passive: true });
     window.addEventListener('resize', placeCollapse);
@@ -222,7 +225,10 @@
     var saved = false;
     try { saved = localStorage.getItem(KEY) === '1'; } catch (e) { /* 読めなくても、開いた状態で始める */ }
     setCollapsed(saved, false);
-    collapse.addEventListener('click', function () { setCollapsed(!layout.classList.contains('is-collapsed'), true); });
+    collapse.addEventListener('click', function () {
+        setCollapsed(!layout.classList.contains('is-collapsed'), true);
+        placeCollapse();   // ボタンの大きさが変わる（丸 ⇔ 「D」）ので、高さを、そろえ直す
+    });
     placeCollapse();
 
     function openDrawer() {
