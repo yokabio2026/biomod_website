@@ -12,6 +12,29 @@ html {
     scroll-margin-top: 90px;
 }
 
+/* ---- 目次から飛んだ先の見出し：薄く光って、消える ----
+   toc.js が、移動が止まったときに、見出しに toc-flash をつける（1.8秒で消える）。
+   色は、サイトの紫。光の強さは、0%の行の、0.2（背景）と0.3（光）を変えると、調整できる */
+.content .toc-flash {
+    border-radius: 6px;
+    animation: toc-flash 1.8s ease-out;
+}
+
+.content .toc-flashed {
+    animation: none;
+}
+
+@keyframes toc-flash {
+    0% {
+        background-color: rgba(134, 80, 189, 0.2);
+        box-shadow: 0 0 0 8px rgba(134, 80, 189, 0.2), 0 0 24px 8px rgba(134, 80, 189, 0.3);
+    }
+    100% {
+        background-color: rgba(134, 80, 189, 0);
+        box-shadow: 0 0 0 8px rgba(134, 80, 189, 0), 0 0 24px 8px rgba(134, 80, 189, 0);
+    }
+}
+
 /* ---- 左に目次、右に本文 ---- */
 .toc-layout {
     display: grid;
@@ -560,6 +583,10 @@ html {
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
+    }
+
+    .content .toc-flash {
+        animation: none;   /* 動きを減らす設定の人には、光らせない */
     }
 
     .toc-layout,

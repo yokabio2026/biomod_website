@@ -3,7 +3,7 @@
         大きな項目：<h2 class="section-title">／小さな項目：<h3 class="sub-title">。
         class がついていない、ふつうの <h3>（や、入れ子の中の <h2>）も、小さな項目として、目次に入る（見えていない見出しは、入れない）
    ・いま読んでいる項目を、目次の中で色つきで示す（スクロールに合わせて、切り替わる）
-   ・項目を押すと、その見出しまで、なめらかに移動する。いちばん下の「↑」で、ページの先頭へ
+   ・項目を押すと、その見出しまで、なめらかに移動する。着いたら、その見出しが、薄く光る。いちばん下の「↑」で、ページの先頭へ
    ・大見出しの下に小見出しがあるときは、大見出しの左の「›」で、小見出しを、折りたたんだり、開いたりできる。目次の上の「⋮」から、「Expand all（すべて開く）」「Collapse all（すべて閉じる）」もできる
    ・画面が広いとき：左に固定（スクロールしても、ついてくる）／狭いとき（スマホなど）：「Contents」ボタンで、横から開く
    使いかた：ページの </body> の前に、<script src="toc.js"></script> を足す（style.css のあとに toc.css も読み込む）。
@@ -46,6 +46,43 @@
     nav.setAttribute('aria-label', 'Page contents');
     var list = document.createElement('ul');
     nav.appendChild(list);
+
+    /* ---- 飛んだ先の見出しを、薄く光らせる ----
+       移動（なめらかなスクロール）が、止まってから光らせる（移動中に光っても、見えないため） */
+    var FLASH_IDLE_MS = 140;   // スクロールが、この時間（ミリ秒）止まったら、「着いた」とみなす
+    var FLASH_WAIT_MAX_MS = 4000;   // 見出しが、画面に入るのを、待つ時間の上限（ミリ秒）。それでも入らなければ、あきらめて光らせる
+    var FLASH_MAX_MS = 2000;   // 光る演出が、終わらなかったときの、後始末の時間（ミリ秒）。toc.css の光る長さ（1.8秒）より、長くする
+    var flashTimer = 0;
+    var flashOnScroll = null;
+    function flash(el) {
+        el.classList.remove('toc-flash', 'toc-flashed');
+        void el.offsetWidth;   // 同じ見出しを、続けて押したときも、最初から光らせ直す
+        el.classList.add('toc-flash');
+        setTimeout(function () {
+            el.classList.remove('toc-flash');
+            el.classList.add('toc-flashed');   // 終わったあと、ほかの「飛んだ先を光らせる」設定（text-style.css）が、もう一度光らないように、目印を残す
+        }, FLASH_MAX_MS);
+    }
+    function flashWhenArrived(el) {
+        clearTimeout(flashTimer);
+        if (flashOnScroll) window.removeEventListener('scroll', flashOnScroll);
+        var started = Date.now();
+        function arm() {
+            clearTimeout(flashTimer);
+            flashTimer = setTimeout(function () {
+                // スクロールが止まっても、見出しが、まだ画面の外なら（移動が始まる前など）、もう少し待つ
+                var r = el.getBoundingClientRect();
+                var inView = r.bottom > 0 && r.top < window.innerHeight;
+                if (!inView && Date.now() - started < FLASH_WAIT_MAX_MS) { arm(); return; }
+                window.removeEventListener('scroll', flashOnScroll);
+                flashOnScroll = null;
+                flash(el);
+            }, FLASH_IDLE_MS);
+        }
+        flashOnScroll = arm;
+        window.addEventListener('scroll', arm, { passive: true });
+        arm();
+    }
 
     var links = [];   // { a, row, li, head, level, parent, sub, fold }
     var lastTop = null;   // いちばん最近の、大きな項目（小見出しは、この下に入る）
@@ -93,7 +130,10 @@
             if (level === 1) lastTop = item;
         }
         // 大きな項目の名前を押したときは、閉じていても、開く（移動先の小見出しが見えるように）
-        a.addEventListener('click', function () { if (item.sub) setFold(item, false); });
+        a.addEventListener('click', function () {
+            if (item.sub) setFold(item, false);
+            flashWhenArrived(head);   // 着いたら、見出しを、薄く光らせる
+        });
         links.push(item);
     }
     // 目次には、上の大きな帯（ページのタイトル）は入れない。大見出し・小見出しだけ。ページの先頭へは、いちばん下の「↑」で戻れる
