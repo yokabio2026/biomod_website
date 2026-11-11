@@ -122,10 +122,22 @@
             : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
         if (remember) { try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) { /* 保存できなくても、何もしない */ } }
     }
+    /* ボタンの縦の位置：ページの先頭では、上の大きな帯（タイトル）にかぶらないよう、目次のすぐ横（帯の下）に置く。
+       スクロールしたら、画面の上から、BTN_TOP の位置に、固定される */
+    var BTN_TOP = 78;      // 固定されるときの、画面の上からの距離(px)
+    var BTN_GAP = 8;       // 目次の上はしから、ボタンまでの距離(px)
+    function placeCollapse() {
+        collapse.style.top = Math.max(BTN_TOP, layout.getBoundingClientRect().top + BTN_GAP) + 'px';
+    }
+    window.addEventListener('scroll', placeCollapse, { passive: true });
+    window.addEventListener('resize', placeCollapse);
+    window.addEventListener('load', placeCollapse);
+
     var saved = false;
     try { saved = localStorage.getItem(KEY) === '1'; } catch (e) { /* 読めなくても、開いた状態で始める */ }
     setCollapsed(saved, false);
     collapse.addEventListener('click', function () { setCollapsed(!layout.classList.contains('is-collapsed'), true); });
+    placeCollapse();
 
     function openDrawer() {
         side.classList.add('is-open');
