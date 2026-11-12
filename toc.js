@@ -334,3 +334,15 @@
     window.addEventListener('load', update);
     update();
 })();
+
+/* 本文の中のリンク（Explore the simulation、参考文献、Back to … など）は、なめらかに動かず、すぐその場所へ飛ぶ。
+   目次（左のサイドバー）を押したときだけ、なめらかに動く（toc.css の scroll-behavior: smooth） */
+(function () {
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('.content a[href^="#"]');
+        if (!a || a.getAttribute('href') === '#' || a.closest('.toc-side')) return;   // 目次は、そのまま（なめらか）
+        var root = document.documentElement;
+        root.style.scrollBehavior = 'auto';
+        setTimeout(function () { root.style.scrollBehavior = ''; }, 100);
+    }, true);
+})();
