@@ -205,7 +205,7 @@ a.search-result-item:hover {
     padding-bottom: 143px;
 }
 
-/* 帯の右側に、飾りの絵を置くページ用（Home）。絵は、帯の中に、背景のように置く（文字・操作のじゃまをしない）。
+/* 帯の右側に、飾りの絵を置くページ用（Home・Project・Design・Simulation・Experiment・Future・ELSI・Team）。絵は、帯の中に、背景のように置く（文字・操作のじゃまをしない）。
    帯より大きく置いて、はみ出した部分は、帯のふちで切れる（上と右・下から、はみ出すように見せる）。
    大きさ：height（帯の高さに対する割合。100%より大きいと、はみ出す）／ 位置：top・right（マイナスにすると、外へずれる）／ 濃さ：opacity */
 .page-hero-header--with-image {
