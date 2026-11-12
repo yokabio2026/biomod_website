@@ -1240,3 +1240,15 @@ a.search-result-item:hover {
         transition: none;
     }
 }
+
+
+/* Simulation ページの、ページ内ショートカットのボタン（Explore the simulation / View results）：「Contents」ボタンと同じ紫。
+   simulation.html の中の色指定より優先されるように、body を付けている（ページを書き換えられても、紫のまま） */
+body .result-summary-links a {
+    background: #2b1055;
+}
+
+body .result-summary-links a:hover,
+body .result-summary-links a:focus-visible {
+    background: #4a2a85;
+}
