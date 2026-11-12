@@ -782,7 +782,8 @@ a.search-result-item:hover {
     }
 }
 
-/* キーボードで選んだときにも、同じふきだしを出す */
+/* DNAが、初めてつながったとき、JSが is-hint をつけて、同じふきだしを、自動で出す（文字は「Pull the DNA!」）。タッチ操作の端末でも、出る */
+.reset-layout-btn.is-hint .reset-bubble,
 .reset-layout-btn:focus-visible .reset-bubble {
     opacity: 1;
     transform: scale(1);
@@ -798,6 +799,7 @@ a.search-result-item:hover {
 
 @media (prefers-reduced-motion: reduce) {
     .reset-layout-btn:hover .reset-bubble,
+    .reset-layout-btn.is-hint .reset-bubble,
     .reset-layout-btn:focus-visible .reset-bubble {
         animation: none;
     }

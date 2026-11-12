@@ -858,6 +858,10 @@ function initMemberDrag() {
         bondRestGap: 70,       // 【DNAがつながる】つながったDNAの、自然な長さ（写真のふちからふちまで）(px)。これより離すと、DNAが引き寄せる
         bondMaxGroup: 3,       // 【DNAがつながる】つながった写真の「かたまり」の、最大の枚数。4枚以上には、連結しない
         bondFadeMs: 360,       // 【DNAが外れる】YOKABIOくんを押したとき、DNAが消えるまでの時間(ミリ秒)
+        hintText: 'Pull the DNA!', // 【YOKABIOくんのヒント】DNAが、初めてつながったとき、YOKABIOくんの吹き出しに出す文字
+        hintDelayMs: 700,      // 【YOKABIOくんのヒント】つながってから、吹き出しが出るまでの時間(ミリ秒)。つながったのを、見てもらってから出す
+        hintMs: 4500,          // 【YOKABIOくんのヒント】吹き出しが、出ている時間(ミリ秒)
+        hintMax: 3,            // 【YOKABIOくんのヒント】出す回数の上限（DNAを、一度も引っ張っていない間だけ）。一度でも引っ張ったら、もう出さない
         badgeWidth: 0.82,      // 【ALiGNの文字】3枚のかたまり全体の幅に対する、文字の幅の割合
         badgeMaxH: 2.0,        // 【ALiGNの文字】文字の大きさの上限（写真の半径に対する倍率）。縦に並んだときに、大きくなりすぎないように
         badgeMinH: 0.7,        // 【ALiGNの文字】文字の大きさの下限（同上）
@@ -1108,7 +1112,10 @@ function initMemberDrag() {
             makePair(c.a, c.b, Math.max(c.d, radii.get(c.a) + radii.get(c.b) + T.bondRestGap));
             formed = true;
         });
-        if (formed) drawLinks();
+        if (formed) {
+            drawLinks();
+            scheduleDnaHint();   // YOKABIOくんが、「DNAを引っ張ってみて」と、教える
+        }
     }
 
     // YOKABIOくんを押したとき：つながっていたDNAが、すっと消えて、外れる（写真が元の位置に戻るあいだに）
@@ -2574,6 +2581,7 @@ function initMemberDrag() {
 
     function startPluck(pair, e) {
         if (drag || pluck || resetting) return;
+        dnaHintDone();   // DNAを引っ張れると、もう分かったので、ヒントは、もう出さない
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         const ca = photoCenter(pair.a);
         const cb = photoCenter(pair.b);
@@ -3642,8 +3650,52 @@ function initMemberDrag() {
         armRecovery();                                       // クリックのたびに、5秒を数え直す
     }
 
+    /* ---- YOKABIOくんの、ヒント：DNAが、初めてつながったとき、「Pull the DNA!」と、しゃべる ----
+            ・DNAが、引っ張って飛ばせることに、気づいてもらうための、案内。吹き出しは、ホバーで出る「Tap to ALiGN」と、同じもの（文字だけ、入れかえる）
+            ・つながってから hintDelayMs あとに出て、hintMs のあいだ見えて、元の文字（Tap to ALiGN）に戻る
+            ・出す回数は、最大 hintMax 回。DNAを、一度でも、引っ張ったら（startPluck）、もう出さない
+            ・YOKABIOくんを押したときは、すぐ消す（出す回数には、数えたまま） */
+    const hintState = { shown: 0, done: false, timer: 0, hideTimer: 0, restoreTimer: 0, normal: '' };
+    const hintTextEl = resetBtn ? resetBtn.querySelector('.reset-bubble-text') : null;
+
+    function showDnaHint() {
+        hintState.timer = 0;
+        if (!resetBtn || !hintTextEl || hintState.done || hintState.shown >= T.hintMax || resetting) return;
+        hintState.shown++;
+        clearTimeout(hintState.hideTimer);
+        clearTimeout(hintState.restoreTimer);
+        if (!resetBtn.classList.contains('is-hint')) hintState.normal = hintTextEl.textContent;   // 元の文字を、覚えておく
+        hintTextEl.textContent = T.hintText;
+        resetBtn.classList.add('is-hint');
+        hintState.hideTimer = setTimeout(hideDnaHint, T.hintMs);
+    }
+
+    function scheduleDnaHint() {
+        if (!hintTextEl || hintState.done || hintState.shown >= T.hintMax || hintState.timer) return;
+        hintState.timer = setTimeout(showDnaHint, T.hintDelayMs);
+    }
+
+    function hideDnaHint() {
+        clearTimeout(hintState.timer);
+        hintState.timer = 0;
+        clearTimeout(hintState.hideTimer);
+        if (!resetBtn || !resetBtn.classList.contains('is-hint')) return;
+        resetBtn.classList.remove('is-hint');
+        clearTimeout(hintState.restoreTimer);
+        // 吹き出しが、消えきってから、元の文字に戻す（文字だけが、先に変わって見えないように）
+        hintState.restoreTimer = setTimeout(() => {
+            if (!resetBtn.classList.contains('is-hint') && hintTextEl) hintTextEl.textContent = hintState.normal;
+        }, 300);
+    }
+
+    function dnaHintDone() {
+        hintState.done = true;
+        hideDnaHint();
+    }
+
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
+            hideDnaHint();
             const wasMoved = needsAlign();   // 整列を始める前の位置で、判定する
             resetLayout();                   // これまでどおりの整列（1回だけ）
             angerStep(wasMoved);
