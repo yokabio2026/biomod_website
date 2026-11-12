@@ -1281,3 +1281,31 @@ body .result-summary-links a:focus-visible {
         margin-right: 4px;
     }
 }
+
+
+/* 実験ページ：1 つの実験の、Method（左）と Results（右）を、同じ高さの見出しから、左右に並べる。図は Results の列（右）に入る */
+@media (min-width: 1000px) {
+    .float-figs .section-text .mr-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 40px;
+        align-items: start;
+        clear: both;
+        margin: 8px 0 28px;
+    }
+
+    .float-figs .section-text .mr-col > h3.sub-title {
+        margin-top: 0;
+    }
+
+    .float-figs .section-text .mr-col figure,
+    .float-figs .section-text .mr-col figure.fig-narrow {
+        float: none;
+        width: 100%;
+        margin: 12px 0 16px;
+    }
+
+    .float-figs .section-text .mr-col figure.fig-narrow {
+        width: 70%;
+    }
+}

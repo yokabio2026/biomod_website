@@ -121,7 +121,11 @@
                     </p>
 
                     <p>
-                        Therefore, we use very short DNA strands that are 6 nt long and design each duplex to be very weak. Only 4 of the 6 nucleotides actually pair, so two strands make a 4-bp duplex. The remaining two nucleotides (TT) work as a spacer next to the membrane. Using sticky ends as short as four nucleotides has been proposed as a way to avoid aggregation for micrometer-sized particles coated with DNA <a href="#ref-2" id="cite-2">[2]</a>. One duplex cannot hold two GUVs together. A connection is kept only when many strands bind at the same time.
+                        Therefore, we use very short DNA strands that are 6 nt long and design each duplex to be very weak. Only 4 of the 6 nucleotides actually pair, so two strands make a 4-bp duplex. The remaining two nucleotides (TT) work as a spacer next to the membrane. One duplex cannot hold two GUVs together. A connection is kept only when many strands bind at the same time.
+                    </p>
+
+                    <p style="text-align:center;">
+                        <a class="pill-link" href="#dna-sequence-design">DNA Sequence Design</a>
                     </p>
 
                     <h4 id="surface-density-control" style="margin:32px 0 12px;color:#2b1055;font-size:1.2rem;font-weight:bold;line-height:1.4;">Surface Density of DNA</h4>
@@ -185,7 +189,7 @@
                     <div class="study-row">
                         <div class="study-text">
                             <p>
-                        α-Hemolysin is a pore-forming protein from <em>Staphylococcus aureus</em>. Seven subunits gather in a lipid membrane and form a pore. The pore is 1.4 nm wide at its narrowest point, and small molecules can pass through it <a href="#ref-3" id="cite-3">[3]</a>. When α-hemolysin is added to the outside of GUVs, pores form in the membrane, and the encapsulated contents leak out <a href="#ref-4" id="cite-4">[4]</a>. The leaked contents can then move into the inside of the connected partner GUV through the α-hemolysin pores on its surface.
+                        α-Hemolysin is a pore-forming protein from <em>Staphylococcus aureus</em>. Seven subunits gather in a lipid membrane and form a pore. The pore is 1.4 nm wide at its narrowest point, and small molecules can pass through it <a href="#ref-2" id="cite-2">[2]</a>. When α-hemolysin is added to the outside of GUVs, pores form in the membrane, and the encapsulated contents leak out <a href="#ref-3" id="cite-3">[3]</a>. The leaked contents can then move into the inside of the connected partner GUV through the α-hemolysin pores on its surface.
                     </p>
                         </div>
                         <figure>
@@ -198,10 +202,10 @@
                     <div class="study-row">
                         <div class="study-text">
                             <p>
-                        If the pores are only open, the contents leak out through the surface of a GUV even when the GUV is not connected to any partner. To reduce this leakage, we use TRIMEB (heptakis(2,3,6-tri-O-methyl)-β-cyclodextrin), a derivative of β-cyclodextrin. TRIMEB binds reversibly inside the α-hemolysin pore and blocks it like a lid <a href="#ref-3">[3]</a>. The more TRIMEB there is, the more slowly the contents leak through the pore <a href="#ref-3">[3]</a>.
+                        If the pores are only open, the contents leak out through the surface of a GUV even when the GUV is not connected to any partner. To reduce this leakage, we use TRIMEB (heptakis(2,3,6-tri-O-methyl)-β-cyclodextrin), a derivative of β-cyclodextrin. TRIMEB binds reversibly inside the α-hemolysin pore and blocks it like a lid <a href="#ref-2">[2]</a>. The more TRIMEB there is, the more slowly the contents leak through the pore <a href="#ref-2">[2]</a>.
                     </p>
                             <p>
-                        While a GUV is floating alone, TRIMEB in the surrounding solution blocks the pores and reduces the leakage of its contents. When two GUVs are connected, TRIMEB has difficulty entering the narrow gap between their membranes <a href="#ref-5" id="cite-5">[5]</a>. The pores that face the gap are therefore less likely to be blocked, and the contents can pass from one GUV to the other through two pores in a row <a href="#ref-5">[5]</a>. In this way, material exchange happens between GUVs.
+                        While a GUV is floating alone, TRIMEB in the surrounding solution blocks the pores and reduces the leakage of its contents. When two GUVs are connected, TRIMEB has difficulty entering the narrow gap between their membranes <a href="#ref-4" id="cite-4">[4]</a>. The pores that face the gap are therefore less likely to be blocked, and the contents can pass from one GUV to the other through two pores in a row <a href="#ref-4">[4]</a>. In this way, material exchange happens between GUVs.
                     </p>
                         </div>
                         <figure>
@@ -223,11 +227,22 @@
                         These are the DNA strands used in ALiGN. Each strand on a GUV has a thiol (SH) modification, and the thiol fixes the strand to the GUV membrane.
                     </p>
 
-                    <h3 class="sub-title" id="dna-6nt">6-nt DNA (Main Design)</h3>
                     <p>
-                        These are weakly binding strands for connecting GUVs with an intended number of partners (see <a href="#weak-binding">Many Weak Bonds and Surface Density of DNA</a>). Each strand is 6 nt long, with a 4-nt binding part (ACAC / GTGT or AGAG / CTCT) and a 2-nt TT spacer on the membrane side. In this wiki, “nt” is the length of one strand, and “bp” is the length of a duplex. All strands have SH at the 3′ end.
+                        The strength of a DNA bond is not decided by the length of the DNA alone. It also depends on the temperature and the salt concentration. Because of this, we cannot know in advance exactly how strongly a designed sequence will bind in the experiment.
                     </p>
 
+                    <p>
+                        So we prepared two kinds of DNA as two variations of the same idea: a very weak short one (6 nt) and a long one (23 nt). They differ in the length of the sequence. We also prepared a 63-nt DNA as a backup. The 6-nt and 23-nt DNA have the same purpose: to connect GUVs with intended partners and in an intended number, through weak bonds.
+                    </p>
+
+                    <p>
+                        If we used only one length of sequence, the bonds could become too strong or too weak, and changing other conditions, such as the salt concentration and the surface density of the DNA, might not be enough to adjust the number of partners. By preparing sequences of different lengths in advance, we want to avoid the case where the sequence prevents us from achieving element 2 (<a href="#weak-binding-method">connecting with an intended number of partners</a>).
+                    </p>
+
+                    <h3 class="sub-title" id="dna-6nt">6-nt DNA</h3>
+                    <p>
+                        These are short strands. Each strand is 6 nt long, with a 4-nt binding part (ACAC / GTGT or AGAG / CTCT) and a 2-nt TT spacer on the membrane side. In this wiki, “nt” is the length of one strand, and “bp” is the length of a duplex. All strands have SH at the 3′ end.
+                    </p>
                     <figure class="fig-wide">
                         <img src="images/design-dna-6nt-v8.png" alt="Three connected GUVs on the left and a close-up of four evenly spaced 6-nt DNA pairs in the gap between GUV1 and GUV2 on the right">
                         <figcaption><strong>Fig. 7 Many weak bonds with 6-nt DNA.</strong> Left: three GUVs connected. Right: close-up of the gap between GUV1 and GUV2, where a connection holds only when many strands bind at the same time.</figcaption>
@@ -244,20 +259,20 @@
                     </p>
 
                     <p>
-                        To check the stability of the duplexes, we calculated the free energy of hybridization ΔG for each pair with the Two State Melting Hybridization mode of the DINAMelt server <a href="#ref-7" id="cite-7">[7]</a> (DNA, 25 °C, 150 mM Na<sup>+</sup>, no Mg<sup>2+</sup>). ΔG was −3.2 kcal/mol for Pair 1 and −2.4 kcal/mol for Pair 2 (−2.6 and −2.0 kcal/mol when only the four binding nucleotides are entered). For comparison, the 23-nt strands used for the strong bonds gave −29.8 and −29.5 kcal/mol under the same conditions.
+                        To check the stability of the duplexes, we calculated the free energy of hybridization ΔG for each pair with the Two State Melting Hybridization mode of the DINAMelt server <a href="#ref-6" id="cite-6">[6]</a> (DNA, 25 °C, 150 mM Na<sup>+</sup>, no Mg<sup>2+</sup>). ΔG was −3.2 kcal/mol for Pair 1 and −2.4 kcal/mol for Pair 2 (−2.6 and −2.0 kcal/mol when only the four binding nucleotides are entered). These values are calculated for one condition. The real binding strength also depends on the temperature and the salt concentration.
                     </p>
 
-                    <h3 class="sub-title" id="dna-23bp">23-bp DNA (Supporting Design)</h3>
+                    <h3 class="sub-title" id="dna-23bp">23-bp DNA</h3>
                     <p>
-                        These are strongly binding strands that form a stable 23-bp duplex. We use them first to show that DNA can control the GUV1–GUV2 connection and the GUV2–GUV3 connection separately (see <a href="#sequence-specific-binding">Sequence-Specific Binding</a>). SH is at the 3′ end on the L side and at the 5′ end on the R side.
-                    </p>
-
-                    <p>
-                        The 23-nt sequences are taken from a published set of orthonormal 23-mers <a href="#ref-6" id="cite-6">[6]</a>. Every sequence in this set binds only to its own complementary strand and not to the other sequences in the set. Therefore, the GUV1–GUV2 pair and the GUV2–GUV3 pair do not interfere with each other.
+                        These are long strands that form a stable 23-bp duplex. SH is at the 3′ end on the L side and at the 5′ end on the R side.
                     </p>
 
                     <p>
-                        We make these strands long because a 23-bp duplex is strong and hardly comes apart, so a few duplexes are enough to hold two GUVs together. If the binding is this strong, a GUV keeps taking new partners, so the number of partners is not controlled. When we use the 23-bp DNA, we do not aim to control the number of partners. We use it only to show that sequences can control the choice of partners, that is, the GUV1–GUV2 and GUV2–GUV3 connections.
+                        The 23-nt sequences are taken from a published set of orthonormal 23-mers <a href="#ref-5" id="cite-5">[5]</a>. Every sequence in this set binds only to its own complementary strand and not to the other sequences in the set. Therefore, the GUV1–GUV2 pair and the GUV2–GUV3 pair do not interfere with each other.
+                    </p>
+
+                    <p>
+                        The calculated ΔG of the two pairs is −29.8 and −29.5 kcal/mol (DINAMelt <a href="#ref-6">[6]</a>, 25 °C, 150 mM Na<sup>+</sup>), which is roughly ten times larger in size than that of the 6-nt pairs.
                     </p>
 
                     <p>
@@ -279,14 +294,14 @@
                         Conn23_R2: <code>(SH) 5′-TGGCCTTCGTTACAATGGACTAG-3′</code>
                     </p>
 
-                    <h3 class="sub-title" id="dna-63nt">63-nt Scaffold DNA (Backup Plan)</h3>
+                    <h3 class="sub-title" id="dna-63nt">63-nt DNA (Backup Plan)</h3>
                     <p>
-                        The 63-nt scaffold DNA is a backup plan for the case where the weak 6-nt binding alone rarely starts a connection. The 23-nt end of the 63-nt scaffold DNA binds to the 23-nt anchor strand on one GUV. The remaining 40 nt is a repeat sequence (CA or CT, ten 4-nt units). It gathers many 6-nt strands of the partner GUV at one spot and creates a trigger for the connection.
+                        The 63-nt DNA is a backup plan for the case where the short 6-nt binding alone rarely starts a connection. The 23-nt end of the 63-nt DNA binds to the 23-nt anchor strand on one GUV. The remaining 40 nt is a repeat sequence (CA or CT, ten 4-nt units). It gathers many 6-nt strands of the partner GUV at one spot and creates a trigger for the connection.
                     </p>
 
                     <figure class="fig-wide">
-                        <img src="images/design-dna-scaffold.png" alt="Close-up of the gap between GUV1 and GUV2, showing the 63-nt scaffold strand bound to the 23-nt anchor strand on GUV1 and gathering 6-nt strands of GUV2">
-                        <figcaption><strong>Fig. 9 The 63-nt scaffold DNA in the gap between GUV1 and GUV2.</strong> It stays bound to the 23-nt anchor strand on GUV1 and gathers many 6-nt strands of GUV2 at one spot.</figcaption>
+                        <img src="images/design-dna-scaffold.png" alt="Close-up of the gap between GUV1 and GUV2, showing the 63-nt strand bound to the 23-nt anchor strand on GUV1 and gathering 6-nt strands of GUV2">
+                        <figcaption><strong>Fig. 9 The 63-nt DNA in the gap between GUV1 and GUV2.</strong> It stays bound to the 23-nt anchor strand on GUV1 and gathers many 6-nt strands of GUV2 at one spot.</figcaption>
                     </figure>
                     <p>
                         Conn6_L1X: <code style="word-break: break-all;">5′-GGCTGGGTATTGAGTGTAGATGCCACACACACACACACACACACACACACACACACACACACA-3′</code><br>
@@ -313,52 +328,44 @@
                     </p>
 
                     <p id="ref-2">
-                        [2] Wang, Y., Wang, Y., Zheng, X., Ducrot, É., Yodh, J. S., Weck, M. &amp; Pine, D. J.
-                        Crystallization of DNA-coated colloids.
-                        <em>Nat. Commun.</em> <strong>6</strong>, 7253 (2015).
-                        <a href="https://doi.org/10.1038/ncomms8253">https://doi.org/10.1038/ncomms8253</a>
+                        [2] Thomas, J. M., Friddin, M. S., Ces, O. &amp; Elani, Y.
+                        Programming membrane permeability using integrated membrane pores and blockers as molecular regulators.
+                        <em>Chem. Commun.</em> <strong>53</strong>, 12282–12285 (2017).
+                        <a href="https://doi.org/10.1039/C7CC05423H">https://doi.org/10.1039/C7CC05423H</a>
                         <a href="#cite-2">↩ Back to the text</a>
                     </p>
 
                     <p id="ref-3">
-                        [3] Thomas, J. M., Friddin, M. S., Ces, O. &amp; Elani, Y.
-                        Programming membrane permeability using integrated membrane pores and blockers as molecular regulators.
-                        <em>Chem. Commun.</em> <strong>53</strong>, 12282–12285 (2017).
-                        <a href="https://doi.org/10.1039/C7CC05423H">https://doi.org/10.1039/C7CC05423H</a>
+                        [3] Harjung, A., Fracassi, A. &amp; Devaraj, N. K.
+                        Encoding extracellular modification of artificial cell membranes using engineered self-translocating proteins.
+                        <em>Nat. Commun.</em> <strong>15</strong>, 9363 (2024).
+                        <a href="https://doi.org/10.1038/s41467-024-53783-4">https://doi.org/10.1038/s41467-024-53783-4</a>
                         <a href="#cite-3">↩ Back to the text</a>
                     </p>
 
                     <p id="ref-4">
-                        [4] Harjung, A., Fracassi, A. &amp; Devaraj, N. K.
-                        Encoding extracellular modification of artificial cell membranes using engineered self-translocating proteins.
-                        <em>Nat. Commun.</em> <strong>15</strong>, 9363 (2024).
-                        <a href="https://doi.org/10.1038/s41467-024-53783-4">https://doi.org/10.1038/s41467-024-53783-4</a>
+                        [4] Bolognesi, G., Friddin, M. S., Salehi-Reyhani, A., Barlow, N. E., Brooks, N. J., Ces, O. &amp; Elani, Y.
+                        Sculpting and fusing biomimetic vesicle networks using optical tweezers.
+                        <em>Nat. Commun.</em> <strong>9</strong>, 1882 (2018).
+                        <a href="https://doi.org/10.1038/s41467-018-04282-w">https://doi.org/10.1038/s41467-018-04282-w</a>
                         <a href="#cite-4">↩ Back to the text</a>
                     </p>
 
                     <p id="ref-5">
-                        [5] Bolognesi, G., Friddin, M. S., Salehi-Reyhani, A., Barlow, N. E., Brooks, N. J., Ces, O. &amp; Elani, Y.
-                        Sculpting and fusing biomimetic vesicle networks using optical tweezers.
-                        <em>Nat. Commun.</em> <strong>9</strong>, 1882 (2018).
-                        <a href="https://doi.org/10.1038/s41467-018-04282-w">https://doi.org/10.1038/s41467-018-04282-w</a>
+                        [5] Kitajima, T., Takinoue, M., Shohda, K. &amp; Suyama, A.
+                        Design of code words for DNA computers and nanostructures with consideration of hybridization kinetics.
+                        In: Garzon, M. H. &amp; Yan, H. (eds.) <em>DNA Computing (DNA 13)</em>, Lecture Notes in Computer Science <strong>4848</strong>, 119–129, Springer (2008).
+                        <a href="https://doi.org/10.1007/978-3-540-77962-9_12">https://doi.org/10.1007/978-3-540-77962-9_12</a>
                         <a href="#cite-5">↩ Back to the text</a>
                     </p>
 
                     <p id="ref-6">
-                        [6] Kitajima, T., Takinoue, M., Shohda, K. &amp; Suyama, A.
-                        Design of code words for DNA computers and nanostructures with consideration of hybridization kinetics.
-                        In: Garzon, M. H. &amp; Yan, H. (eds.) <em>DNA Computing (DNA 13)</em>, Lecture Notes in Computer Science <strong>4848</strong>, 119–129, Springer (2008).
-                        <a href="https://doi.org/10.1007/978-3-540-77962-9_12">https://doi.org/10.1007/978-3-540-77962-9_12</a>
-                        <a href="#cite-6">↩ Back to the text</a>
-                    </p>
-
-                    <p id="ref-7">
-                        [7] Markham, N. R. &amp; Zuker, M.
+                        [6] Markham, N. R. &amp; Zuker, M.
                         DINAMelt web server for nucleic acid melting prediction.
                         <em>Nucleic Acids Res.</em> <strong>33</strong>, W577–W581 (2005).
                         <a href="https://doi.org/10.1093/nar/gki591">https://doi.org/10.1093/nar/gki591</a>
                         (server: <a href="https://www.unafold.org/">https://www.unafold.org/</a>)
-                        <a href="#cite-7">↩ Back to the text</a>
+                        <a href="#cite-6">↩ Back to the text</a>
                     </p>
                 </div>
             </div>
