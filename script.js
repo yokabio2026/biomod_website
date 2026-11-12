@@ -856,6 +856,8 @@ function initMemberDrag() {
         bondGap: 18,           // 【DNAがつながる】2枚の写真の、ふちとふちの距離(px)が、これ以下になったら、DNAでつながる（近づけたときだけ）。写真どうしは、gap（8px）より近づけないので、ほぼ接するくらい
         bondApproach: 6,       // 【DNAがつながる】元の位置のときより、中心どうしの距離が、これ(px)以上、近づいていること（最初から近い並びで、勝手につながらないように）
         bondRestGap: 70,       // 【DNAがつながる】つながったDNAの、自然な長さ（写真のふちからふちまで）(px)。これより離すと、DNAが引き寄せる
+        bondTouchMs: 200,      // 【DNAがつながる】速く近づけて、ぶつかった写真が、はじかれても、この時間(ミリ秒)以内なら、「ぶつかった」ことを覚えていて、つなぐ（速いと、1コマで、bondGap より遠くへ飛ぶため）
+        bondTouchReach: 150,   // 【DNAがつながる】ぶつかったあと、はじかれて、ふちとふちが、ここ(px)より遠くへ離れていたら、つながない
         bondMaxGroup: 3,       // 【DNAがつながる】つながった写真の「かたまり」の、最大の枚数。4枚以上には、連結しない
         bondFadeMs: 360,       // 【DNAが外れる】YOKABIOくんを押したとき、DNAが消えるまでの時間(ミリ秒)
         bondPulseKick: 15,     // 【DNAがつながる瞬間】DNAの真ん中が、横へ、はじかれる大きさ(px)。そのあと、ぷるんと揺れて、止まる（つまんで離したときと、同じ戻り方）。0で、揺れなし
@@ -1116,6 +1118,24 @@ function initMemberDrag() {
             ・つながった写真の「かたまり」は、最大 bondMaxGroup 枚（3枚）まで。4枚目は、つながらない
               （かたまりどうしを、つなぐときは、合わせて3枚以内。同じかたまりの中を、さらにつなぐことは、しない）
             ・つながったDNAは、YOKABIOくんを押すまで、外れない。自然な長さは、bondRestGap（このあいだは、引き寄せない。引っぱると、引き寄せる） */
+    // 写真どうしが、ぶつかった（重なった）ときの、時刻と距離を、覚えておく。速く近づけると、ぶつかった次の1コマで、はじかれて遠くへ飛ぶので、
+    // 「いま、近いか」だけだと、つながり損ねる。そこで、ぶつかったことを、bondTouchMs のあいだ、覚えておく
+    const touchAt = new Map();   // 写真A → (写真B → { t, d })
+    function noteTouch(A, B, d) {
+        let m = touchAt.get(A);
+        if (!m) { m = new Map(); touchAt.set(A, m); }
+        const prev = m.get(B);
+        const now = performance.now();
+        // 同じコマの中（数ミリ秒以内）では、いちばん近づいた距離を残す
+        m.set(B, { t: now, d: prev && now - prev.t < 5 ? Math.min(prev.d, d) : d });
+    }
+    function recentTouch(A, B) {
+        const m = touchAt.get(A);
+        const r = m && m.get(B);
+        if (!r || performance.now() - r.t > T.bondTouchMs) return null;
+        return r;
+    }
+
     function tryBond() {
         if (resetting || linkFade) return;
         const list = Array.from(members);
@@ -1131,8 +1151,14 @@ function initMemberDrag() {
                 const hb = homes.get(b);
                 const d = Math.hypot((hb.x + ob.x) - (ha.x + oa.x), (hb.y + ob.y) - (ha.y + oa.y));
                 const gap = d - radii.get(a) - radii.get(b);
-                if (gap > T.bondGap) continue;
-                if (d > Math.hypot(hb.x - ha.x, hb.y - ha.y) - T.bondApproach) continue;   // 近づけたときだけ
+                let dNear = d;   // 近づいたときの距離（「近づけたとき」の判定に使う）
+                if (gap > T.bondGap) {
+                    // いまは、はじかれて離れていても、さっき、ぶつかっていたら、つなぐ
+                    const tc = recentTouch(a, b) || recentTouch(b, a);
+                    if (!tc || gap > T.bondGap + T.bondTouchReach) continue;
+                    dNear = tc.d;
+                }
+                if (dNear > Math.hypot(hb.x - ha.x, hb.y - ha.y) - T.bondApproach) continue;   // 近づけたときだけ
                 cands.push({ a: a, b: b, d: d, gap: gap });
             }
         }
@@ -2014,6 +2040,7 @@ function initMemberDrag() {
         let d = Math.hypot(dx, dy);
         const min = radii.get(A) + radii.get(B) + T.gap;
         if (d >= min) return;
+        noteTouch(A, B, d);   // ぶつかった（重なった）ことを、覚えておく（tryBond が使う）
         if (d < 0.01) { dx = 1; dy = 0; d = 1; }
         const wa = invMassOf(A, blocked, dragFactor);
         const wb = invMassOf(B, blocked, dragFactor);
