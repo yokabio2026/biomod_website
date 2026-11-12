@@ -1142,31 +1142,38 @@ a.search-result-item:hover {
 
 .align-badge-layer {
     grid-area: 1 / 1;
-    /* 枠（ふち取り）：文字の形に沿って、まわりに付ける（上下左右・ななめに、少しずらした影を、重ねて作る）。
-       太さは、0.014em の数字（大きいほど、太い）。色は、レイヤーごとの --ol */
-    filter:
-        drop-shadow(0.014em 0 0 var(--ol)) drop-shadow(-0.014em 0 0 var(--ol))
-        drop-shadow(0 0.014em 0 var(--ol)) drop-shadow(0 -0.014em 0 var(--ol))
-        drop-shadow(0.01em 0.01em 0 var(--ol)) drop-shadow(-0.01em 0.01em 0 var(--ol))
-        drop-shadow(0.01em -0.01em 0 var(--ol)) drop-shadow(-0.01em -0.01em 0 var(--ol));
+    /* 枠（ふち取り）：文字の形に沿って、まわりに付ける。二重の枠にして、平らに見えないようにする。
+         内側 = 文字に接する、細い線（0.006em）。文字より少し濃い色（--ol-in）
+         外側 = そのまわりの、うすい線（0.016em）。うすい色（--ol）
+       文字の影（text-shadow）を、ぐるっと一周ぶん、重ねて作る（軽い方法。先に書いたものが、手前に出る）。
+       太さは、em の数字（大きいほど、太い）。色は、レイヤーごと */
+    text-shadow:
+        0.0060em 0.0000em 0 var(--ol-in), 0.0042em 0.0042em 0 var(--ol-in), 0.0000em 0.0060em 0 var(--ol-in), -0.0042em 0.0042em 0 var(--ol-in),
+        -0.0060em 0.0000em 0 var(--ol-in), -0.0042em -0.0042em 0 var(--ol-in), -0.0000em -0.0060em 0 var(--ol-in), 0.0042em -0.0042em 0 var(--ol-in),
+        0.0160em 0.0000em 0 var(--ol), 0.0139em 0.0080em 0 var(--ol), 0.0080em 0.0139em 0 var(--ol), 0.0000em 0.0160em 0 var(--ol),
+        -0.0080em 0.0139em 0 var(--ol), -0.0139em 0.0080em 0 var(--ol), -0.0160em 0.0000em 0 var(--ol), -0.0139em -0.0080em 0 var(--ol),
+        -0.0080em -0.0139em 0 var(--ol), -0.0000em -0.0160em 0 var(--ol), 0.0080em -0.0139em 0 var(--ol), 0.0139em -0.0080em 0 var(--ol);
 }
 
 /* clip-path：自分の担当の幅だけを見せる（上下と、両はしの外側は、枠がはみ出すぶん、広めにとる）。境目は、すきまが見えないよう、0.3%だけ、重ねる */
 .align-badge-layer--green {
     color: #77c46e;      /* 緑 */
-    --ol: #96d38d;       /* 枠：うすい緑（文字の緑より、うすい） */
+    --ol: #96d38d;       /* 外側の枠：うすい緑 */
+    --ol-in: #5cac5f;    /* 内側の枠：文字より、少し濃い緑 */
     clip-path: inset(-0.2em calc(100% - var(--s1, 38%)) -0.2em -0.2em);
 }
 
 .align-badge-layer--orange {
     color: #ff8a5b;      /* オレンジ */
-    --ol: #ffa085;       /* 枠：うすい赤（コーラル） */
+    --ol: #ffa085;       /* 外側の枠：うすい赤（コーラル） */
+    --ol-in: #f27455;    /* 内側の枠：文字より、少し濃いオレンジ */
     clip-path: inset(-0.2em calc(100% - var(--s2, 66%)) -0.2em calc(var(--s1, 38%) - 0.3%));
 }
 
 .align-badge-layer--blue {
     color: #45b7f5;      /* 青 */
-    --ol: #86c3f4;       /* 枠：うすい青 */
+    --ol: #86c3f4;       /* 外側の枠：うすい青 */
+    --ol-in: #3a9ede;    /* 内側の枠：文字より、少し濃い青 */
     clip-path: inset(-0.2em -0.2em -0.2em calc(var(--s2, 66%) - 0.3%));
 }
 
