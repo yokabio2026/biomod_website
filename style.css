@@ -503,6 +503,14 @@ a.search-result-item:hover {
         margin: 20px auto;
     }
 
+    /* 幅 58% で中央に置く図（図と、すぐ下の文章を、1 画面で一緒に見られる大きさ） */
+    .float-figs .section-text figure.fig-w62 {
+        float: none;
+        clear: both;
+        width: 58%;
+        margin: 12px auto;
+    }
+
     /* 図を、本文の中に、そのまま（右寄せにも横並びにもせず）置く */
     .float-figs .section-text figure.fig-block {
         float: none;
