@@ -48,27 +48,12 @@
         <div class="page-hero-header page-hero-header--with-title">
             <h1>Experiment</h1>
         </div>
-        <div class="content-section" id="purpose">
-            <h2 class="section-title">Purpose</h2>
+        <div class="content-section" id="abstract">
+            <h2 class="section-title">Abstract</h2>
             <div class="content-space">
                 <div class="section-text">
                     <p>
-                        ALiGN aims to build a network in which GUVs connect to selected partners
-                        and exchange their contents through those connections. Our experiments
-                        test the two functions needed to realize this design:
-                        <strong>controlled connection</strong> and <strong>controlled material exchange</strong>.
-                    </p>
-                    <p>
-                        For connection, we need to determine whether DNA can select the binding
-                        partners and control the number of partners attached to each GUV.
-                        For material exchange, we need to determine whether connected GUVs can
-                        exchange their contents while unconnected GUVs retain theirs.
-                    </p>
-                    <p>
-                        We begin by preparing the vesicles that will form this network.
-                        Before testing connections or transport, we need to identify the vesicle
-                        membrane and distinguish its interior from the surrounding solution.
-                        This provides the starting point for interpreting the later experiments.
+                        The aim of the experiments was to connect GUVs specifically through DNA and to exchange materials between the GUVs. We made GUVs by the emulsion transfer method and confirmed their formation by fluorescence observation. Next, we formed nanopores in the GUV membrane with αHL and confirmed that a fluorescent substance flowed out. We then confirmed that TRIMEB could block the nanopores. After that, we introduced DNA to the GUV surface using DNA-conjugated lipids and tried to connect GUVs through DNA. Some GUVs were connected, but the connection efficiency was low. We think the reason is that the centrifugation during GUV formation moved the DNA-conjugated lipids to the inside of the GUVs, so the DNA density on the outer surface became low. In the future, we will add DNA-conjugated lipids after GUV formation to control the DNA density on the outer surface, and aim for efficient GUV connection and material exchange.
                     </p>
                 </div>
             </div>
@@ -78,125 +63,262 @@
             <h2 class="section-title">GUV Preparation</h2>
             <div class="content-space">
                 <div class="section-text">
+                    <h3 class="sub-title" id="method">Method</h3>
                     <p>
-                        In ALiGN, each GUV serves as a compartment: its membrane provides a
-                        surface for connections, and its interior holds the molecules to be
-                        exchanged. Our first experiment therefore focuses on preparing vesicles
-                        whose membrane and internal contents can be observed separately.
+                        We made GUVs by the emulsion transfer method <a href="https://doi.org/10.1021/la026100v" aria-label="Reference: emulsion transfer">[1]</a>. The procedure has three steps.
                     </p>
-
-                    <h3 class="sub-title" id="guv-method">Method</h3>
+                    <h4 style="margin:24px 0 8px;color:#2b1055;font-size:1.1rem;font-weight:bold;line-height:1.4;">Making the lipid-containing oil</h4>
                     <p>
-                        We use the <strong>emulsion transfer method</strong>. First, an aqueous
-                        solution is dispersed into small droplets in lipid-containing oil.
-                        Lipids coat the surface of each droplet. Centrifugation then drives the
-                        droplets through an oil&ndash;water interface coated with another lipid
-                        layer. As the droplets cross this interface, they acquire a second layer,
-                        forming a lipid bilayer around the internal solution.
-                        <a href="https://doi.org/10.1021/la026100v" aria-label="Reference: emulsion transfer mechanism">[1]</a>
+                        The lipids were dissolved in chloroform. The composition is as follows (final concentration in 300 µL).
                     </p>
-                    <figure id="emulsion-transfer">
-                        <video src="videos/experiment-emulsion-transfer.mp4"
-                               poster="images/experiment-emulsion-transfer.jpg"
-                               autoplay loop muted playsinline
-                               aria-label="Animation of a droplet crossing the oil-water interface and acquiring a lipid bilayer">
-                            Your browser does not support embedded video.
-                            <a href="videos/experiment-emulsion-transfer.mp4">Watch the emulsion transfer animation.</a>
-                        </video>
-                        <figcaption>
-                            Movie 1. From a droplet to a vesicle. A lipid-coated water droplet
-                            moves from the oil into the external aqueous solution. As it crosses
-                            the interface, a second lipid layer wraps around it, completing the
-                            bilayer. Blue circles represent hydrophilic heads; white lines
-                            represent hydrophobic tails.
-                            This Manim animation illustrates the mechanism; it is not experimental footage.
-                            Molecular sizes and distances are schematic.
-                        </figcaption>
-                    </figure>
-
+                    <ul>
+                        <li>100 mM POPC: 15 µL (final 5 mM)</li>
+                        <li>1 mM NBD-PE: 15 µL (final 0.05 mM)</li>
+                        <li>25 mM cholesterol: 36 µL (final 3.0 mM)</li>
+                    </ul>
+                    <ul>
+                        <li>The chloroform was evaporated with nitrogen gas in a glass tube.</li>
+                        <li>The tube was dried in a vacuum desiccator for 1 hour to form a lipid film.</li>
+                        <li>300 µL of mineral oil was added.</li>
+                        <li>The lipids were dispersed in the oil by sonication at 60 °C for 60 minutes.</li>
+                    </ul>
+                    <h4 style="margin:24px 0 8px;color:#2b1055;font-size:1.1rem;font-weight:bold;line-height:1.4;">Making GUVs</h4>
+                    <ul>
+                        <li>The inner aqueous solution was mixed with the lipid-containing oil.</li>
+                        <li>The mixture was vortexed for 30 seconds to form a W/O emulsion.</li>
+                        <li>The emulsion was gently layered on the outer aqueous solution.</li>
+                        <li>It was left for 5 minutes.</li>
+                        <li>It was centrifuged at 3000 × g and 24 °C for 30 minutes, and then at 5000 × g and 24 °C for 10 minutes.</li>
+                    </ul>
                     <p>
-                        This approach lets us put the molecules intended for the vesicle
-                        interior into the droplets before membrane formation. In this experiment,
-                        we used POPC as the main membrane lipid, with NBD-PE as a green fluorescent
-                        membrane label. Sulforhodamine B was added to the internal solution
-                        as a red fluorescent marker. The internal and external solutions
-                        contained sucrose and glucose, respectively.
+                        Composition of the inner aqueous solution (total 10 µL):
                     </p>
+                    <ul>
+                        <li>2.0 M sucrose: 1.5 µL (final 0.3 M)</li>
+                        <li>100 mM Tris-HCl: 1 µL (final 10 mM)</li>
+                        <li>10 µM sulforhodamine B: 1 µL (final 1 µM)</li>
+                        <li>MQ: 6.5 µL</li>
+                    </ul>
                     <p>
-                        After transfer and washing, we examined the sample by phase-contrast
-                        and fluorescence microscopy. The two fluorescent labels were used to
-                        distinguish the membrane boundary from the aqueous interior, rather
-                        than relying on vesicle shape alone.
+                        Composition of the outer aqueous solution (total 600 µL):
                     </p>
-
-                    <h3 class="sub-title" id="guv-results">Results</h3>
-                    <!-- EDITOR: Insert the verified microscopy figure and observation-based
-                         conclusion here. Do not describe the intended labeling as an achieved result.
-                         Suggested panels: phase contrast, green membrane channel, red contents
-                         channel, and an overlay of the same field, with calibrated scale bars.
-                         State the actual observed morphology, diameter range, and sample count
-                         only when supported by the images and measurement records.
-                         A static image cannot establish retention over time, membrane
-                         unilamellarity, or material exchange between vesicles. -->
+                    <ul>
+                        <li>2.0 M glucose: 90 µL (final 0.3 M)</li>
+                        <li>100 mM Tris-HCl: 60 µL (final 10 mM)</li>
+                        <li>MQ: 450 µL</li>
+                    </ul>
+                    <h4 style="margin:24px 0 8px;color:#2b1055;font-size:1.1rem;font-weight:bold;line-height:1.4;">Washing GUVs</h4>
+                    <ul>
+                        <li>The upper oil layer was removed.</li>
+                        <li>The GUVs were resuspended gently.</li>
+                        <li>About 150 µL was collected.</li>
+                        <li>300 µL of the outer solution for washing was added.</li>
+                        <li>The sample was centrifuged at 5000 × g and 24 °C for 5 minutes.</li>
+                    </ul>
+                    <h3 class="sub-title" id="results">Results</h3>
+                    <!-- Fig. 1: GUVs made by the emulsion transfer method (green membrane, red inside) -->
                     <p>
-                        Microscopy images and their interpretation will be added here after
-                        verification of the original image data.
+                        Fig. 1 shows the GUVs we made. We can see green fluorescence on the membrane and red fluorescence inside, so the GUVs were made correctly.
                     </p>
-                    <p>
-                        This experiment addresses the preparation of observable compartments.
-                        Selective connection and controlled exchange require separate tests,
-                        described in the following sections.
-                    </p>
-                    <!-- EDITOR: Before adding a detailed protocol or reporting dye concentration,
-                         resolve the notebook discrepancy: 1 microL of 100 microM stock in
-                         10 microL total gives 10 microM, while the table states 1 microM. -->
-
                 </div>
             </div>
         </div>
 
-        <div class="content-section">
-            <h2 class="section-title">Pore Formation by α-Hemolysin</h2>
+        <div class="content-section" id="dna-purification">
+            <h2 class="section-title">DNA Purification</h2>
             <div class="content-space">
                 <div class="section-text">
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
-
-                    <h3 class="sub-title">Method</h3>
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
-
-                    <h3 class="sub-title">Results</h3>
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
+                    <h3 class="sub-title" id="method-2">Method</h3>
+                    <p>
+                        We purified the DNA with the following steps.
+                    </p>
+                    <ul>
+                        <li>The target DNA was captured with gel balls.</li>
+                        <li>The DNA was reacted with a lipid that has a maleimide group.</li>
+                        <li>Only the DNA bound to the maleimide lipid was collected by HPLC.</li>
+                        <li>The concentration was measured by absorbance.</li>
+                    </ul>
+                    <h3 class="sub-title" id="results-2">Results</h3>
+                    <!-- Fig. 2: HPLC result and absorbance measurement -->
+                    <p>
+                        Fig. 2 shows the results of HPLC and the absorbance measurement. From the HPLC result, we think that the lipid-conjugated DNA is at the position shown in the figure. The absorbance was specific to DNA, so we think that DNA is in that peak.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="content-section">
-            <h2 class="section-title">Connection Between GUVs</h2>
+        <div class="content-section" id="hemolysin-purification">
+            <h2 class="section-title">α-Hemolysin Purification</h2>
             <div class="content-space">
                 <div class="section-text">
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
-
-                    <h3 class="sub-title">Target Specific Connection</h3>
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
-
-                    <h3 class="sub-title">Controlled Number of Connections</h3>
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
-
-                    <h3 class="sub-title">Scaffold Assisted Connection</h3>
-                    <!-- ▼ ここに文章を書く -->
-                    <div class="text-blank"></div>
+                    <h3 class="sub-title" id="method-3">Method</h3>
+                    <p>
+                        We purified αHL with the following steps.
+                    </p>
+                    <ul>
+                        <li>The αHL plasmid was expressed in E. coli.</li>
+                        <li>The protein was purified using the His-tag.</li>
+                        <li>The sample was desalted and dissolved in buffer (20 mM HEPES, 150 mM NaCl, pH 7).</li>
+                        <li>Electrophoresis (28 mA, 60 min) was performed to check the purification.</li>
+                    </ul>
+                    <h3 class="sub-title" id="results-3">Results</h3>
+                    <!-- Fig. 3: electrophoresis result -->
+                    <p>
+                        Fig. 3 shows the result of electrophoresis. A band was seen near 33.2 kDa. This matches αHL, so we think that αHL was purified correctly.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="content-section">
+        <div class="content-section" id="pore-formation-in-guvs-with-hemolysin">
+            <h2 class="section-title">Pore Formation in GUVs with α-Hemolysin</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <h3 class="sub-title" id="method-4">Method</h3>
+                    <p>
+                        We added 3.0 mM cholesterol to the lipid-containing oil. This makes the membrane more stable so that αHL can insert into it more easily.
+                    </p>
+                    <p>
+                        Composition of the lipid-containing oil (final concentration in 300 µL):
+                    </p>
+                    <ul>
+                        <li>100 mM POPC: 15 µL (final 5 mM)</li>
+                        <li>1 mM NBD-PE: 15 µL (final 0.05 mM)</li>
+                        <li>25 mM cholesterol: 36 µL (final 3.0 mM)</li>
+                    </ul>
+                    <p>
+                        Composition of the outer aqueous solution (total 600 µL):
+                    </p>
+                    <ul>
+                        <li>2.0 M glucose: 90 µL (final 0.3 M)</li>
+                        <li>100 mM Tris-HCl: 60 µL (final 10 mM)</li>
+                        <li>MQ: 450 µL</li>
+                    </ul>
+                    <p>
+                        Composition of the inner aqueous solution (total 10 µL):
+                    </p>
+                    <!-- EDITOR: the source document lists 100 mM sulforhodamine B (final 10 mM) and αHL final "25 mM". These look like typos (likely 100 µM / 10 µM, and 25 ng/µL: 2.8 µL of 89 ng/µL in 10 µL = 25 ng/µL). Please check the lab notebook before publishing. -->
+                    <ul>
+                        <li>2.0 M sucrose: 1.5 µL (final 0.3 M)</li>
+                        <li>100 mM Tris-HCl: 1 µL (final 10 mM)</li>
+                        <li>100 mM sulforhodamine B: 1 µL (final 10 mM)</li>
+                        <li>89 ng/µL αHL: 2.8 µL (final 25 mM)</li>
+                        <li>MQ: 3.7 µL</li>
+                    </ul>
+                    <h3 class="sub-title" id="results-4">Results</h3>
+                    <!-- Fig. 4: GUVs with αHL in the inner solution (red fluorescence has gone out) -->
+                    <p>
+                        We added αHL to the inner aqueous solution of the GUVs in Fig. 1. Fig. 4 shows the GUVs we made. The red fluorescence has gone out, so the contents come out of the GUVs. From this, we think that nanopores were formed in the GUVs.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="blocking-the-pores-with-trimeb">
+            <h2 class="section-title">Blocking the Pores with TRIMEB</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <h3 class="sub-title" id="method-5">Method</h3>
+                    <p>
+                        Composition of the lipid-containing oil (final concentration in 300 µL):
+                    </p>
+                    <ul>
+                        <li>100 mM POPC: 15 µL (final 5 mM)</li>
+                        <li>1 mM NBD-PE: 15 µL (final 0.05 mM)</li>
+                        <li>25 mM cholesterol: 36 µL (final 3.0 mM)</li>
+                    </ul>
+                    <p>
+                        Composition of the outer aqueous solution (total 600 µL):
+                    </p>
+                    <ul>
+                        <li>2.0 M glucose: 90 µL (final 0.3 M)</li>
+                        <li>100 mM Tris-HCl: 60 µL (final 10 mM)</li>
+                        <li>20 mM TRIMEB: 120 µL (final 4 mM)</li>
+                        <li>MQ: 450 µL</li>
+                    </ul>
+                    <p>
+                        The inner aqueous solution was the same as in the previous experiment (total 10 µL).
+                    </p>
+                    <h3 class="sub-title" id="results-5">Results</h3>
+                    <!-- Fig. 5: GUVs with TRIMEB in the outer solution (red fluorescence stays inside) -->
+                    <p>
+                        Fig. 5 shows the GUVs made by adding TRIMEB to the outer aqueous solution of Fig. 4. Compared with Fig. 4, the red fluorescence has not gone out. From this, we think that the nanopores of the GUVs were blocked.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="attaching-dna-to-guvs">
+            <h2 class="section-title">Attaching DNA to GUVs</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <h3 class="sub-title" id="method-6">Method</h3>
+                    <p>
+                        We added DNA to the inner aqueous solution of the GUVs in Fig. 1 and then stained the GUVs with SYBR Gold.
+                    </p>
+                    <p>
+                        Composition of the lipid-containing oil (final concentration in 300 µL):
+                    </p>
+                    <ul>
+                        <li>100 mM POPC: 15 µL (final 5 mM)</li>
+                        <li>1 mM NBD-PE: 15 µL (final 0.05 mM)</li>
+                        <li>25 mM cholesterol: 36 µL (final 3.0 mM)</li>
+                    </ul>
+                    <p>
+                        Composition of the inner aqueous solution (total 10 µL):
+                    </p>
+                    <ul>
+                        <li>2.0 M sucrose: 1.5 µL (final 0.3 M)</li>
+                        <li>100 mM Tris-HCl: 1 µL (final 10 mM)</li>
+                        <li>10 µM sulforhodamine B: 1 µL (final 1 µM)</li>
+                        <li>1 µM lipid-conjugated DNA: 1 µL (final 100 nM)</li>
+                        <li>MQ: 5.5 µL</li>
+                    </ul>
+                    <p>
+                        Composition of the outer aqueous solution (total 600 µL):
+                    </p>
+                    <ul>
+                        <li>2.0 M glucose: 90 µL (final 0.3 M)</li>
+                        <li>100 mM Tris-HCl: 60 µL (final 10 mM)</li>
+                        <li>MQ: 450 µL</li>
+                    </ul>
+                    <h3 class="sub-title" id="results-6">Results</h3>
+                    <!-- Fig. 6: GUVs stained with SYBR Gold -->
+                    <p>
+                        Fig. 6 shows the stained GUVs. We can see fluorescence around the membrane. From this, we think that the DNA was inserted into the GUV membrane.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="connecting-guvs-with-dna">
+            <h2 class="section-title">Connecting GUVs with DNA</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        We prepared three kinds of GUVs with DNA by the method in the previous section. We adjusted them so that the fluorescence inside was red (sulforhodamine B), none, and blue (Alexa647), in this order.
+                    </p>
+                    <!-- Fig. 7: result of connecting GUVs with DNA -->
+                    <p>
+                        Fig. 7 shows the result. Only a very small part of the GUVs were connected as intended. We think this is because centrifugation after adding DNA to the inner aqueous solution made most of the DNA-conjugated lipids face the inside, so the surface density became much lower than we intended. We expect that this will improve if the DNA-conjugated lipids are added after the GUVs are made.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="discussion">
             <h2 class="section-title">Discussion</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        We could not show by experiments the main idea of this project, that is, to connect GUVs specifically with DNA and to exchange materials between them. However, we confirmed that we can make pores in GUVs with αHL and block them. If we can add DNA to GUVs from the outside and adjust the surface density, we think that we can confirm ALiGN by experiments.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="equipment">
+            <h2 class="section-title">Equipment</h2>
             <div class="content-space">
                 <div class="section-text">
                     <!-- ▼ ここに文章を書く -->

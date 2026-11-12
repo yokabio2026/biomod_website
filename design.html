@@ -92,7 +92,7 @@
 
                     <h3 class="sub-title" id="sequence-specific-binding">Sequence-Specific Binding</h3>
                     <figure class="fig-wide">
-                        <img src="images/design-specific-binding-v11.png" alt="GUV1 connected to GUV2 and GUV2 connected to GUV3, with a second GUV1 and GUV3 below that are close to each other but not connected">
+                        <img src="images/design-specific-binding-v14.png" alt="GUV1 connected to GUV2 and GUV2 connected to GUV3, with a second GUV1 and GUV3 below that are close to each other but not connected">
                         <figcaption><strong>Fig. 2 DNA with different sequences lets GUV1 bind GUV2 and GUV2 bind GUV3, while GUV1 and GUV3, which have no complementary sequences, do not connect.</strong></figcaption>
                     </figure>
 
@@ -106,16 +106,12 @@
 
                     <h3 class="sub-title" id="weak-binding">Many Weak Bonds and Surface Density of DNA</h3>
                     <h4 id="weak-binding-method" style="margin:32px 0 12px;color:#2b1055;font-size:1.2rem;font-weight:bold;line-height:1.4;">Many Weak Bonds</h4>
-                    <figure class="fig-wide fig-compact">
+                    <figure class="fig-full">
                         <div class="media-row">
-                            <img src="images/design-long-dna-binding-v5.png" alt="A few strong bonds: a single long DNA pair holding the membranes of GUV1 and GUV2 together">
-                            <img src="images/design-weak-binding-v5.png" alt="Many weak bonds: four pairs of short DNA strands holding the membranes of GUV1 and GUV2 together">
+                            <img src="images/design-weak-overview-strong-v4.png" alt="A few strong bonds: GUVs that attach through one long DNA pair keep attaching and form a large aggregate; the enlarged view shows one long DNA pair between GUV1 and GUV2">
+                            <img src="images/design-weak-overview-weak-v2.png" alt="Many weak bonds: only the three intended GUVs, GUV1, GUV2 and GUV3, connect; the enlarged view shows four short DNA pairs between GUV1 and GUV2">
                         </div>
-                        <div class="media-row">
-                            <img src="images/design-weak-overview-strong-v3.png" alt="A few strong bonds: the GUVs aggregate into a large cluster">
-                            <img src="images/design-weak-overview-weak-v1.png" alt="Many weak bonds: only the three intended GUVs, GUV1, GUV2 and GUV3, connect">
-                        </div>
-                        <figcaption><strong>Fig. 3 Many weak bonds instead of one strong bond.</strong> Left: a long DNA holds the two membranes together even as a single pair. Right: when there are only a few of them, short duplexes come apart, but many short duplexes together keep the two membranes connected. Below: the result for the whole network. With a few strong bonds, the GUVs aggregate (left); with many weak bonds, only the three intended GUVs connect (right).</figcaption>
+                        <figcaption><strong>Fig. 3 Many weak bonds instead of a few strong bonds.</strong> Left: a long DNA holds two GUVs together even as a single pair, so more GUVs keep attaching and the GUVs aggregate. Right: one short DNA pair is weak, but many short pairs together hold two GUVs, so only the three intended GUVs connect. The dashed circle marks the connection shown in the enlarged view.</figcaption>
                     </figure>
 
                     <p>
@@ -164,7 +160,7 @@
                     </p>
 
                     <p style="text-align:center;">
-                        <a href="simulation.html">See the simulation results</a>
+                        <a href="simulation.html">See the simulation</a>
                     </p>
 
                     <p style="text-align:center;">
@@ -231,7 +227,7 @@
                     </p>
 
                     <figure class="fig-wide">
-                        <img src="images/design-dna-6nt-v7.png" alt="Three connected GUVs on the left and a close-up of four evenly spaced 6-nt DNA pairs in the gap between GUV1 and GUV2 on the right">
+                        <img src="images/design-dna-6nt-v8.png" alt="Three connected GUVs on the left and a close-up of four evenly spaced 6-nt DNA pairs in the gap between GUV1 and GUV2 on the right">
                         <figcaption><strong>Fig. 7 Many weak bonds with 6-nt DNA.</strong> Left: three GUVs connected. Right: close-up of the gap between GUV1 and GUV2, where a connection holds only when many strands bind at the same time.</figcaption>
                     </figure>
                     <p>
@@ -243,6 +239,10 @@
                         <strong>Pair 2 (GUV2 – GUV3)</strong><br>
                         Conn6_L2: <code>5′-AGAGTT-3′ (SH)</code><br>
                         Conn6_R2: <code>5′-CTCTTT-3′ (SH)</code>
+                    </p>
+
+                    <p>
+                        To check the stability of the duplexes, we calculated the free energy of hybridization ΔG for each pair with the Two State Melting Hybridization mode of the DINAMelt server <a href="#ref-7" id="cite-7">[7]</a> (DNA, 25 °C, 150 mM Na<sup>+</sup>, no Mg<sup>2+</sup>). ΔG was −3.2 kcal/mol for Pair 1 and −2.4 kcal/mol for Pair 2 (−2.6 and −2.0 kcal/mol when only the four binding nucleotides are entered). For comparison, the 23-nt strands used for the strong bonds gave −29.8 and −29.5 kcal/mol under the same conditions.
                     </p>
 
                     <h3 class="sub-title" id="dna-23bp">23-bp DNA (Supporting Design)</h3>
@@ -348,6 +348,15 @@
                         In: Garzon, M. H. &amp; Yan, H. (eds.) <em>DNA Computing (DNA 13)</em>, Lecture Notes in Computer Science <strong>4848</strong>, 119–129, Springer (2008).
                         <a href="https://doi.org/10.1007/978-3-540-77962-9_12">https://doi.org/10.1007/978-3-540-77962-9_12</a>
                         <a href="#cite-6">↩ Back to the text</a>
+                    </p>
+
+                    <p id="ref-7">
+                        [7] Markham, N. R. &amp; Zuker, M.
+                        DINAMelt web server for nucleic acid melting prediction.
+                        <em>Nucleic Acids Res.</em> <strong>33</strong>, W577–W581 (2005).
+                        <a href="https://doi.org/10.1093/nar/gki591">https://doi.org/10.1093/nar/gki591</a>
+                        (server: <a href="https://www.unafold.org/">https://www.unafold.org/</a>)
+                        <a href="#cite-7">↩ Back to the text</a>
                     </p>
                 </div>
             </div>
