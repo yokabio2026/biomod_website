@@ -1160,9 +1160,10 @@ a.search-result-item:hover {
 /* 3枚の写真が、DNAでつながると、3枚の上に出る「ALiGN」の文字（script.js の updateAlignBadges が、位置・大きさ・濃さを決める）。
    写真の上・YOKABIOくんの下。操作は、じゃましない。
    文字は、同じ「ALiGN」を、3枚重ねて作る（.align-badge-layer）。1枚ずつ、色と、枠の色が違い、自分の担当の幅（横の範囲）だけを切り出して見せる：
-       緑のレイヤー   … A と L の左半分     文字 = 緑         枠 = うすい緑
-       オレンジのレイヤー … L の右半分・i・G の左半分   文字 = オレンジ   枠 = うすい赤
+       オレンジのレイヤー … A と L の左半分     文字 = オレンジ   枠 = うすい赤
+       緑のレイヤー   … L の右半分・i・G の左半分   文字 = 緑         枠 = うすい緑
        青のレイヤー   … G の右半分・N       文字 = 青         枠 = うすい青
+       （3枚の写真の並びと同じ：左の写真 = オレンジ、真ん中の写真 = 緑、右の写真 = 青）
    境目（--s1 = L の真ん中、--s2 = G の真ん中）は、script.js が、文字を測って決める。文字の色は、3枚の写真の色（GUV_COLORS）と、同じ */
 .align-badge {
     position: absolute;
@@ -1203,14 +1204,14 @@ a.search-result-item:hover {
     color: #77c46e;      /* 緑 */
     --ol: #96d38d;       /* 外側の枠：うすい緑 */
     --ol-in: #5cac5f;    /* 内側の枠：文字より、少し濃い緑 */
-    clip-path: inset(-0.2em calc(100% - var(--s1, 38%)) -0.2em -0.2em);
+    clip-path: inset(-0.2em calc(100% - var(--s2, 66%)) -0.2em calc(var(--s1, 38%) - 0.3%));   /* 真ん中の担当：L の右半分・i・G の左半分 */
 }
 
 .align-badge-layer--orange {
     color: #ff8a5b;      /* オレンジ */
     --ol: #ffa085;       /* 外側の枠：うすい赤（コーラル） */
     --ol-in: #f27455;    /* 内側の枠：文字より、少し濃いオレンジ */
-    clip-path: inset(-0.2em calc(100% - var(--s2, 66%)) -0.2em calc(var(--s1, 38%) - 0.3%));
+    clip-path: inset(-0.2em calc(100% - var(--s1, 38%)) -0.2em -0.2em);   /* 左の担当：A と L の左半分 */
 }
 
 .align-badge-layer--blue {
