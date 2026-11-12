@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOKABIO</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- 左の目次（項目別ジャンプ）：見出し（h2 / h3）から自動で作られるので、ページを書き換えると、目次も自動で変わる。この1行と、下の toc.js の1行で動く -->
+    <link rel="stylesheet" href="toc.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-left">
+            <a href="index.html" class="logo">YOKABIO</a>
+        </div>
+
+        <div class="navbar-right">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="project.html">Project</a></li>
+                <li><a href="design.html">Design</a></li>
+                <li><a href="simulation.html">Simulation</a></li>
+                <li><a href="experiment.html">Experiment</a></li>
+                <li><a href="future.html">Future</a></li>
+                <li><a href="elsi.html">ELSI</a></li>
+                <li><a href="team.html">Team</a></li>
+            </ul>
+
+            <div class="search-icon-container">
+                <button id="search-toggle-btn" class="search-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="search-overlay" class="search-overlay hidden">
+        <div class="search-input-wrapper">
+            <input type="text" id="search-input" placeholder="Search...">
+        </div>
+        <div id="search-results" class="search-results"></div>
+    </div>
+
+    <main class="content">
+        <div class="page-hero-header page-hero-header--with-title page-hero-header--with-image">
+            <h1>Solutions</h1>
+            <!-- 帯の右側の飾りの絵（3つのGUVがつながった図）。位置・大きさは style.css の .page-hero-image -->
+            <img class="page-hero-image" src="images/home-hero-guv-network-v2.webp" alt="" aria-hidden="true">
+        </div>
+        <div class="content-section" id="guv-preparation">
+            <h2 class="section-title">GUV Preparation</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        Final concentrations of the solutions used in the <a href="experiment.html">Experiment</a> page. The values are the concentrations after mixing.
+                    </p>
+                    <h3 class="sub-title" id="lipid-containing-oil">Lipid-containing oil</h3>
+                    <ul>
+                        <li>5 mM POPC</li>
+                        <li>0.05 mM NBD-PE</li>
+                        <li>3.0 mM cholesterol</li>
+                    </ul>
+                    <h3 class="sub-title" id="inner-aqueous-solution">Inner aqueous solution</h3>
+                    <ul>
+                        <li>0.3 M sucrose</li>
+                        <li>10 mM Tris-HCl</li>
+                        <li>1 µM sulforhodamine B</li>
+                    </ul>
+                    <h3 class="sub-title" id="outer-aqueous-solution">Outer aqueous solution</h3>
+                    <ul>
+                        <li>0.3 M glucose</li>
+                        <li>10 mM Tris-HCl</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="pore-formation-with-hemolysin">
+            <h2 class="section-title">Pore Formation with α-Hemolysin</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        The lipid-containing oil and the outer aqueous solution are the same as in GUV Preparation.
+                    </p>
+                    <h3 class="sub-title" id="inner-aqueous-solution-2">Inner aqueous solution</h3>
+                    <!-- EDITOR: values copied from the source document. The sulforhodamine B (10 mM, from a 100 mM stock) and the alpha-hemolysin concentration (25 mM) look like typos (likely 10 uM, and 25 ng/uL: 2.8 uL of 89 ng/uL in 10 uL = 25 ng/uL). Check the lab notebook before relying on them. -->
+                    <ul>
+                        <li>0.3 M sucrose</li>
+                        <li>10 mM Tris-HCl</li>
+                        <li>10 mM sulforhodamine B</li>
+                        <li>25 mM αHL</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="blocking-the-pores-with-trimeb">
+            <h2 class="section-title">Blocking the Pores with TRIMEB</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        The lipid-containing oil and the inner aqueous solution are the same as in the previous experiment.
+                    </p>
+                    <h3 class="sub-title" id="outer-aqueous-solution-2">Outer aqueous solution</h3>
+                    <ul>
+                        <li>0.3 M glucose</li>
+                        <li>10 mM Tris-HCl</li>
+                        <li>4 mM TRIMEB</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="attaching-dna-to-guvs">
+            <h2 class="section-title">Attaching DNA to GUVs</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>
+                        The lipid-containing oil and the outer aqueous solution are the same as in GUV Preparation.
+                    </p>
+                    <h3 class="sub-title" id="inner-aqueous-solution-3">Inner aqueous solution</h3>
+                    <ul>
+                        <li>0.3 M sucrose</li>
+                        <li>10 mM Tris-HCl</li>
+                        <li>1 µM sulforhodamine B</li>
+                        <li>100 nM lipid-conjugated DNA</li>
+                    </ul>
+                    <p style="text-align:center;">
+                        <a class="pill-link" href="experiment.html">↩ Back to Experiment</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy;BIOMOD 2026 YOKABIO</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="toc.js"></script>
+</body>
+</html>
