@@ -861,6 +861,11 @@ function initMemberDrag() {
         bondPulseKick: 15,     // 【DNAがつながる瞬間】DNAの真ん中が、横へ、はじかれる大きさ(px)。そのあと、ぷるんと揺れて、止まる（つまんで離したときと、同じ戻り方）。0で、揺れなし
         bondFlash: 1,          // 【DNAがつながる瞬間】DNAの色が、紫・青・ピンクの虹色のグラデーションに光る強さ（0〜1）。0で、光らない
         bondFlashMs: 800,      // 【DNAがつながる瞬間】虹色に光っている時間(ミリ秒)。そのあと、約0.3秒かけて、元の色に戻る
+        shimmerEveryMin: 3000, // 【DNAのきらめき】つながったDNAが、虹色に光る間隔の、短いほう(ミリ秒)。光り終わってから、この時間〜下の時間のあいだで、ランダムに、つぎの光が来る
+        shimmerEveryMax: 5500, // 【DNAのきらめき】同じく、長いほう(ミリ秒)。DNAごとに、ずらす（全部が、同時に光らないように）
+        shimmerMs: 1500,       // 【DNAのきらめき】虹色の帯が、DNAの端から端まで、流れる時間(ミリ秒)
+        shimmerBand: 0.7,      // 【DNAのきらめき】虹色の帯の長さ（DNAの長さに対する割合。最低140px）
+        shimmerFirstMs: 1800,  // 【DNAのきらめき】つながってから、最初のきらめきまでの時間(ミリ秒)。そのあとは、数秒に一回
         hintText: 'Pull the DNA!', // 【YOKABIOくんのヒント】DNAが、初めてつながったとき、YOKABIOくんの吹き出しに出す文字
         hintDelayMs: 700,      // 【YOKABIOくんのヒント】つながってから、吹き出しが出るまでの時間(ミリ秒)。つながったのを、見てもらってから出す
         hintMs: 4500,          // 【YOKABIOくんのヒント】吹き出しが、出ている時間(ミリ秒)
@@ -975,6 +980,27 @@ function initMemberDrag() {
         defs.appendChild(lg);
         return { el: lg, stops: stops, ref: 'url(#' + lg.getAttribute('id') + ')' };
     }
+    // きらめきの色：ホログラム（カードの虹色の枠）のような、パステルの虹色。ピンク → 黄 → ミント → 水色 → 薄紫
+    const HOLO = ['#ff8fcf', '#ffe27a', '#8cf2c8', '#7fdcff', '#b9a2ff'];
+    // 虹色の「帯」のグラデーション：帯の外は、ふだんのDNAの色・濃さ。帯の中だけ、虹色。pad（端の色を、のばす）なので、帯は、1本だけ
+    function makeHoloGradient(baseColor, baseAlpha) {
+        const lg = document.createElementNS(SVG_NS, 'linearGradient');
+        lg.setAttribute('id', 'dna-holo-' + (gradSeq++));
+        lg.setAttribute('gradientUnits', 'userSpaceOnUse');
+        lg.setAttribute('spreadMethod', 'pad');
+        const stops = [[0, baseColor, baseAlpha], [0.12, baseColor, baseAlpha]];
+        HOLO.forEach((c, i) => stops.push([0.22 + i * 0.14, c, 0.95]));
+        stops.push([0.9, baseColor, baseAlpha], [1, baseColor, baseAlpha]);
+        stops.forEach((s) => {
+            const st = document.createElementNS(SVG_NS, 'stop');
+            st.setAttribute('offset', s[0].toFixed(3));
+            st.setAttribute('stop-color', s[1]);
+            st.setAttribute('stop-opacity', String(s[2]));
+            lg.appendChild(st);
+        });
+        defs.appendChild(lg);
+        return { el: lg, ref: 'url(#' + lg.getAttribute('id') + ')' };
+    }
     main.insertBefore(svg, main.firstChild);
 
     function photoCenter(el) {
@@ -1029,6 +1055,13 @@ function initMemberDrag() {
         pair.gs = makeGradient();   // 線用
         pair.gr = makeGradient();   // 横棒用（ふだんの色が、線と少しちがうため、別に持つ）
         hitEls.push(pair.gs.el, pair.gr.el);
+        // きらめき用（奥の線・横棒・手前の線で、ふだんの濃さが、ちがうので、3本）
+        pair.sh = { back: makeHoloGradient(DNA_COLOR, 0.28), rungs: makeHoloGradient(DNA_RUNG_COLOR, 0.5), front: makeHoloGradient(DNA_COLOR, 0.6) };
+        hitEls.push(pair.sh.back.el, pair.sh.rungs.el, pair.sh.front.el);
+        pair.shimmer = null;      // いま、きらめいている最中の情報 { t0, ms }
+        pair.shimmerOn = false;
+        pair.shimmerP = -1;       // きらめきの進み具合（0 → 1）
+        pair.nextShimmer = Infinity;
         const h = document.createElementNS(SVG_NS, 'path');
         h.setAttribute('class', 'dna-hit');
         h.setAttribute('fill', 'none');
@@ -1126,8 +1159,62 @@ function initMemberDrag() {
          ・揺れ：DNAの真ん中を、横へ、少しはじく（bondPulseKick）。あとは、「つまんで離したとき」と同じバネで、ぷるんと揺れて止まる
          ・色：「触れたとき」と同じ、紫・青・ピンクの虹色のグラデーションに光って、bondFlashMs のあいだ保ち、そのあと、ふっと元に戻る（bondFlash）
          ・見た目だけ。写真の位置・力には、触れない */
+    /* ---- つながったDNAが、数秒に一回、虹色に光る（きらめき） ----
+            ・ホログラムのような、パステルの虹色の「帯」が、DNAの端から、もう一方の端へ、流れる（shimmerMs）
+            ・つながってから shimmerFirstMs で、最初の1回。そのあとは、shimmerEveryMin〜shimmerEveryMax のあいだで、ランダムに（DNAごとに、ずらす）
+            ・ほかの動き（引っ張る・触れる・つながった直後の光・外れる最中・整列中）と、かさなりそうなときは、すこし待つ
+            ・色の帯を描くのは drawLinks（pair.shimmer のあいだ）。見た目だけ */
+    let shimmerRaf = 0;
+    function shimmerTick() {
+        shimmerRaf = 0;
+        if (!pairs.length) return;   // つながりがなくなったら、止まる（つながったら、また動く）
+        const now = performance.now();
+        let active = false;
+        if (!resetting && !linkFade && !reduceMotion) {
+            pairs.forEach((p) => {
+                if (p.shimmer) { active = true; return; }
+                if (now < p.nextShimmer) return;
+                const busy = p.pluck || (pluck && pluck.pair === p) || p.hovG > 0.02 || p.glow > 0.02 || (p.flashUntil && now < p.flashUntil + 600);
+                if (busy) { p.nextShimmer = now + 700; return; }
+                p.shimmer = { t0: now, ms: T.shimmerMs };
+                p.nextShimmer = now + T.shimmerMs + T.shimmerEveryMin + Math.random() * (T.shimmerEveryMax - T.shimmerEveryMin);
+                active = true;
+            });
+        }
+        if (active) drawLinks();   // 光っている間は、毎フレーム、描き直す
+        shimmerRaf = requestAnimationFrame(shimmerTick);
+    }
+
+    function wakeShimmer() {
+        if (!shimmerRaf && !reduceMotion) shimmerRaf = requestAnimationFrame(shimmerTick);
+    }
+
+    // きらめきの帯の位置：DNAの軸に沿って、端から端へ（はじめと終わりは、ゆっくり）
+    function updateShimmer(pair) {
+        const gm = pair.hitGeo;
+        if (!gm || !gm.ca) return;
+        const dx = gm.cb.x - gm.ca.x;
+        const dy = gm.cb.y - gm.ca.y;
+        const L = Math.hypot(dx, dy) || 1;
+        const ux = dx / L;
+        const uy = dy / L;
+        const W = Math.max(140, L * T.shimmerBand);
+        const p = pair.shimmerP;
+        const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+        const c = -W / 2 + e * (L + W);   // 帯の真ん中：DNAの外（左）から、外（右）へ
+        ['back', 'rungs', 'front'].forEach((k) => {
+            const el = pair.sh[k].el;
+            el.setAttribute('x1', (gm.ca.x + ux * (c - W / 2)).toFixed(1));
+            el.setAttribute('y1', (gm.ca.y + uy * (c - W / 2)).toFixed(1));
+            el.setAttribute('x2', (gm.ca.x + ux * (c + W / 2)).toFixed(1));
+            el.setAttribute('y2', (gm.ca.y + uy * (c + W / 2)).toFixed(1));
+        });
+    }
+
     function bondPulse(pair) {
         if (reduceMotion) return;
+        pair.nextShimmer = performance.now() + T.shimmerFirstMs + Math.random() * 1500;   // 最初のきらめき
+        wakeShimmer();
         const ca = photoCenter(pair.a);
         const cb = photoCenter(pair.b);
         const d = Math.hypot(cb.x - ca.x, cb.y - ca.y) || 1;
@@ -1418,6 +1505,14 @@ function initMemberDrag() {
         pairs.forEach((pair) => {
             const ca = photoCenter(pair.a);
             const cb = photoCenter(pair.b);
+            // きらめきの最中か（進み具合 0〜1）。終わったら、片づける
+            let shim = -1;
+            if (pair.shimmer) {
+                const sp = (performance.now() - pair.shimmer.t0) / pair.shimmer.ms;
+                if (sp >= 1) pair.shimmer = null; else shim = sp;
+            }
+            pair.shimmerOn = shim >= 0;
+            pair.shimmerP = shim;
             // 引っ張りのパワー（0〜1）。最大距離の pluckFullFrac 割で 1。つまんでいるDNAだけ、色の濃さと震えが変わる
             const pk0 = pair.pluck;
             const pluckPower = pk0 && pk0.held ? clamp(Math.hypot(pk0.dx, pk0.dy) / (T.pluckMax * T.pluckFullFrac), 0, 1) : 0;
@@ -1458,7 +1553,7 @@ function initMemberDrag() {
                 const uy = gy / gd;
                 pair.gAxis = [ca.x + ux * ph * gl, ca.y + uy * ph * gl, ca.x + ux * (ph + 1) * gl, ca.y + uy * (ph + 1) * gl];
             }
-            const hot = pair.glow > 0 || pair.hovG > 0 || bl.w > 0;
+            const hot = pair.glow > 0 || pair.hovG > 0 || bl.w > 0 || pair.shimmerOn;
             const shake = power > T.pluckShakeStart ? (power - T.pluckShakeStart) / (1 - T.pluckShakeStart) : 0;
             const pts = centerline(pair, ca, cb, shake);
             // 中心線の長さ（弧長）。のびるほど長くなる
@@ -1569,9 +1664,11 @@ function initMemberDrag() {
             const g = pair.glow;
             const hp = pair.hp;
             if (!hp) return;
-            if ((g > 0 || pair.hovG > 0 || pair.bul.w > 0) && pair.hotStrings) {
+            if ((g > 0 || pair.hovG > 0 || pair.bul.w > 0 || pair.shimmerOn) && pair.hotStrings) {
                 const s = pair.hotStrings;
                 const hg = pair.hovG;
+                const useSh = pair.shimmerOn && hg < 0.02 && g < 0.02;   // きらめき中（触れていない・引っ張っていないとき）は、虹色の帯で描く
+                if (useSh) updateShimmer(pair);
                 // 色：ふだんの薄紫 →（ホバー hg）紫・青・ピンクのグラデーション →（引っ張り g）少し鮮やかに。
                 // 引っ張りは、グラデーションを残したまま、鮮やかさと不透明度で表す（ホバーの色と、競合しない）。線の太さ・形は、変えない
                 const grad = [T.dnaGradA, T.dnaGradB, T.dnaGradC];
@@ -1590,7 +1687,11 @@ function initMemberDrag() {
                 const lerp = (a, b, t) => a + (b - a) * t;
                 const op = (baseOp, hovOp, maxOp) => String(lerp(lerp(baseOp, hovOp, hg), maxOp, g));
                 // 線の太さ：段階 k のパスの太さ = ふだんの太さ × (1 〜 dnaThick)。2本の主鎖（奥・手前）も横棒も、同じ倍率で、自然に太くなる
-                const kinds = [
+                const kinds = useSh ? [
+                    ['back', 1.4, pair.sh.back.ref, '1'],      // きらめき：濃さは、グラデーションの中（stop-opacity）で決める
+                    ['rungs', 1.1, pair.sh.rungs.ref, '1'],
+                    ['front', 1.8, pair.sh.front.ref, '1']
+                ] : [
                     ['back', 1.4, pair.gs.ref, op(0.28, T.dnaHoverOpacity * 0.75, 0.85)],
                     ['rungs', 1.1, pair.gr.ref, op(0.5, T.dnaHoverOpacity * 0.85, 0.95)],
                     ['front', 1.8, pair.gs.ref, op(0.6, T.dnaHoverOpacity, 1)]
