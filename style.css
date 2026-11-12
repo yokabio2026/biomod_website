@@ -410,6 +410,13 @@ a.search-result-item:hover {
         margin: 16px 0;
     }
 
+    /* 大きな項目の中の、補足説明は、ふつうの大きさ・太さに戻す */
+    .section-text .key-block .key-note {
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.7;
+    }
+
     /* 表面密度の図：上に斜面、下に 3 枚の画像と説明 */
     .float-figs .section-text figure.fig-full {
         float: none;
@@ -1025,4 +1032,25 @@ a.search-result-item:hover {
     .reset-layout-btn.is-bump-2 .mascot-face.is-on {
         animation: none;
     }
+}
+
+
+/* 左下の「Contents」ボタンと同じ、紫の丸いボタン形のリンク */
+.section-text a.pill-link {
+    display: inline-block;
+    padding: 11px 16px;
+    border-radius: 999px;
+    background: #2b1055;
+    color: #ffffff;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 6px 16px rgba(43, 16, 85, 0.35);
+}
+
+.section-text a.pill-link:hover,
+.section-text a.pill-link:focus-visible {
+    background: #4a2a85;
+    color: #ffffff;
 }
