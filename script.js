@@ -3777,8 +3777,8 @@ function initMemberDrag() {
     }
 
     /* ---- YOKABIOくんの、ヒント：DNAが、初めてつながったとき、「Pull the DNA!」と、しゃべる ----
-            ・DNAが、引っ張って飛ばせることに、気づいてもらうための、案内。吹き出しは、ホバーで出る「Tap to ALiGN」と、同じもの（文字だけ、入れかえる）
-            ・つながってから hintDelayMs あとに出て、hintMs のあいだ見えて、元の文字（Tap to ALiGN）に戻る
+            ・DNAが、引っ張って飛ばせることに、気づいてもらうための、案内。吹き出しは、ホバーで出る「Tap to reset」と、同じもの（文字だけ、入れかえる）
+            ・つながってから hintDelayMs あとに出て、hintMs のあいだ見えて、元の文字（Tap to reset）に戻る
             ・出す回数は、最大 hintMax 回。DNAを、一度でも、引っ張ったら（startPluck）、もう出さない
             ・YOKABIOくんを押したときは、すぐ消す（出す回数には、数えたまま） */
     const hintState = { shown: 0, done: false, timer: 0, hideTimer: 0, restoreTimer: 0, normal: '' };

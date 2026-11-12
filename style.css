@@ -719,7 +719,7 @@ a.search-result-item:hover {
     transition: transform 0.2s ease;
 }
 
-/* マスコットにカーソルを重ねたときの、雲型のふきだし「Tap to ALiGN」（見た目だけ。クリックの動きは変えない）。
+/* マスコットにカーソルを重ねたときの、雲型のふきだし「Tap to reset」（写真を元の位置に戻して、DNAを外す、という意味）（見た目だけ。クリックの動きは変えない）。
    ふきだしはマスコットの左上。しっぽの先が、マスコットの顔の方を向く。クリックや重なりの判定には、加わらない */
 .reset-bubble {
     position: absolute;
