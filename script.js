@@ -859,7 +859,8 @@ function initMemberDrag() {
         bondMaxGroup: 3,       // 【DNAがつながる】つながった写真の「かたまり」の、最大の枚数。4枚以上には、連結しない
         bondFadeMs: 360,       // 【DNAが外れる】YOKABIOくんを押したとき、DNAが消えるまでの時間(ミリ秒)
         bondPulseKick: 15,     // 【DNAがつながる瞬間】DNAの真ん中が、横へ、はじかれる大きさ(px)。そのあと、ぷるんと揺れて、止まる（つまんで離したときと、同じ戻り方）。0で、揺れなし
-        bondFlash: 1,          // 【DNAがつながる瞬間】DNAの色が、ぱっと、紫・青・ピンクの虹色になる強さ（0〜1）。約0.3秒で、元の色に戻る。0で、光らない
+        bondFlash: 1,          // 【DNAがつながる瞬間】DNAの色が、紫・青・ピンクの虹色のグラデーションに光る強さ（0〜1）。0で、光らない
+        bondFlashMs: 800,      // 【DNAがつながる瞬間】虹色に光っている時間(ミリ秒)。そのあと、約0.3秒かけて、元の色に戻る
         hintText: 'Pull the DNA!', // 【YOKABIOくんのヒント】DNAが、初めてつながったとき、YOKABIOくんの吹き出しに出す文字
         hintDelayMs: 700,      // 【YOKABIOくんのヒント】つながってから、吹き出しが出るまでの時間(ミリ秒)。つながったのを、見てもらってから出す
         hintMs: 4500,          // 【YOKABIOくんのヒント】吹き出しが、出ている時間(ミリ秒)
@@ -1123,7 +1124,7 @@ function initMemberDrag() {
 
     /* つながった瞬間の演出：DNAは、生きて動くものだと、気づいてもらう
          ・揺れ：DNAの真ん中を、横へ、少しはじく（bondPulseKick）。あとは、「つまんで離したとき」と同じバネで、ぷるんと揺れて止まる
-         ・色：「触れたとき」と同じ、紫・青・ピンクの虹色に、ぱっと変わって、約0.3秒で、元に戻る（bondFlash）
+         ・色：「触れたとき」と同じ、紫・青・ピンクの虹色のグラデーションに光って、bondFlashMs のあいだ保ち、そのあと、ふっと元に戻る（bondFlash）
          ・見た目だけ。写真の位置・力には、触れない */
     function bondPulse(pair) {
         if (reduceMotion) return;
@@ -1137,6 +1138,7 @@ function initMemberDrag() {
         if (T.bondFlash) {
             pair.hovG = T.bondFlash;
             pair.glow = T.bondFlash * 0.6;
+            pair.flashUntil = performance.now() + T.bondFlashMs;   // この時刻まで、虹色を保つ（drawLinks が見る）
         }
     }
 
@@ -1422,7 +1424,8 @@ function initMemberDrag() {
             // 色は、2段階：①ホバー（重ねている間、つかんでいる間）= ふだんの薄紫 → #8650BD。②引っ張り = その色から、引いた距離に応じて、さらに濃く
             // つかんだ瞬間に、ホバーの色が薄く戻らないよう、つかんでいる間も、ホバーの色のまま保つ
             const power = pluckPower;
-            const hovTarget = (pair.hov && pair.hov.inside) || (pk0 && pk0.held) ? 1 : 0;
+            const flashing = pair.flashUntil && performance.now() < pair.flashUntil;   // つながった直後の、虹色の光（bondPulse）
+            const hovTarget = (pair.hov && pair.hov.inside) || (pk0 && pk0.held) || flashing ? 1 : 0;
             const nowMs = performance.now();
             const dtg = pair.glowT ? Math.min(0.1, (nowMs - pair.glowT) / 1000) : 0;
             pair.glowT = nowMs;
@@ -2231,7 +2234,7 @@ function initMemberDrag() {
                 if (d - pair.l0 > 1) active = true;
             });
         }
-        if (!active && pairs.some((p) => (p.pluck && !p.pluck.held) || p.glow > 0.02)) active = true;
+        if (!active && pairs.some((p) => (p.pluck && !p.pluck.held) || p.glow > 0.02 || (p.flashUntil && performance.now() < p.flashUntil + 400))) active = true;   // 虹色の光が、終わるまで、描き続ける
         return active;
     }
 
