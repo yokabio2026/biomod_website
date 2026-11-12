@@ -206,7 +206,8 @@ a.search-result-item:hover {
 }
 
 /* 帯の右側に、飾りの絵を置くページ用（Home）。絵は、帯の中に、背景のように置く（文字・操作のじゃまをしない）。
-   大きさ：height（帯の高さに対する割合）／ 位置：right（右はしからの距離）／ 濃さ：opacity */
+   帯より大きく置いて、はみ出した部分は、帯のふちで切れる（上と右・下から、はみ出すように見せる）。
+   大きさ：height（帯の高さに対する割合。100%より大きいと、はみ出す）／ 位置：top・right（マイナスにすると、外へずれる）／ 濃さ：opacity */
 .page-hero-header--with-image {
     position: relative;
     overflow: hidden;
@@ -219,11 +220,10 @@ a.search-result-item:hover {
 
 .page-hero-image {
     position: absolute;
-    top: 50%;
-    right: 6%;
-    height: 88%;
+    top: -24%;
+    right: -4%;
+    height: 150%;
     width: auto;
-    transform: translateY(-50%);
     opacity: 0.95;
     pointer-events: none;
     user-select: none;
@@ -925,8 +925,9 @@ a.search-result-item:hover {
 
     /* 狭い画面：絵は、文字の後ろに、うすく（文字が、読みにくくならないように） */
     .page-hero-image {
-        right: -4%;
-        height: 80%;
+        top: -18%;
+        right: -14%;
+        height: 130%;
         opacity: 0.5;
     }
 
