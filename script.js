@@ -858,6 +858,8 @@ function initMemberDrag() {
         bondRestGap: 70,       // 【DNAがつながる】つながったDNAの、自然な長さ（写真のふちからふちまで）(px)。これより離すと、DNAが引き寄せる
         bondMaxGroup: 3,       // 【DNAがつながる】つながった写真の「かたまり」の、最大の枚数。4枚以上には、連結しない
         bondFadeMs: 360,       // 【DNAが外れる】YOKABIOくんを押したとき、DNAが消えるまでの時間(ミリ秒)
+        bondPulseKick: 15,     // 【DNAがつながる瞬間】DNAの真ん中が、横へ、はじかれる大きさ(px)。そのあと、ぷるんと揺れて、止まる（つまんで離したときと、同じ戻り方）。0で、揺れなし
+        bondFlash: 1,          // 【DNAがつながる瞬間】DNAの色が、ぱっと、紫・青・ピンクの虹色になる強さ（0〜1）。約0.3秒で、元の色に戻る。0で、光らない
         hintText: 'Pull the DNA!', // 【YOKABIOくんのヒント】DNAが、初めてつながったとき、YOKABIOくんの吹き出しに出す文字
         hintDelayMs: 700,      // 【YOKABIOくんのヒント】つながってから、吹き出しが出るまでの時間(ミリ秒)。つながったのを、見てもらってから出す
         hintMs: 4500,          // 【YOKABIOくんのヒント】吹き出しが、出ている時間(ミリ秒)
@@ -1109,12 +1111,32 @@ function initMemberDrag() {
             const rb = g.find(c.b);
             if (ra === rb) return;                                             // すでに、同じかたまり
             if (g.size.get(ra) + g.size.get(rb) > T.bondMaxGroup) return;      // 4枚以上には、連結しない
-            makePair(c.a, c.b, Math.max(c.d, radii.get(c.a) + radii.get(c.b) + T.bondRestGap));
+            const np = makePair(c.a, c.b, Math.max(c.d, radii.get(c.a) + radii.get(c.b) + T.bondRestGap));
+            bondPulse(np);   // つながった瞬間の、ぷるん＋ぱっと光る
             formed = true;
         });
         if (formed) {
             drawLinks();
             scheduleDnaHint();   // YOKABIOくんが、「DNAを引っ張ってみて」と、教える
+        }
+    }
+
+    /* つながった瞬間の演出：DNAは、生きて動くものだと、気づいてもらう
+         ・揺れ：DNAの真ん中を、横へ、少しはじく（bondPulseKick）。あとは、「つまんで離したとき」と同じバネで、ぷるんと揺れて止まる
+         ・色：「触れたとき」と同じ、紫・青・ピンクの虹色に、ぱっと変わって、約0.3秒で、元に戻る（bondFlash）
+         ・見た目だけ。写真の位置・力には、触れない */
+    function bondPulse(pair) {
+        if (reduceMotion) return;
+        const ca = photoCenter(pair.a);
+        const cb = photoCenter(pair.b);
+        const d = Math.hypot(cb.x - ca.x, cb.y - ca.y) || 1;
+        const nx = -(cb.y - ca.y) / d;   // DNAの向きに、直角な向き
+        const ny = (cb.x - ca.x) / d;
+        const k = (pairSeq % 2 ? 1 : -1) * T.bondPulseKick;   // はじく向きは、つなぐたびに、交互
+        if (T.bondPulseKick) pair.pluck = { u: 0.5, f: 0.5, dx: nx * k, dy: ny * k, vx: 0, vy: 0, held: false };
+        if (T.bondFlash) {
+            pair.hovG = T.bondFlash;
+            pair.glow = T.bondFlash * 0.6;
         }
     }
 
