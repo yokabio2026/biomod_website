@@ -346,3 +346,20 @@
         setTimeout(function () { root.style.scrollBehavior = ''; }, 100);
     }, true);
 })();
+
+/* 別のページから、#見出し つきのリンクで開いたとき（例：Design の「Let's Explore the Simulation!」）は、
+   ページの先頭から滑り降りるのではなく、すぐにその場所へ飛ぶ。目次ができて、画像が読み込まれたあとの位置にも合わせ直す */
+(function () {
+    var h = location.hash;
+    if (!h || h.length < 2) return;
+    var root = document.documentElement;
+    var id;
+    try { id = decodeURIComponent(h.slice(1)); } catch (e) { id = h.slice(1); }
+    root.style.scrollBehavior = 'auto';
+    function go() { var el = document.getElementById(id); if (el) el.scrollIntoView(); }
+    go();
+    window.addEventListener('load', function () {
+        go();
+        setTimeout(function () { root.style.scrollBehavior = ''; }, 150);
+    });
+})();
