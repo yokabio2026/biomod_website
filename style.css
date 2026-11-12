@@ -1252,3 +1252,31 @@ body .result-summary-links a:hover,
 body .result-summary-links a:focus-visible {
     background: #4a2a85;
 }
+
+/* 実験の詳細ページ（experiment-solutions.html）：1 つの実験を、1 つの囲み（うすい紫の四角）で囲む。2025 年のページのように、どこからどこまでが 1 つの実験か、一目で分かるようにする */
+.content-section.exp-box {
+    max-width: 1180px;
+    margin: 0 auto 36px;
+    padding: 12px 36px 28px;
+    background: #f3effa;
+    border: 2px solid #cfc2e8;
+    border-radius: 18px;
+    box-sizing: border-box;
+}
+
+.content-section.exp-box:first-of-type {
+    margin-top: 28px;
+}
+
+.content-section.exp-box .section-title {
+    margin-top: 16px;
+    font-size: 2.2rem;
+}
+
+@media (max-width: 600px) {
+    .content-section.exp-box {
+        padding: 8px 18px 20px;
+        margin-left: 4px;
+        margin-right: 4px;
+    }
+}
