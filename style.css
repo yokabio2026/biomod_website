@@ -205,6 +205,31 @@ a.search-result-item:hover {
     padding-bottom: 143px;
 }
 
+/* 帯の右側に、飾りの絵を置くページ用（Home）。絵は、帯の中に、背景のように置く（文字・操作のじゃまをしない）。
+   大きさ：height（帯の高さに対する割合）／ 位置：right（右はしからの距離）／ 濃さ：opacity */
+.page-hero-header--with-image {
+    position: relative;
+    overflow: hidden;
+}
+
+.page-hero-header--with-image h1 {
+    position: relative;
+    z-index: 1;
+}
+
+.page-hero-image {
+    position: absolute;
+    top: 50%;
+    right: 6%;
+    height: 88%;
+    width: auto;
+    transform: translateY(-50%);
+    opacity: 0.95;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 /* 見出し1つ分のまとまり。次のセクションとの間にたっぷり余白を取る */
 .content-section {
     margin-bottom: 120px;
@@ -896,6 +921,13 @@ a.search-result-item:hover {
 
     .page-hero-header h1 {
         font-size: 2.5rem;
+    }
+
+    /* 狭い画面：絵は、文字の後ろに、うすく（文字が、読みにくくならないように） */
+    .page-hero-image {
+        right: -4%;
+        height: 80%;
+        opacity: 0.5;
     }
 
     .section-title {
