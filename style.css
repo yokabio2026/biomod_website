@@ -224,7 +224,7 @@ a.search-result-item:hover {
     right: -4%;
     height: 150%;
     width: auto;
-    opacity: 0.95;
+    opacity: 1;
     pointer-events: none;
     user-select: none;
     -webkit-user-select: none;
