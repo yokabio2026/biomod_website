@@ -292,6 +292,20 @@ a.search-result-item:hover {
     font-weight: 400;
 }
 
+/* 4 つの要素の一覧を、うすい紫の角丸の四角で囲み、目立たせる（主張は強くしない） */
+.section-text .key-box {
+    clear: both;
+    margin: 22px 0;
+    padding: 6px 30px;
+    border-radius: 18px;
+    background: rgba(106, 61, 181, 0.07);
+    border: 1px solid rgba(106, 61, 181, 0.22);
+}
+
+.section-text .key-box p.key-block {
+    margin: 14px 0;
+}
+
 .section-text p.key-list strong {
     font-weight: 700;
 }
@@ -505,7 +519,7 @@ a.search-result-item:hover {
 
     /* Project の全体像（1〜4 の図）は、さらに大きく */
     .float-figs .section-text figure.fig-hero.fig-hero-lg {
-        width: 72%;
+        width: 62%;
     }
 
     /* パネルが 4 枚並ぶ図：幅を少し絞る */
@@ -1334,7 +1348,7 @@ body .result-summary-links a:focus-visible {
 /* Project の Solution：要素 2 の図（左：多数の弱い結合、右：結合部品の表面密度）と、その下に、左右に分けた説明 */
 .float-figs .section-text .el2-block {
     clear: both;
-    width: 68%;
+    width: 62%;
     margin: 12px auto 20px;
 }
 
