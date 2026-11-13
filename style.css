@@ -1309,3 +1309,32 @@ body .result-summary-links a:focus-visible {
         width: 70%;
     }
 }
+
+
+/* Project の Solution：要素 2 の図（左：多数の弱い結合、右：結合部品の表面密度）と、その下に、左右に分けた説明 */
+.float-figs .section-text .el2-block {
+    clear: both;
+    width: 100%;
+    margin: 12px auto 20px;
+}
+
+.float-figs .section-text .el2-block figure.fig-block {
+    width: 100%;
+    margin: 0 0 8px;
+}
+
+.float-figs .section-text .el2-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 28px;
+}
+
+.float-figs .section-text .el2-cols p {
+    margin: 0;
+    font-size: 0.95em;
+}
+
+@media (max-width: 999px) {
+    .float-figs .section-text .el2-block { width: 100%; }
+    .float-figs .section-text .el2-cols { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}
