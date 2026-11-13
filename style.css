@@ -309,11 +309,14 @@ a.search-result-item:hover {
 
 /* 「Connection」「Material exchange」の前に、紫の黒丸（●）を付ける */
 .section-text .key-box p.key-list > span:first-child::before {
-    content: "●";
-    color: #2b1055;
-    font-size: 0.6em;
-    margin-right: 0.55em;
-    vertical-align: 0.18em;
+    content: "";
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    border-radius: 50%;
+    background: #2b1055;
+    margin-right: 0.5em;
+    vertical-align: baseline;
 }
 
 .section-text .key-box figure.fig-hero {
@@ -324,7 +327,12 @@ a.search-result-item:hover {
     margin: 14px 0;
 }
 
+/* 項目名（1〜4）は、ふつうの太さ。見出し（Connection / Material exchange）だけ太字 */
 .section-text p.key-list strong {
+    font-weight: 400;
+}
+
+.section-text p.key-list > span:first-child > strong {
     font-weight: 700;
 }
 
