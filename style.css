@@ -285,6 +285,21 @@ a.search-result-item:hover {
     font-family: "Times New Roman", Times, "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
 }
 
+/* 4 つの要素の一覧（Connection / Material exchange と 1〜4）：見出しと同じゴシック体にする。
+   Connection・Material exchange と 1〜4 の項目名は太字、"(see …)" とリンクは、ふつうの太さ。補足（key-note）は本文の書体 */
+.section-text p.key-list {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
+}
+
+.section-text p.key-list strong {
+    font-weight: 700;
+}
+
+.section-text p.key-list .key-note {
+    font-family: "Times New Roman", Times, "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+}
+
 .section-text p:last-child {
     margin-bottom: 0;
 }
