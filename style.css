@@ -308,7 +308,7 @@ a.search-result-item:hover {
 }
 
 /* 「Connection」「Material exchange」の前に、紫の黒丸（●）を付ける */
-.section-text .key-box p.key-list > span:first-child::before {
+.section-text p.key-list > span:first-child::before {
     content: "";
     display: inline-block;
     width: 0.7em;
@@ -327,13 +327,14 @@ a.search-result-item:hover {
     margin: 14px 0;
 }
 
-/* 項目名（1〜4）は、ふつうの太さ。見出し（Connection / Material exchange）だけ太字 */
+/* 太字は、見出し（Connection / Material exchange）と、項目の番号（1. 〜 4.）だけ。項目名は、ふつうの太さ */
 .section-text p.key-list strong {
-    font-weight: 400;
+    font-weight: 700;
 }
 
-.section-text p.key-list > span:first-child > strong {
-    font-weight: 700;
+.section-text p.key-list .key-item {
+    color: #2b1055;
+    font-weight: 400;
 }
 
 .section-text p.key-list .key-note {
