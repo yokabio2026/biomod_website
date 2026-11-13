@@ -285,6 +285,67 @@ a.search-result-item:hover {
     font-family: "Times New Roman", Times, "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
 }
 
+/* 4 つの要素の一覧（Connection / Material exchange と 1〜4）：見出しと同じゴシック体にする。
+   Connection・Material exchange と 1〜4 の項目名は太字、"(see …)" とリンクは、ふつうの太さ。補足（key-note）は本文の書体 */
+.section-text p.key-list {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
+}
+
+/* 4 つの要素の一覧を、うすい紫の角丸の四角で囲み、目立たせる（主張は強くしない） */
+.section-text .key-box {
+    clear: both;
+    margin: 22px 0;
+    padding: 6px 30px;
+    border-radius: 18px;
+    background: rgba(106, 61, 181, 0.07);
+    border: 1px solid rgba(106, 61, 181, 0.22);
+}
+
+/* 4 つの要素の一覧の太字（Connection / Material exchange と 1〜4 の項目名）は、ほかの見出しと同じ紫にする */
+/* Project の "(see …)" は、項目の下の説明文（key-note）と同じ大きさ */
+.section-text p.key-list .key-see {
+    font-size: 1rem;
+}
+
+.section-text p.key-list strong {
+    color: #2b1055;
+}
+
+/* 「Connection」「Material exchange」の前に、紫の黒丸（●）を付ける */
+.section-text p.key-list > span:first-child::before {
+    content: "";
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    border-radius: 50%;
+    background: #2b1055;
+    margin-right: 0.5em;
+    vertical-align: baseline;
+}
+
+.section-text .key-box figure.fig-hero {
+    margin: 14px auto 6px;
+}
+
+.section-text .key-box p.key-block {
+    margin: 14px 0;
+}
+
+/* 太字は、見出し（Connection / Material exchange）と、項目の番号（1. 〜 4.）だけ。項目名は、ふつうの太さ */
+.section-text p.key-list strong {
+    font-weight: 700;
+}
+
+.section-text p.key-list .key-item {
+    color: #2b1055;
+    font-weight: 400;
+}
+
+.section-text p.key-list .key-note {
+    font-family: "Times New Roman", Times, "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+}
+
 .section-text p:last-child {
     margin-bottom: 0;
 }
@@ -442,6 +503,11 @@ a.search-result-item:hover {
         line-height: 1.7;
     }
 
+    /* 一覧の項目名の横にある補足（"(see …)" や ": リンク"）は、本文と同じ大きさ（一覧は 1.2 倍なので、1.2 で割る） */
+    .section-text p.key-list .key-aside {
+        font-size: calc(1em / 1.2);
+    }
+
     /* 表面密度の図：上に斜面、下に 3 枚の画像と説明 */
     .float-figs .section-text figure.fig-full {
         float: none;
@@ -486,6 +552,11 @@ a.search-result-item:hover {
         clear: both;
         width: 52%;
         margin: 12px auto;
+    }
+
+    /* Project の全体像（1〜4 の図）は、さらに大きく */
+    .float-figs .section-text figure.fig-hero.fig-hero-lg {
+        width: 62%;
     }
 
     /* パネルが 4 枚並ぶ図：幅を少し絞る */
@@ -1314,7 +1385,7 @@ body .result-summary-links a:focus-visible {
 /* Project の Solution：要素 2 の図（左：多数の弱い結合、右：結合部品の表面密度）と、その下に、左右に分けた説明 */
 .float-figs .section-text .el2-block {
     clear: both;
-    width: 100%;
+    width: 62%;
     margin: 12px auto 20px;
 }
 
