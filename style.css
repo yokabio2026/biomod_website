@@ -413,7 +413,7 @@ a.search-result-item:hover {
 
     /* 行の中で、さらに小さくする図 */
     .float-figs .section-text .study-row figure.fig-narrow.fig-xs {
-        width: 48%;
+        width: 80%;
     }
 
     /* 縦長の図は、さらに細くする */
