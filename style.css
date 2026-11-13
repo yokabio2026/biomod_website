@@ -476,6 +476,11 @@ a.search-result-item:hover {
         line-height: 1.7;
     }
 
+    /* 一覧の項目名の横にある補足（"(see …)" や ": リンク"）は、本文と同じ大きさ（一覧は 1.2 倍なので、1.2 で割る） */
+    .section-text p.key-list .key-aside {
+        font-size: calc(1em / 1.2);
+    }
+
     /* 表面密度の図：上に斜面、下に 3 枚の画像と説明 */
     .float-figs .section-text figure.fig-full {
         float: none;
