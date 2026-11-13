@@ -18,8 +18,8 @@ class EmulsionTransferLoop(Scene):
         def lipids():
             center = y.get_value()
             return VGroup(*[
-                VGroup(Line([x,interface,0],[x,0.18,0],color=WHITE,stroke_width=2),
-                       Dot([x,-0.04,0],radius=.045,color=head))
+                VGroup(Line([x,interface,0],[x,0.18,0],color=WHITE,stroke_width=3),
+                       Dot([x,-0.04,0],radius=.070,color=head))
                 for x in np.arange(-width/2+.1,width/2,.25)
                 if abs(center)>1.0 or abs(x)>np.sqrt(max(0,1-center**2))
             ])
@@ -29,12 +29,12 @@ class EmulsionTransferLoop(Scene):
             g=VGroup(Circle(radius=.88,stroke_width=0,fill_color=inner,fill_opacity=1).move_to(center))
             for angle in np.linspace(0,TAU,36,endpoint=False):
                 u=np.array([np.cos(angle),np.sin(angle),0])
-                g.add(Line(center+.91*u,center+1.10*u,color=WHITE,stroke_width=2),
-                      Dot(center+.91*u,radius=.046,color=head))
+                g.add(Line(center+.91*u,center+1.10*u,color=WHITE,stroke_width=3),
+                      Dot(center+.91*u,radius=.070,color=head))
                 if (center+1.15*u)[1]<0:
-                    g.add(Line(center+1.12*u,center+1.30*u,color=WHITE,stroke_width=2),
-                          Dot(center+1.30*u,radius=.046,color=head))
-            g.add(Text("Inner phase",font="Arial",weight=BOLD,font_size=34,color=ink).move_to(center))
+                    g.add(Line(center+1.12*u,center+1.30*u,color=WHITE,stroke_width=3),
+                          Dot(center+1.30*u,radius=.070,color=head))
+            g.add(Text("Inner",font="Arial",weight=BOLD,font_size=34,color=ink).move_to(center))
             return g
         self.add(always_redraw(droplet))
         self.play(y.animate.set_value(-2.35),run_time=1.65,rate_func=linear)
