@@ -307,6 +307,10 @@ a.search-result-item:hover {
     color: #2b1055;
 }
 
+.section-text .key-box figure.fig-hero {
+    margin: 14px auto 6px;
+}
+
 .section-text .key-box p.key-block {
     margin: 14px 0;
 }
