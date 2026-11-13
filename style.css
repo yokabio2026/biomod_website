@@ -302,6 +302,11 @@ a.search-result-item:hover {
     border: 1px solid rgba(106, 61, 181, 0.22);
 }
 
+/* 「Connection」「Material exchange」の見出しは、ほかの見出しと同じ紫にする */
+.section-text .key-box p.key-list > span > strong {
+    color: #2b1055;
+}
+
 .section-text .key-box p.key-block {
     margin: 14px 0;
 }
