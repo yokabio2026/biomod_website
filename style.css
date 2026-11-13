@@ -303,6 +303,11 @@ a.search-result-item:hover {
 }
 
 /* 4 つの要素の一覧の太字（Connection / Material exchange と 1〜4 の項目名）は、ほかの見出しと同じ紫にする */
+/* Project の "(see …)" は、項目の下の説明文（key-note）と同じ大きさ */
+.section-text p.key-list .key-see {
+    font-size: 1rem;
+}
+
 .section-text p.key-list strong {
     color: #2b1055;
 }
