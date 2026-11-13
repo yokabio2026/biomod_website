@@ -29,8 +29,19 @@ class DnaLipidCoupling(Scene):
         lipid_label = Text("DOPE-MAL", font_size=34, color=orange).move_to([2.45,-.72,0])
         self.add(dna, name, sulfur, cap)
         self.wait(.35)
-        self.play(FadeOut(cap, shift=UP*.45), FadeIn(hydrogen), run_time=.30)
-        self.wait(.20)
+        cap_start = cap.get_center()
+        exit_path = CubicBezier(
+            cap_start,
+            cap_start + RIGHT * .55,
+            cap_start + RIGHT * .95 + UP * .65,
+            cap_start + RIGHT * 1.18 + UP * 2.25,
+        )
+        self.play(
+            MoveAlongPath(cap, exit_path, rate_func=rate_functions.ease_in_sine),
+            FadeIn(hydrogen, rate_func=squish_rate_func(smooth, .60, 1)),
+            run_time=.40,
+        )
+        self.wait(.10)
         self.play(FadeIn(lipid), FadeIn(lipid_label), run_time=.20)
         self.play(lipid.animate.shift(LEFT*1.55), lipid_label.animate.shift(LEFT*1.55),
                   dna.animate.shift(RIGHT*.30), name.animate.shift(RIGHT*.30),
