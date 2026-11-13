@@ -7,6 +7,53 @@
     <link rel="stylesheet" href="style.css">
     <!-- 左の目次（項目別ジャンプ）：見出し（h2 / h3）から自動で作られるので、ページを書き換えると、目次も自動で変わる。この1行と、下の toc.js の1行で動く -->
     <link rel="stylesheet" href="toc.css">
+    <style>
+        .method-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+            gap: 18px;
+            padding: 0;
+            margin: 12px 0 24px;
+            list-style: none;
+        }
+        .method-flow li {
+            position: relative;
+            display: grid;
+            justify-items: center;
+            gap: 8px;
+            padding: 12px 4px;
+            border-radius: 12px;
+            background: #f4effa;
+            color: #2b1055;
+            font-size: .86rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .method-composition { background: #f4effa; width: 100%; margin: 8px 0 22px; border-collapse: collapse; }
+        .method-composition th, .method-composition td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e3d9ed;
+            text-align: left;
+        }
+        .method-composition thead { background: #f4effa; color: #2b1055; }
+        .method-composition thead th { border-bottom: 3px solid #a68cbd; }
+        @media (max-width: 540px) {
+            .method-flow { grid-template-columns: 1fr; gap: 16px; }
+            .method-flow li { grid-template-columns: 48px 1fr; align-items: center; text-align: left; justify-items: start; padding-inline: 12px; }
+
+        }
+        .method-flow li > span:last-child { font-weight: 650; }
+        .method-composition td strong { white-space: nowrap; }
+        .method-sketch { width: min(100%, 120px); height: auto; }
+        @media (max-width: 540px) {
+            .method-flow li { grid-template-columns: 100px 1fr; column-gap: 12px; }
+
+        }
+        .section-text .integrated-method { float: none; width: min(100%, 540px); margin: 12px auto 22px; }
+        .integrated-method svg { width: 100%; height: auto; display: block; background: #0d111b; }
+        #guv-preparation .method-composition { background: #f4effa; }
+    </style>
 </head>
 <body>
     <header class="navbar">
@@ -54,23 +101,56 @@
             <h2 class="section-title">GUV Preparation</h2>
             <div class="content-space">
                 <div class="section-text">
+                    <h3 class="sub-title">Making GUVs</h3>
+                    <figure class="integrated-method">
+                        <video autoplay loop muted playsinline preload="metadata" aria-label="A droplet crossing the oil–water interface" style="display:block;width:100%;height:auto">
+                            <source src="videos/experiment-emulsion-transfer-loop.mp4" type="video/mp4">
+                        </video>
+                    </figure>
+
+                    <ul>
+                        <li>The inner aqueous solution was mixed with the lipid-containing oil.</li>
+                        <li>The mixture was vortexed for 30 seconds to form a W/O emulsion.</li>
+                        <li>The emulsion was gently layered on the outer aqueous solution.</li>
+                        <li>It was left for 5 minutes.</li>
+                        <li>It was centrifuged at 3000 × g and 24 °C for 30 minutes, and then at 5000 × g and 24 °C for 10 minutes.</li>
+                    </ul>
+                    <p>We prepared the <strong>lipid-containing oil</strong>, <strong>inner aqueous solution</strong>, and <strong>outer aqueous solution</strong> for <strong>emulsion transfer</strong> <a href="https://doi.org/10.1021/la026100v">[1]</a>.</p>
                     <h3 class="sub-title" id="lipid-containing-oil">Lipid-containing oil</h3>
+                    <p>
+                        The lipids were dissolved in chloroform.
+                    </p>
                     <ul>
-                        <li>5 mM POPC</li>
-                        <li>0.05 mM NBD-PE</li>
-                        <li>3.0 mM cholesterol</li>
+                        <li>The chloroform was evaporated with nitrogen gas in a glass tube.</li>
+                        <li>The tube was dried in a vacuum desiccator for 1 hour to form a lipid film.</li>
+                        <li>300 µL of mineral oil was added.</li>
+                        <li>The lipids were dispersed in the oil by sonication at 60 °C for 60 minutes.</li>
                     </ul>
+                    <table class="method-composition">
+                        <thead><tr><th scope="col">Component</th><th scope="col">Concentration / value</th></tr></thead>
+                        <tbody>
+                            <tr><th scope="row">POPC</th><td><strong>5 mM</strong></td></tr>
+                            <tr><th scope="row">NBD-PE</th><td><strong>0.05 mM</strong></td></tr>
+                            <tr><th scope="row">cholesterol</th><td><strong>3.0 mM</strong></td></tr>
+                        </tbody>
+                    </table>
                     <h3 class="sub-title" id="inner-aqueous-solution">Inner aqueous solution</h3>
-                    <ul>
-                        <li>0.3 M sucrose</li>
-                        <li>10 mM Tris-HCl</li>
-                        <li>1 µM sulforhodamine B</li>
-                    </ul>
+                    <table class="method-composition">
+                        <thead><tr><th scope="col">Component</th><th scope="col">Concentration / value</th></tr></thead>
+                        <tbody>
+                            <tr><th scope="row">sucrose</th><td><strong>0.3 M</strong></td></tr>
+                            <tr><th scope="row">Tris-HCl</th><td><strong>10 mM</strong></td></tr>
+                            <tr><th scope="row">sulforhodamine B</th><td><strong>1 µM</strong></td></tr>
+                        </tbody>
+                    </table>
                     <h3 class="sub-title" id="outer-aqueous-solution">Outer aqueous solution</h3>
-                    <ul>
-                        <li>0.3 M glucose</li>
-                        <li>10 mM Tris-HCl</li>
-                    </ul>
+                    <table class="method-composition">
+                        <thead><tr><th scope="col">Component</th><th scope="col">Concentration / value</th></tr></thead>
+                        <tbody>
+                            <tr><th scope="row">glucose</th><td><strong>0.3 M</strong></td></tr>
+                            <tr><th scope="row">Tris-HCl</th><td><strong>10 mM</strong></td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -79,14 +159,28 @@
             <h2 class="section-title">α-Hemolysin Purification</h2>
             <div class="content-space">
                 <div class="section-text">
+                    <h3 class="sub-title">Method</h3>
+                    <p>
+                        We purified αHL with the following steps.
+                    </p>
+                    <figure class="integrated-method"><svg viewBox="0 0 360 172" role="img" aria-label="His-tagged protein bound to resin in an affinity column"><rect width="360" height="172" fill="#0d111b"/><rect x="115" y="24" width="100" height="126" rx="5" fill="#26394d"/><path d="M125 150h80l-27 11h-26z" fill="none" stroke="#afbdc6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="158" cy="89" r="24" fill="#71889e" stroke="none" stroke-width="5"/><circle cx="187" cy="68" r="12" fill="#82c784" stroke="none" stroke-width="5"/><path d="M173 77l8-5" fill="none" stroke="#edf1f8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M196 65H223M174 104H223" fill="none" stroke="#9baebb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><text x="229" y="70" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">His-tagged αHL</text><text x="229" y="109" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">Affinity resin</text></svg></figure>
+                    <ul>
+                        <li>The αHL plasmid was expressed in <strong><i>E. coli</i></strong>.</li>
+                        <li>The protein was purified using the <strong>His-tag</strong>.</li>
+                        <li>The sample was <strong>desalted</strong> and dissolved in buffer (<strong>20 mM</strong> HEPES, <strong>150 mM</strong> NaCl, <strong>pH 7</strong>).</li>
+                        <li><strong>Electrophoresis</strong> (<strong>28 mA</strong>, <strong>60 min</strong>) was performed to check the purification.</li>
+                    </ul>
                     <p>
                         Buffer used after desalting.
                     </p>
-                    <ul>
-                        <li>20 mM HEPES</li>
-                        <li>150 mM NaCl</li>
-                        <li>pH 7</li>
-                    </ul>
+                    <table class="method-composition">
+                        <thead><tr><th scope="col">Component</th><th scope="col">Concentration / value</th></tr></thead>
+                        <tbody>
+                            <tr><th scope="row">HEPES</th><td><strong>20 mM</strong></td></tr>
+                            <tr><th scope="row">NaCl</th><td><strong>150 mM</strong></td></tr>
+                            <tr><th scope="row">pH</th><td><strong>7</strong></td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -95,18 +189,26 @@
             <h2 class="section-title">Pore Formation in GUVs with α-Hemolysin</h2>
             <div class="content-space">
                 <div class="section-text">
+                    <h3 class="sub-title">Method</h3>
+                    <figure class="integrated-method"><svg viewBox="0 0 360 172" role="img" aria-label="Dye moving through a pore in the membrane"><rect width="360" height="172" fill="#0d111b"/><path d="M45 65H150m40 0H295M45 84H150m40 0H295" fill="none" stroke="#82c784" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="150" y="53" width="12" height="42" rx="5" fill="#b1c1ca"/><rect x="178" y="53" width="12" height="42" rx="5" fill="#b1c1ca"/><circle cx="105" cy="112" r="5" fill="#ff9271" stroke="none" stroke-width="5"/><circle cx="140" cy="132" r="5" fill="#ff9271" stroke="none" stroke-width="5"/><circle cx="170" cy="108" r="5" fill="#ff9271" stroke="none" stroke-width="5"/><circle cx="170" cy="73" r="5" fill="#ff9271" stroke="none" stroke-width="5"/><circle cx="180" cy="35" r="5" fill="#ff9271" stroke="none" stroke-width="5"/><circle cx="202" cy="22" r="5" fill="#ff9271" stroke="none" stroke-width="5"/><text x="219" y="34" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">Released dye</text><text x="201" y="107" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">αHL pore</text></svg></figure>
+                    <p>
+                        We added αHL to the inner aqueous solution of the GUVs in Fig. 1.
+                    </p>
                     <p>
                         The lipid-containing oil and the outer aqueous solution are the same as in GUV Preparation.
-                        We added 3.0 mM cholesterol to the lipid-containing oil. This makes the membrane more stable so that αHL can insert into it more easily.
+                        We added <strong>3.0 mM</strong> cholesterol to the lipid-containing oil. This makes the membrane more stable so that αHL can insert into it more easily.
                     </p>
                     <h3 class="sub-title" id="inner-aqueous-solution-2">Inner aqueous solution</h3>
                     <!-- EDITOR: values copied from the source document. The sulforhodamine B (10 mM, from a 100 mM stock) and the alpha-hemolysin concentration (25 mM) look like typos (likely 10 uM, and 25 ng/uL: 2.8 uL of 89 ng/uL in 10 uL = 25 ng/uL). Check the lab notebook before relying on them. -->
-                    <ul>
-                        <li>0.3 M sucrose</li>
-                        <li>10 mM Tris-HCl</li>
-                        <li>10 mM sulforhodamine B</li>
-                        <li>25 mM αHL</li>
-                    </ul>
+                    <table class="method-composition">
+                        <thead><tr><th scope="col">Component</th><th scope="col">Concentration / value</th></tr></thead>
+                        <tbody>
+                            <tr><th scope="row">sucrose</th><td><strong>0.3 M</strong></td></tr>
+                            <tr><th scope="row">Tris-HCl</th><td><strong>10 mM</strong></td></tr>
+                            <tr><th scope="row">sulforhodamine B</th><td><strong>10 mM</strong></td></tr>
+                            <tr><th scope="row">αHL</th><td><strong>25 mM</strong></td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -115,15 +217,23 @@
             <h2 class="section-title">Blocking the Pores with TRIMEB</h2>
             <div class="content-space">
                 <div class="section-text">
+                    <h3 class="sub-title">Method</h3>
+                    <figure class="integrated-method"><svg viewBox="0 0 360 172" role="img" aria-label="TRIMEB occupying a membrane pore with dye retained below"><rect width="360" height="172" fill="#0d111b"/><path d="M45 65H150m40 0H295M45 84H150m40 0H295" fill="none" stroke="#82c784" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="150" y="53" width="12" height="42" rx="5" fill="#b1c1ca"/><rect x="178" y="53" width="12" height="42" rx="5" fill="#b1c1ca"/><circle cx="170" cy="65" r="11" fill="#e287d6" stroke="none" stroke-width="5"/><circle cx="105" cy="112" r="5" fill="#ff9271" stroke="none" stroke-width="5"/><circle cx="140" cy="132" r="5" fill="#ff9271" stroke="none" stroke-width="5"/><circle cx="170" cy="108" r="5" fill="#ff9271" stroke="none" stroke-width="5"/><circle cx="201" cy="125" r="5" fill="#ff9271" stroke="none" stroke-width="5"/><path d="M181 60l28-22h15" fill="none" stroke="#9baebb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><text x="230" y="42" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">TRIMEB</text><text x="222" y="133" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">Retained dye</text></svg></figure>
+                    <p>
+                        We added <strong>25 ng/mL</strong> of alpha-hemolysin to the inner layer and <strong>40 mM</strong> torimebu to the outer layer, and then checked whether the holes created by the alpha-hemolysin had been sealed.
+                    </p>
                     <p>
                         The lipid-containing oil and the inner aqueous solution are the same as in the previous experiment.
                     </p>
                     <h3 class="sub-title" id="outer-aqueous-solution-2">Outer aqueous solution</h3>
-                    <ul>
-                        <li>0.3 M glucose</li>
-                        <li>10 mM Tris-HCl</li>
-                        <li>4 mM TRIMEB</li>
-                    </ul>
+                    <table class="method-composition">
+                        <thead><tr><th scope="col">Component</th><th scope="col">Concentration / value</th></tr></thead>
+                        <tbody>
+                            <tr><th scope="row">glucose</th><td><strong>0.3 M</strong></td></tr>
+                            <tr><th scope="row">Tris-HCl</th><td><strong>10 mM</strong></td></tr>
+                            <tr><th scope="row">TRIMEB</th><td><strong>4 mM</strong></td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -132,21 +242,71 @@
             <h2 class="section-title">Attaching DNA to GUVs</h2>
             <div class="content-space">
                 <div class="section-text">
+                    <h3 class="sub-title">Method</h3>
+                    <figure class="integrated-method"><svg viewBox="0 0 360 172" role="img" aria-label="Fluorescence around a vesicle bearing lipid-conjugated DNA"><rect width="360" height="172" fill="#0d111b"/><circle cx="140" cy="84" r="55" fill="none" stroke="#284832" stroke-width="14"/><circle cx="140" cy="84" r="49" fill="#182923" stroke="#82c784" stroke-width="5"/><circle cx="140" cy="84" r="58" fill="none" stroke="#476f53" stroke-width="5"/><path d="M140 27l-8-9 8-8M90 82l-10-8-10 8M171 46l10-2 5-11M176 119l13 4 4 10" fill="none" stroke="#4abdec" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M185 44H215M186 119H215" fill="none" stroke="#9baebb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><text x="223" y="49" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">Lipid–DNA</text><text x="223" y="124" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">Fluorescent rim</text></svg></figure>
+                    <p>
+                        We added DNA to the inner aqueous solution of the GUVs and then stained the GUVs with <strong>SYBR Gold</strong>. The GUVs used here are different from the GUVs used so far: they do not contain NBD-PE.
+                    </p>
                     <p>
                         The outer aqueous solution is the same as in GUV Preparation. The lipid-containing oil does not contain NBD-PE.
                     </p>
                     <h3 class="sub-title" id="lipid-containing-oil-2">Lipid-containing oil</h3>
-                    <ul>
-                        <li>5 mM POPC</li>
-                        <li>3.0 mM cholesterol</li>
-                    </ul>
+                    <table class="method-composition">
+                        <thead><tr><th scope="col">Component</th><th scope="col">Concentration / value</th></tr></thead>
+                        <tbody>
+                            <tr><th scope="row">POPC</th><td><strong>5 mM</strong></td></tr>
+                            <tr><th scope="row">cholesterol</th><td><strong>3.0 mM</strong></td></tr>
+                        </tbody>
+                    </table>
                     <h3 class="sub-title" id="inner-aqueous-solution-3">Inner aqueous solution</h3>
+                    <table class="method-composition">
+                        <thead><tr><th scope="col">Component</th><th scope="col">Concentration / value</th></tr></thead>
+                        <tbody>
+                            <tr><th scope="row">sucrose</th><td><strong>0.3 M</strong></td></tr>
+                            <tr><th scope="row">Tris-HCl</th><td><strong>10 mM</strong></td></tr>
+                            <tr><th scope="row">sulforhodamine B</th><td><strong>1 µM</strong></td></tr>
+                            <tr><th scope="row">lipid-conjugated DNA</th><td><strong>100 nM</strong></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section exp-box" id="dna-purification">
+            <h2 class="section-title">DNA Purification</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <h3 class="sub-title">Method</h3>
+                    <figure class="integrated-method"><svg viewBox="0 0 360 172" role="img" aria-label="Lipid anchor joined to DNA at the coupling site"><rect width="360" height="172" fill="#0d111b"/><path d="M65 82 Q80 66 95 82 T125 82 T155 82 T185 82 T215 82 T245 82" fill="none" stroke="#4abdec" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="64" cy="82" r="10" fill="#ffae73" stroke="none" stroke-width="5"/><path d="M56 78Q39 60 24 68M56 87Q39 104 24 96" fill="none" stroke="#ffae73" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M64 72V46H96" fill="none" stroke="#9baebb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><text x="102" y="50" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">Coupling site</text><text x="128" y="120" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">Lipid-conjugated DNA</text></svg></figure>
+                    <p>
+                        In this project, DNA is conjugated with maleimide-functionalized lipids through a thiol–maleimide coupling reaction to generate lipid-conjugated DNA. <br>
+                        The resulting lipid-conjugated DNA is then inserted into the GUV membrane to produce DNA-functionalized GUVs.<br>
+                    </p>
+                        <figure>
+                        <img src="images/experiment-scheme1.png" alt="Reaction of thiol-modified DNA with maleimide-lipid to give DNA-conjugated lipid">
+                        <figcaption><strong>Scheme 1 Making the DNA-conjugated lipid.</strong> Thiol-modified DNA reacts with maleimide-lipid to give DNA-conjugated lipid.</figcaption>
+                    </figure>
+                    <p>
+                        We purified the DNA with the following steps.
+                    </p>
                     <ul>
-                        <li>0.3 M sucrose</li>
-                        <li>10 mM Tris-HCl</li>
-                        <li>1 µM sulforhodamine B</li>
-                        <li>100 nM lipid-conjugated DNA</li>
+                        <li>The target DNA was captured with gel balls.</li>
+                        <li>The DNA was reacted with a lipid that has a maleimide group.</li>
+                        <li>Only the DNA bound to the maleimide lipid was collected by <strong>HPLC</strong>.</li>
+                        <li>The concentration was measured by <strong>absorbance</strong>.</li>
                     </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section exp-box" id="dna-receptor-dimerization">
+            <h2 class="section-title">DNA Receptor Dimerization</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <h3 class="sub-title">Method</h3>
+                    <figure class="integrated-method"><svg viewBox="0 0 360 172" role="img" aria-label="Conceptual diagram of a gel lane containing two separated bands"><rect width="360" height="172" fill="#0d111b"/><rect x="104" y="22" width="116" height="125" rx="5" fill="#26394d"/><rect x="145" y="33" width="26" height="9" rx="5" fill="#708ca4"/><rect x="143" y="71" width="30" height="6" rx="5" fill="#aedcf4"/><rect x="143" y="106" width="30" height="6" rx="5" fill="#aedcf4"/><path d="M174 74H228M174 109H228" fill="none" stroke="#9baebb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><text x="235" y="79" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">Slower band</text><text x="235" y="114" fill="#edf1f8" font-size="14" font-family="Arial, sans-serif" font-weight="600">Faster band</text></svg></figure>
+                    <p>We used <strong>gel electrophoresis</strong> to test whether complementary DNA receptors form dimers in solution without GUVs and whether noncomplementary pairs show nonspecific association.</p>
+                    <p>We tested all six pairwise combinations of L1, R1, L2, and R2 on a <strong>10%</strong> polyacrylamide gel. Each strand had a target concentration of <strong>0.1 &micro;M</strong> before adding loading buffer. The gel was run for <strong>60 minutes</strong> at <strong>25 &deg;C</strong> with settings of <strong>100 V</strong> and <strong>20 mA</strong>.</p>
                 </div>
             </div>
         </div>
