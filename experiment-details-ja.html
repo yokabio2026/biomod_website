@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>実験の詳細 | YOKABIO</title>
+<link href="style.css" rel="stylesheet"/>
+<!-- 左の目次（項目別ジャンプ）：見出し（h2 / h3）から自動で作られるので、ページを書き換えると、目次も自動で変わる。この1行と、下の toc.js の1行で動く -->
+<link href="toc.css" rel="stylesheet"/>
+<style>
+        .method-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+            gap: 18px;
+            padding: 0;
+            margin: 12px 0 24px;
+            list-style: none;
+        }
+        .method-flow li {
+            position: relative;
+            display: grid;
+            justify-items: center;
+            gap: 8px;
+            padding: 12px 4px;
+            border-radius: 12px;
+            background: #f4effa;
+            color: #2b1055;
+            font-size: .86rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .method-composition { background: #f4effa; width: 100%; margin: 8px 0 22px; border-collapse: collapse; }
+        .method-composition th, .method-composition td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e3d9ed;
+            text-align: left;
+        }
+        .method-composition thead { background: #f4effa; color: #2b1055; }
+        .method-composition thead th { border-bottom: 3px solid #a68cbd; }
+        @media (max-width: 540px) {
+            .method-flow { grid-template-columns: 1fr; gap: 16px; }
+            .method-flow li { grid-template-columns: 48px 1fr; align-items: center; text-align: left; justify-items: start; padding-inline: 12px; }
+
+        }
+        .method-flow li > span:last-child { font-weight: 650; }
+        .method-composition td strong { white-space: nowrap; }
+        .method-sketch { width: min(100%, 120px); height: auto; }
+        @media (max-width: 540px) {
+            .method-flow li { grid-template-columns: 100px 1fr; column-gap: 12px; }
+
+        }
+        .section-text .integrated-method { float: none; width: min(100%, 540px); margin: 12px auto 22px; }
+        .integrated-method svg { width: 100%; height: auto; display: block; background: #0d111b; }
+        #guv-preparation .method-composition { background: #f4effa; }
+        main .section-text p, main .section-text li { overflow-wrap: anywhere; }
+        main .section-text p { text-wrap: pretty; }
+        html[lang="ja"] main .section-text p, html[lang="ja"] main .section-text li { line-break: strict; }
+        .unit-value { white-space: nowrap; }
+
+        .pair-matrix { width: min(100%, 22rem); table-layout: fixed; border-collapse: separate; border-spacing: 4px; margin: 1rem 0; background:#15151b; border-radius:10px; padding:.55rem; }
+        .pair-matrix caption { text-align: left; color: #2b1055; font-weight: 700; padding-bottom:.35rem; }
+        .pair-matrix th, .pair-matrix td { text-align: center; padding: .35rem .15rem; color: #edf1f8; }
+        .pair-matrix .pair-tested { background: #252530; box-shadow: inset 0 0 0 1px #777786; border-radius: 5px; font-weight: bold; }
+        .pair-layout { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.45fr); align-items:start; gap:clamp(1.5rem, 5vw, 3.5rem); max-width:52rem; margin-inline:auto; }
+        .pair-layout .pair-matrix, .section-text .pair-layout .integrated-method { width:100%; margin:0; }
+        @media (max-width:620px) { .pair-layout { grid-template-columns:minmax(0,1fr); } }
+        .pair-heading { max-width:52rem; margin-inline:auto; font-weight:700; }
+        .section-text .motion-stills { width:min(100%, 52rem); display:block; }
+        .motion-sequence { display:grid; gap:1rem; padding-inline-start:0; list-style:none; }
+        .motion-sequence li { max-inline-size:none; }
+        .motion-sequence li::marker { font-weight:bold; }
+        .motion-frame { position:relative; }
+        .integrated-method .cap-trace { position:absolute; inset:0; width:100%; height:100%; background:transparent; pointer-events:none; }
+    .pair-card { background:#15151b; border-radius:10px; padding:.65rem; }
+        .pair-card .pair-heading { color:#edf1f8; margin:.35rem .45rem; font:700 1rem/1.4 Arial,sans-serif; }
+        .pair-matrix .complement-one, .pair-matrix .complement-two { color:#ffde63; outline:2px solid currentColor; outline-offset:-2px; }
+    .float-figs #attaching-dna .section-text .dna-membrane { float:right; width:52%; max-width:none; margin:0 0 1rem 1.5rem; }
+            .method-composition tbody :is(th, td) { font-weight: 600; }
+        .method-composition tbody strong { font-weight: inherit; }
+        .float-figs #guv-preparation .section-text .guv-phase-figure { margin-block: 0 .75rem; }
+        #guv-preparation #lipid-containing-oil { margin-top: 1rem; }
+            .phase-panel { position:relative; }
+        .phase-panel + .phase-panel { margin-top:.5rem; }
+        .phase-panel img { display:block; width:100%; height:auto; }
+        .phase-unlabeled::before, .phase-unlabeled::after, .phase-unlabeled span { content:""; position:absolute; pointer-events:none; }
+        .phase-unlabeled::before { inset:10% 5% auto 68%; height:14%; background:#29212a; }
+        .phase-unlabeled::after { inset:74% 3% auto 66%; height:15%; background:#101c2a; }
+        .phase-unlabeled span { left:46%; width:8%; height:5%; background:#492e36; top:25%; }
+        .phase-unlabeled:last-child span { top:77%; }
+        @media (max-width: 720px) {
+            .float-figs #attaching-dna .section-text .dna-membrane { float:none; width:100%; margin:0 auto 1rem; }
+        }
+        .section-text p, .section-text li { overflow-wrap: break-word; line-height: 1.65; }
+    .section-text p + p { margin-top: .75em; }
+    .section-text ol > li + li { margin-top: .3em; }
+    .float-figs #hemolysin-purification .section-text .expression-comic,
+    #hemolysin-purification .section-text .expression-comic {
+        float: none;
+        width: 100%;
+        max-width: 54rem;
+        margin: 1rem auto;
+    }
+    .expression-comic img { display: block; width: 100%; height: auto; border-radius: .5rem; }
+    @media (max-width: 620px) {
+        .section-text .method-composition :is(th, td) {
+            padding: .4rem;
+            overflow-wrap: anywhere;
+        }
+        .section-text .unit-value { white-space: normal; }
+    }
+    .float-figs #trimeb .section-text .integrated-method {
+        float: right;
+        width: 52%;
+        max-width: none;
+        margin: 0 0 1rem 1.5rem;
+    }
+    @media (max-width: 720px) {
+        .float-figs #trimeb .section-text .integrated-method {
+            float: none;
+            width: 100%;
+            margin: 0 auto 1rem;
+        }
+    }
+    .float-figs .section-text .connection-figure, .section-text .connection-figure { float: none; width: 100%; max-width: 48rem; margin: 1rem auto; }
+</style>
+</head>
+<body>
+<header class="navbar">
+<div class="navbar-left">
+<a class="logo" href="index.html">YOKABIO</a>
+</div>
+<div class="navbar-right">
+<ul class="nav-links">
+<li><a href="index.html">ホーム</a></li>
+<li><a href="project.html">プロジェクト</a></li>
+<li><a href="design.html">設計</a></li>
+<li><a href="simulation.html">シミュレーション</a></li>
+<li><a href="experiment-ja.html">実験</a></li>
+<li><a href="future.html">今後の展望</a></li>
+<li><a href="elsi.html">倫理・法・社会</a></li>
+<li><a href="team.html">チーム</a></li>
+</ul>
+<div class="search-icon-container">
+<button class="search-btn" id="search-toggle-btn">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<circle cx="11" cy="11" r="8"></circle>
+<line x1="21" x2="16.65" y1="21" y2="16.65"></line>
+</svg>
+</button>
+</div>
+</div>
+</header>
+<div class="search-overlay hidden" id="search-overlay">
+<div class="search-input-wrapper">
+<input id="search-input" placeholder="Search..." type="text"/>
+</div>
+<div class="search-results" id="search-results"></div>
+</div>
+<main class="content float-figs">
+<div class="page-hero-header page-hero-header--with-title page-hero-header--with-image">
+<h1>実験の詳細</h1>
+<!-- 帯の右側の飾りの絵（3つのGUVがつながった図）。位置・大きさは style.css の .page-hero-image -->
+<img alt="" aria-hidden="true" class="page-hero-image" src="images/home-hero-guv-network-v3.webp"/>
+</div>
+<div class="content-section exp-box" id="guv-preparation">
+<h2 class="section-title">GUVの作製</h2>
+<div class="content-space">
+<div class="section-text">
+<h3 class="sub-title">GUVを作る</h3>
+<figure class="integrated-method guv-phase-figure"><div class="phase-panel phase-unlabeled"><img src="images/experiment-emulsion-transfer-loop-1.png" alt="界面通過前"><span aria-hidden="true"></span></div><div class="phase-panel"><img src="images/experiment-emulsion-transfer-loop-3.png" alt="界面通過中"></div><div class="phase-panel phase-unlabeled"><img src="images/experiment-emulsion-transfer-loop-4.png" alt="界面通過後"><span aria-hidden="true"></span></div></figure>
+<ol>
+<li>内水相を脂質入りオイルと混合した。</li>
+<li>混合液を<strong>30秒間ボルテックス</strong>し、油中水滴型（W/O）のエマルションを作製した。</li>
+<li>次に、エマルションを外水相に静かに重ねた。</li>
+<li><strong>5分間</strong>静置した。</li>
+<li>試料をまず<strong><span class="unit-value">3000 × g</span>で30分間</strong>遠心した。<br/>次に、<strong><span class="unit-value">5000 × g</span>で10分間</strong>遠心した。<br/>いずれも<strong><span class="unit-value">24 °C</span></strong>で行った。</li>
+<li>遠心後、上層のオイルを除いた。GUV懸濁液150&nbsp;µLを回収し、洗浄用の外水相300&nbsp;µLを加えた。<br>混合液を<strong>5000&nbsp;×&nbsp;g、24&nbsp;°Cで3分間</strong>再遠心した。</li>
+</ol>
+<p>エマルション移送法で使う<strong>脂質入りオイル・内水相・外水相</strong>を調製した。 <a href="https://doi.org/10.1021/la026100v">[1]</a></p>
+<h3 class="sub-title" id="lipid-containing-oil">脂質入りオイル</h3>
+<p>脂質をクロロホルムに溶解した。</p>
+<ol>
+<li>ガラス管内で窒素ガスを使い、クロロホルムを蒸発させた。</li>
+<li>真空デシケーターで<strong>1時間</strong>乾燥し、脂質膜を形成した。</li>
+<li>ミネラルオイルを<strong><span class="unit-value">300 µL</span></strong>添加した。</li>
+<li><strong><span class="unit-value">60 °C</span>で60分間の超音波処理</strong>を行い、脂質をオイルに分散させた。</li>
+</ol>
+<table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">POPC</th><td><strong><span class="unit-value">5 mM</span></strong></td></tr>
+<tr><th scope="row">NBD-PE</th><td><strong><span class="unit-value">0.05 mM</span></strong></td></tr>
+<tr><th scope="row">コレステロール</th><td><strong><span class="unit-value">3.0 mM</span></strong></td></tr>
+</tbody>
+</table>
+<h3 class="sub-title" id="inner-aqueous-solution">内水相</h3>
+<table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">スクロース</th><td><strong><span class="unit-value">0.3 M</span></strong></td></tr>
+<tr><th scope="row">Tris-HCl</th><td><strong><span class="unit-value">10 mM</span></strong></td></tr>
+<tr><th scope="row">スルホローダミンB</th><td><strong><span class="unit-value">1 µM</span></strong></td></tr>
+</tbody>
+</table>
+<h3 class="sub-title" id="outer-aqueous-solution">外水相</h3>
+<table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">グルコース</th><td><strong><span class="unit-value">0.3 M</span></strong></td></tr>
+<tr><th scope="row">Tris-HCl</th><td><strong><span class="unit-value">10 mM</span></strong></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="content-section exp-box" id="hemolysin-purification">
+<h2 class="section-title">α-ヘモリシンの精製</h2>
+<div class="content-space">
+<div class="section-text">
+                    <h3 class="sub-title">αHLの精製手順</h3>
+<p>αHLは以下の手順で精製した。</p>
+<figure class="integrated-method expression-comic"><img src="images/ahl-expression.png" alt="大腸菌での遺伝子発現とαHL単量体を示す4コマ" width="1774" height="887"></figure>
+<ol>
+<li><strong>大腸菌</strong>でプラスミドからαHLを発現させた。</li>
+<li><strong>Hisタグ</strong>を用いてタンパク質を精製した。</li>
+<li>試料を<strong>脱塩</strong>し、<strong><span class="unit-value">20 mM</span> HEPES、<span class="unit-value">150 mM</span> NaCl、pH 7</strong>の緩衝液に溶解した。</li>
+<li><strong>電気泳動（<span class="unit-value">28 mA</span>、60分）</strong>で精製を確認した。</li>
+</ol>
+<table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">HEPES</th><td><strong><span class="unit-value">20 mM</span></strong></td></tr>
+<tr><th scope="row">NaCl</th><td><strong><span class="unit-value">150 mM</span></strong></td></tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="content-section exp-box" id="pore-formation">
+<h2 class="section-title">α-ヘモリシンによるGUVの孔形成</h2>
+<div class="content-space">
+<div class="section-text">
+                    <h3 class="sub-title">膜に孔を形成する</h3>
+<figure class="integrated-method"><svg aria-label="Mushroom-shaped alpha hemolysin spanning an individual-lipid bilayer" role="img" viewbox="0 0 360 172"><rect fill="#0d111b" height="172" width="360"></rect><path d="M0 125Q180 36 360 125V172H0Z" fill="#211c26"></path><g transform="translate(8 117.86) rotate(-28.07)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(17 113.18) rotate(-26.81)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(26 108.76) rotate(-25.52)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(35 104.59) rotate(-24.20)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(44 100.67) rotate(-22.86)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(53 97.00) rotate(-21.49)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(62 93.58) rotate(-20.09)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(71 90.42) rotate(-18.67)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(80 87.50) rotate(-17.22)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(89 84.84) rotate(-15.75)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(98 82.42) rotate(-14.26)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(107 80.26) rotate(-12.75)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(116 78.35) rotate(-11.22)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(125 76.69) rotate(-9.68)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(134 75.28) rotate(-8.12)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(143 74.12) rotate(-6.54)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(152 73.22) rotate(-4.96)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(206 73.05) rotate(4.61)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(215 73.90) rotate(6.19)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(224 75.00) rotate(7.77)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(233 76.35) rotate(9.33)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(242 77.96) rotate(10.88)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(251 79.81) rotate(12.41)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(260 81.92) rotate(13.93)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(269 84.28) rotate(15.42)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(278 86.89) rotate(16.90)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(287 89.75) rotate(18.35)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(296 92.86) rotate(19.78)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(305 96.22) rotate(21.18)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(314 99.83) rotate(22.56)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(323 103.70) rotate(23.91)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(332 107.81) rotate(25.23)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(341 112.18) rotate(26.52)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(350 116.80) rotate(27.79)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(164 72.40) rotate(-2.84)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="4.2"></circle><circle cy="12" fill="#ff9a79" r="4.2"></circle></g><g transform="translate(196 72.40) rotate(2.84)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="4.2"></circle><circle cy="12" fill="#ff9a79" r="4.2"></circle></g><path d="M168 49h9v66h-17q-9 0-9-11v-4q0-8 9-8h8z M183 49h9v43h8q9 0 9 8v4q0 11-9 11h-17z" fill="#afc2d0"></path><circle cx="58" cy="142" fill="#ffce81" r="3"></circle><circle cx="103" cy="124" fill="#ffce81" r="3"></circle><circle cx="142" cy="151" fill="#ffce81" r="3"></circle><circle cx="179" cy="121" fill="#ffce81" r="3"></circle><circle cx="222" cy="136" fill="#ffce81" r="3"></circle><circle cx="277" cy="143" fill="#ffce81" r="3"></circle><circle cx="314" cy="155" fill="#ffce81" r="3"></circle><circle cx="180" cy="66" fill="#ffce81" r="3"></circle><circle cx="180" cy="33" fill="#ffce81" r="3"></circle><circle cx="188" cy="20" fill="#ffce81" r="3"></circle><text fill="#edf1f8" font-family="Arial" font-size="13" x="228" y="36">αHL</text><path d="M180 39q-2 9 0 17 M188 26q-1 7-5 12" fill="none" stroke="#ffce81" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg></figure>
+<p>孔形成実験用のGUVの作製時に、αHLは内水相に添加された。</p>
+<p>脂質入りオイルと外水相には、GUV作製節と同じものを用いた。<br/>膜の安定化とαHLの挿入を促すため、オイルに<strong>3.<span class="unit-value">0 mM</span></strong>のコレステロールを添加した。</p>
+<h3 class="sub-title" id="inner-aqueous-solution-2">内水相</h3>
+
+<table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">スクロース</th><td><strong><span class="unit-value">0.3 M</span></strong></td></tr>
+<tr><th scope="row">Tris-HCl</th><td><strong><span class="unit-value">10 mM</span></strong></td></tr>
+<tr><th scope="row">スルホローダミンB</th><td><strong><span class="unit-value">10 mM</span></strong></td></tr>
+<tr><th scope="row">αHL</th><td><strong><span class="unit-value">25&nbsp;ng/µL</span></strong></td></tr>
+</tbody>
+</table><p>スルホローダミンBの原液濃度は<strong>100&nbsp;mM</strong>であった。</p>
+
+<h3 class="sub-title">脂質入りオイル</h3><table class="method-composition"><thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead><tbody><tr><th scope="row">POPC</th><td>5 mM</td></tr><tr><th scope="row">NBD-PE</th><td>0.05 mM</td></tr><tr><th scope="row">コレステロール</th><td>3.0 mM</td></tr></tbody></table>
+<h3 class="sub-title">外水相</h3><table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">グルコース</th><td><strong><span class="unit-value">0.3 M</span></strong></td></tr>
+<tr><th scope="row">Tris-HCl</th><td><strong><span class="unit-value">10 mM</span></strong></td></tr>
+</tbody>
+</table>
+<h3 class="sub-title">作製条件</h3><p>内水相と脂質入りオイルを混合し、30秒間ボルテックスした。エマルションを外水相に重ね、5分間静置した。24&nbsp;°Cで3000 × g、30分間遠心し、続いて24 °Cで5000 × g、10分間遠心した。</p>
+</div>
+</div>
+</div>
+<div class="content-section exp-box" id="trimeb">
+<h2 class="section-title">TRIMEBによる孔の閉塞</h2>
+<div class="content-space">
+<div class="section-text">
+                    <h3 class="sub-title">αHLの孔をふさぐ</h3>
+<figure class="integrated-method"><svg aria-label="TRIMEB occupying a membrane pore with dye retained below" role="img" viewbox="0 0 360 172"><rect fill="#0d111b" height="172" width="360"></rect><path d="M0 125Q180 36 360 125V172H0Z" fill="#211c26"></path><g transform="translate(8 117.86) rotate(-28.07)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(17 113.18) rotate(-26.81)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(26 108.76) rotate(-25.52)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(35 104.59) rotate(-24.20)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(44 100.67) rotate(-22.86)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(53 97.00) rotate(-21.49)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(62 93.58) rotate(-20.09)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(71 90.42) rotate(-18.67)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(80 87.50) rotate(-17.22)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(89 84.84) rotate(-15.75)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(98 82.42) rotate(-14.26)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(107 80.26) rotate(-12.75)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(116 78.35) rotate(-11.22)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(125 76.69) rotate(-9.68)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(134 75.28) rotate(-8.12)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(143 74.12) rotate(-6.54)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(152 73.22) rotate(-4.96)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(206 73.05) rotate(4.61)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(215 73.90) rotate(6.19)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(224 75.00) rotate(7.77)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(233 76.35) rotate(9.33)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(242 77.96) rotate(10.88)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(251 79.81) rotate(12.41)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(260 81.92) rotate(13.93)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(269 84.28) rotate(15.42)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(278 86.89) rotate(16.90)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(287 89.75) rotate(18.35)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(296 92.86) rotate(19.78)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(305 96.22) rotate(21.18)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(314 99.83) rotate(22.56)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(323 103.70) rotate(23.91)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(332 107.81) rotate(25.23)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(341 112.18) rotate(26.52)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(350 116.80) rotate(27.79)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="3.2"></circle><circle cy="12" fill="#ff9a79" r="3.2"></circle></g><g transform="translate(164 72.40) rotate(-2.84)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="4.2"></circle><circle cy="12" fill="#ff9a79" r="4.2"></circle></g><g transform="translate(196 72.40) rotate(2.84)"><path d="M-2 -11l-1 9m5-9l1 9m-5 13l-1-9m5 9l1-9" stroke="#e78d73" stroke-width="1.4"></path><circle cy="-12" fill="#ff9a79" r="4.2"></circle><circle cy="12" fill="#ff9a79" r="4.2"></circle></g><path d="M168 49h9v66h-17q-9 0-9-11v-4q0-8 9-8h8z M183 49h9v43h8q9 0 9 8v4q0 11-9 11h-17z" fill="#afc2d0"></path><rect fill="#e287d6" height="8" rx="2" width="12" x="174" y="62"></rect><path d="M201 28h20" fill="none" stroke="#e287d6"></path><circle cx="58" cy="142" fill="#ffce81" r="3"></circle><circle cx="103" cy="124" fill="#ffce81" r="3"></circle><circle cx="142" cy="151" fill="#ffce81" r="3"></circle><circle cx="179" cy="121" fill="#ffce81" r="3"></circle><circle cx="222" cy="136" fill="#ffce81" r="3"></circle><circle cx="277" cy="143" fill="#ffce81" r="3"></circle><circle cx="314" cy="155" fill="#ffce81" r="3"></circle><text fill="#edf1f8" font-family="Arial" font-size="13" x="228" y="36">TRIMEB</text><rect x="194" y="22" width="13" height="10" rx="2" fill="#ff72d4"/><path d="M199 33Q192 41 183 57" fill="none" stroke="#ff9de5" stroke-width="1.6" stroke-dasharray="3 3"/><rect x="194" y="22" width="13" height="10" rx="2" fill="#ff72d4"/><path d="M199 33Q192 41 183 57" fill="none" stroke="#ff9de5" stroke-width="1.6" stroke-dasharray="3 3"/><ellipse cx="180" cy="66" rx="15" ry="12" fill="none" stroke="#ff9de5" stroke-width="1.8"/></svg></figure>
+<p>内水相に<strong>25&nbsp;ng/µLのαHL</strong>を添加した。<br/>外水相に<strong>4&nbsp;mMのTRIMEB</strong>を添加した。<br/>次に、αHLの孔がふさがるかを評価した。</p>
+
+<h3 class="sub-title" id="outer-aqueous-solution-2">外水相</h3>
+<table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">グルコース</th><td><strong><span class="unit-value">0.3 M</span></strong></td></tr>
+<tr><th scope="row">Tris-HCl</th><td><strong><span class="unit-value">10 mM</span></strong></td></tr>
+<tr><th scope="row">TRIMEB</th><td><strong><span class="unit-value">4 mM</span></strong></td></tr>
+</tbody>
+</table>
+<h3 class="sub-title">内水相</h3>
+<table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">スクロース</th><td><strong><span class="unit-value">0.3 M</span></strong></td></tr>
+<tr><th scope="row">Tris-HCl</th><td><strong><span class="unit-value">10 mM</span></strong></td></tr>
+<tr><th scope="row">スルホローダミンB</th><td><strong><span class="unit-value">10 mM</span></strong></td></tr>
+<tr><th scope="row">αHL</th><td><strong><span class="unit-value">25&nbsp;ng/µL</span></strong></td></tr>
+</tbody>
+</table>
+<h3 class="sub-title">脂質入りオイル</h3>
+<table class="method-composition"><thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead><tbody><tr><th scope="row">POPC</th><td>5 mM</td></tr><tr><th scope="row">NBD-PE</th><td>0.05 mM</td></tr><tr><th scope="row">コレステロール</th><td>3.0 mM</td></tr></tbody></table>
+</div>
+</div>
+</div>
+<div class="content-section exp-box" id="attaching-dna">
+<h2 class="section-title">GUVへのDNAの導入</h2>
+<div class="content-space">
+<div class="section-text">
+                    <h3 class="sub-title">DNAの導入と染色</h3>
+<figure class="integrated-method dna-membrane"><svg aria-label="Magnified GUV membrane with five single-stranded DNA anchors facing inward and one facing outward. Schematic distribution." role="img" viewbox="0 0 420 283"><rect fill="#0d111b" height="283" width="420"></rect><circle cx="210" cy="215" fill="#172820" r="53" stroke="#82c784" stroke-width="5"></circle><path d="M210 149V155" fill="none" stroke="white"></path><ellipse cx="210" cy="163" fill="none" rx="18" ry="8" stroke="white"></ellipse><ellipse cx="210" cy="79" fill="#131b26" rx="193" ry="70" stroke="white"></ellipse><g transform="translate(82 77.47) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(90 76.08) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(98 74.78) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(106 73.57) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(114 72.45) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(122 71.42) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(130 70.48) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(138 69.63) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(146 68.87) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(154 68.20) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(162 67.61) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(170 67.12) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(178 66.72) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(186 66.40) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(194 66.18) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(202 66.04) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(210 66.00) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(218 66.04) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(226 66.18) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(234 66.40) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(242 66.72) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(250 67.12) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(258 67.61) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#82c784" stroke-width="1.3"></path><circle fill="#82c784" r="2.6"></circle><path d="M0 2Q0 7 2 11T2 20 M1 8h3 M3 12h3 M3 16h3" fill="none" stroke="#82c784" stroke-linecap="round" stroke-width="1.6"></path></g><g transform="translate(266 68.20) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(274 68.87) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(282 69.63) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(290 70.48) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(298 71.42) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(306 72.45) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(314 73.57) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(322 74.78) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(330 76.08) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(338 77.47) scale(1 -1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(82 97.47) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(90 96.08) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(98 94.78) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(106 93.57) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#82c784" stroke-width="1.3"></path><circle fill="#82c784" r="2.6"></circle><path d="M0 2Q0 7 2 11T2 20 M1 8h3 M3 12h3 M3 16h3" fill="none" stroke="#82c784" stroke-linecap="round" stroke-width="1.6"></path></g><g transform="translate(114 92.45) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(122 91.42) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(130 90.48) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(138 89.63) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(146 88.87) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(154 88.20) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#82c784" stroke-width="1.3"></path><circle fill="#82c784" r="2.6"></circle><path d="M0 2Q0 7 2 11T2 20 M1 8h3 M3 12h3 M3 16h3" fill="none" stroke="#82c784" stroke-linecap="round" stroke-width="1.6"></path></g><g transform="translate(162 87.61) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(170 87.12) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(178 86.72) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(186 86.40) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(194 86.18) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(202 86.04) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#82c784" stroke-width="1.3"></path><circle fill="#82c784" r="2.6"></circle><path d="M0 2Q0 7 2 11T2 20 M1 8h3 M3 12h3 M3 16h3" fill="none" stroke="#82c784" stroke-linecap="round" stroke-width="1.6"></path></g><g transform="translate(210 86.00) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(218 86.04) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(226 86.18) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(234 86.40) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(242 86.72) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(250 87.12) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#82c784" stroke-width="1.3"></path><circle fill="#82c784" r="2.6"></circle><path d="M0 2Q0 7 2 11T2 20 M1 8h3 M3 12h3 M3 16h3" fill="none" stroke="#82c784" stroke-linecap="round" stroke-width="1.6"></path></g><g transform="translate(258 87.61) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(266 88.20) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(274 88.87) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(282 89.63) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(290 90.48) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(298 91.42) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#82c784" stroke-width="1.3"></path><circle fill="#82c784" r="2.6"></circle><path d="M0 2Q0 7 2 11T2 20 M1 8h3 M3 12h3 M3 16h3" fill="none" stroke="#82c784" stroke-linecap="round" stroke-width="1.6"></path></g><g transform="translate(306 92.45) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(314 93.57) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(322 94.78) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(330 96.08) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g transform="translate(338 97.47) scale(1 1)"><path d="M-1 0l-1 -7 M1 0l1 -7" stroke="#bfc5cd" stroke-width="1.3"></path><circle fill="#bfc5cd" r="2.6"></circle></g><g fill="#edf1f8" font-family="Arial" font-size="18" font-weight="bold"><text x="107" y="48">Outer</text><text x="177" y="139">Inner</text></g></svg></figure>
+<p>脂質結合DNAを内水相に添加した。<br/>作製後、GUVを<strong>SYBR Gold</strong>で染色した。</p>
+<p>外水相には、GUV作製節と同じ溶液を用いた。<br/>脂質入りオイルにはNBD-PEを加えなかった。</p>
+<h3 class="sub-title" id="lipid-containing-oil-2">脂質入りオイル</h3>
+<table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">POPC</th><td><strong><span class="unit-value">5 mM</span></strong></td></tr>
+<tr><th scope="row">コレステロール</th><td><strong><span class="unit-value">3.0 mM</span></strong></td></tr>
+</tbody>
+</table>
+<h3 class="sub-title" id="inner-aqueous-solution-3">内水相</h3>
+<table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">スクロース</th><td><strong><span class="unit-value">0.3 M</span></strong></td></tr>
+<tr><th scope="row">Tris-HCl</th><td><strong><span class="unit-value">10 mM</span></strong></td></tr>
+<tr><th scope="row">スルホローダミンB</th><td><strong><span class="unit-value">1 µM</span></strong></td></tr>
+<tr><th scope="row">脂質結合DNA</th><td><strong><span class="unit-value">100 nM</span></strong></td></tr>
+</tbody>
+</table>
+
+<h3 class="sub-title">外水相</h3><table class="method-composition">
+<thead><tr><th scope="col">成分</th><th scope="col">最終濃度</th></tr></thead>
+<tbody>
+<tr><th scope="row">グルコース</th><td><strong><span class="unit-value">0.3 M</span></strong></td></tr>
+<tr><th scope="row">Tris-HCl</th><td><strong><span class="unit-value">10 mM</span></strong></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="content-section exp-box" id="dna-purification">
+<h2 class="section-title">DNAの精製</h2>
+<div class="content-space">
+<div class="section-text">
+                    <h3 class="sub-title">DNAと脂質の結合・精製</h3>
+<figure class="integrated-method motion-stills" role="img" aria-label="Capの離脱、SHの露出、DOPE-MALとの結合"><ol class="motion-sequence"><li><div class="motion-frame"><img src="images/experiment-dna-lipid-coupling-1.png" alt="" style="display:block;width:100%;height:auto"></div></li><li><div class="motion-frame"><img src="images/experiment-dna-lipid-coupling-2.png" alt="" style="display:block;width:100%;height:auto"><svg class="cap-trace" viewBox="0 0 880 260" aria-hidden="true"><rect x="415" y="5" width="102" height="120" fill="#0d111b"/><path d="M555 60h72v58h-72" fill="none" stroke="#cf9be7" stroke-width="8"/><text x="590" y="46" text-anchor="middle" fill="#cf9be7" font-size="28">Cap</text><path d="M355 106H431V165H355 M436 136Q501 133 553 84" fill="none" stroke="#cf9be7" stroke-width="4" stroke-dasharray="8 5"/></svg></div></li><li><div class="motion-frame"><img src="images/experiment-dna-lipid-coupling-3.png" alt="" style="display:block;width:100%;height:auto"></div></li><li><div class="motion-frame"><img src="images/experiment-dna-lipid-coupling-4.png" alt="" style="display:block;width:100%;height:auto"></div></li></ol></figure>
+<p>チオール修飾DNAをマレイミド基付き脂質に結合させた。<br/>次に、脂質結合DNAをGUVの膜に挿入した。</p>
+<p>以下の手順でDNAを精製した。</p>
+<ol>
+                        <li>チオール保護基を<strong>TCEP</strong>で除去した（室温、30分）。</li>
+                        <li>ゲルビーズを用いてDNAを精製した。</li>
+                        <li>DNAを<strong>DOPE-MAL</strong>と反応させた（室温、2時間）。</li>
+                        <li>脂質結合DNAは、<strong>C3カラムを装着したHPLC</strong>で回収した。</li>
+                        <li>DNA濃度は<strong>260 nmの吸光度</strong>から算出した。</li>
+                    </ol>
+<h3 class="sub-title">脱保護反応液</h3><table class="method-composition"><thead><tr><th scope="col">成分</th><th scope="col">添加量（µL）</th><th scope="col">最終濃度</th></tr></thead><tbody><tr><th scope="row">SH-DNA</th><td>10</td><td>20 µM</td></tr><tr><th scope="row">TCEP</th><td>25</td><td>50 mM</td></tr><tr><th scope="row">KCl</th><td>7</td><td>140 mM</td></tr><tr><th scope="row">HEPES</th><td>1.25</td><td>25 mM</td></tr><tr><th scope="row">UPW</th><td>6.75</td><td>—</td></tr><tr><th scope="row">全量</th><td>50</td><td>—</td></tr></tbody></table>
+<h3 class="sub-title">DNAと脂質の結合反応</h3>
+<p>各回収DNA試料の濃度と液量からDNAの物質量を求めた。DOPE-MALがDNAの<strong>50モル当量</strong>となるよう、<strong>5 mM DOPE-MALのDMSO溶液</strong>の添加量を計算し、算出した量を加えた。</p><p>DNAの溶解にはTE（Tris-HCl : EDTA = 10 : 1）を用いた。</p>
+
+</div>
+</div>
+</div>
+<div class="content-section exp-box" id="dna-receptor-dimerization">
+<h2 class="section-title">DNAレセプターの二量体形成</h2>
+<div class="content-space">
+<div class="section-text">
+                    <h3 class="sub-title">DNAペアの会合を調べる</h3>
+                    <p>GUVを含まない溶液中で、相補ペアの二量体形成と、非相補ペアの非特異的な会合を<strong>ゲル電気泳動</strong>で評価した。</p>
+                    <p>4種類のDNAから2種類を選び、表に示す全6組で電気泳動を行った。</p>
+<div class="pair-layout"><div class="pair-card"><p class="pair-heading" id="pair-heading">実験した組み合わせ（✓ 実施）</p><table class="pair-matrix" aria-labelledby="pair-heading"><thead><tr><td></td><th scope="col" style="color:#39d4d9">L1</th><th scope="col" style="color:#ff78ac">R1</th><th scope="col" style="color:#bb9aff">L2</th><th scope="col" style="color:#ffab57">R2</th></tr></thead><tbody><tr><th scope="row" style="color:#39d4d9">L1</th><td></td><td class="pair-tested complement-one"><strong>✓</strong></td><td class="pair-tested">✓</td><td class="pair-tested">✓</td></tr><tr><th scope="row" style="color:#ff78ac">R1</th><td></td><td></td><td class="pair-tested">✓</td><td class="pair-tested">✓</td></tr><tr><th scope="row" style="color:#bb9aff">L2</th><td></td><td></td><td></td><td class="pair-tested complement-two"><strong>✓</strong></td></tr><tr><th scope="row" style="color:#ffab57">R2</th><td></td><td></td><td></td><td></td></tr></tbody></table></div><figure class="integrated-method">
+<img alt="Illustrative gel pattern for all six DNA pairs" height="306" src="images/gel-result-schematic.svg" style="display:block;width:100%;height:auto" width="564"/></figure></div>
+<p>DNA原液は<strong>1&nbsp;µM</strong>を目安とし、ローディングバッファー添加前の試料では各鎖<strong>0.1&nbsp;µM</strong>を目標とした。</p>
+
+                    <details>
+                        <summary><strong>泳動条件と試料の配合を表示</strong></summary>
+<p>L1、R1、L2、R2から2本ずつ選んだ全6通りを、<strong>10%ポリアクリルアミドゲル</strong>で評価した。<br/>
+                        ローディングバッファーを加える前の各鎖の目標濃度は<strong><span class="unit-value">0.1 µM</span></strong>である。</p><p><strong><span class="unit-value">25 °C</span>、<span class="unit-value">100 V</span>・20 mAの設定で60分間</strong>泳動した。</p>
+<h3 class="sub-title">ポリアクリルアミドゲルの組成（公称全量10 mL）</h3><table class="method-composition"><thead><tr><th scope="col">成分</th><th scope="col">原液</th><th scope="col">添加量</th><th scope="col">最終濃度</th></tr></thead><tbody><tr><th scope="row">MgCl₂</th><td>1 M</td><td>50 µL</td><td>5 mM</td></tr><tr><th scope="row">TBE</th><td>10×</td><td>1 mL</td><td>1×</td></tr><tr><th scope="row">Acrylamide/Bis (29:1)</th><td>40%</td><td>2.5 mL</td><td>10%</td></tr><tr><th scope="row">Milli-Q</th><td>—</td><td>*</td><td>—</td></tr><tr><th scope="row">APS</th><td>10%</td><td>100 µL</td><td>0.1%</td></tr><tr><th scope="row">TEMED</th><td>—</td><td>10 µL</td><td>†</td></tr></tbody></table><p>* Milli-Q水を10 mLの目盛りまで加えた後にAPSとTEMEDを添加した。10 mLが添加前か添加後かは要確認。<br>† TEMEDは記録では0.01%。10 µLを最終10 mLに加えた場合の計算値は0.1%（v/v）。</p>
+<h3 class="sub-title">全試料に共通する成分（ローディングバッファー添加前）</h3><table class="method-composition"><thead><tr><th scope="col">成分</th><th scope="col">原液</th><th scope="col">添加量</th><th scope="col">最終濃度</th></tr></thead><tbody><tr><th scope="row">Tris-HCl</th><td>100 mM</td><td>1.0 µL</td><td>10 mM</td></tr><tr><th scope="row">NaCl</th><td>1 M</td><td>1.5 µL</td><td>150 mM</td></tr></tbody></table>
+<h3 class="sub-title">ローディング時の配合</h3><table class="method-composition"><thead><tr><th scope="col">レーン</th><th scope="col">試料</th><th scope="col">6×ローディングバッファー</th><th scope="col">ウェルへの添加量</th></tr></thead><tbody><tr><th scope="row">1</th><td>10 µL DNA ladder (10 ng/µL)</td><td>2 µL</td><td>要確認</td></tr><tr><th scope="row">2–7</th><td>10 µL DNA sample</td><td>2 µL</td><td>3 µL</td></tr></tbody></table>
+                    </details>
+</div>
+</div>
+</div>
+<div class="content-section exp-box" id="connecting-guvs-with-dna"><h2 class="section-title">DNAを介したGUV接合</h2>
+            <div class="content-space">
+                <div class="section-text">
+                    <p>DNAを介した選択的なGUV接合を調べるため、内水相の蛍光が異なる3種類のGUVを用いた。<br>赤色・無蛍光・青色の順に並ぶ接合を目印とし、位相差像でGUV同士の接触を確認した。<br>同じ視野の蛍光像で、接触したGUVの種類と並び順を判別した。</p>
+                    <figure class="integrated-method connection-figure"><img src="images/guv-connection-schematic.svg" alt="DNAで接合した赤色、無蛍光、青色のGUVの模式図" width="600" height="250" style="display:block;width:100%;height:auto"><figcaption>DNAによるGUV接合の模式図</figcaption></figure>
+                    <h3 class="sub-title">内水相の組成</h3>
+<table class="method-composition"><thead><tr><th scope="col">成分</th><th scope="col">赤色GUV</th><th scope="col">無蛍光GUV</th><th scope="col">青色GUV</th></tr></thead><tbody>
+<tr><th scope="row">スクロース</th><td>0.3 M</td><td>0.3 M</td><td>0.3 M</td></tr>
+<tr><th scope="row">Tris-HCl</th><td>10 mM</td><td>10 mM</td><td>10 mM</td></tr>
+<tr><th scope="row">NaCl</th><td>0.15 M</td><td>0.15 M</td><td>0.15 M</td></tr>
+<tr><th scope="row">スルホローダミンB</th><td>10 mM</td><td>—</td><td>—</td></tr>
+<tr><th scope="row">Alexa 647</th><td>—</td><td>—</td><td>1 mM</td></tr>
+<tr><th scope="row">Milli-Q</th><td>—</td><td>色素溶液と同量</td><td>—</td></tr>
+</tbody></table>
+<h3 class="sub-title">脂質含有オイルの組成</h3>
+<table class="method-composition"><thead><tr><th scope="col">成分</th><th scope="col">赤色GUV</th><th scope="col">無蛍光GUV</th><th scope="col">青色GUV</th></tr></thead><tbody>
+<tr><th scope="row">POPC</th><td>5 mM</td><td>5 mM</td><td>5 mM</td></tr>
+<tr><th scope="row">コレステロール</th><td>3.0 mM</td><td>3.0 mM</td><td>3.0 mM</td></tr>
+<tr><th scope="row">NBD-PE</th><td>—</td><td>0.05 mM</td><td>—</td></tr>
+</tbody></table>
+<p>接合の評価では、位相差像と蛍光像を照合し、接触した3個のGUVが左右反転も含めて赤色・無蛍光・青色の順に並ぶかを確認した。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" style="margin-bottom:60px;">
+<div class="content-space">
+<div class="section-text">
+<p style="text-align:center;">
+<a class="pill-link" href="experiment-ja.html">↩ 実験ページに戻る</a>
+</p>
+</div>
+</div>
+</div>
+</main>
+<footer class="site-footer">
+<p>©BIOMOD 2026 YOKABIO</p>
+</footer>
+<script src="script.js"></script>
+<script src="toc.js"></script>
+</body>
+</html>
