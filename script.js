@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'design.html',
         'simulation.html',
         'experiment.html',
+        'experiment-solutions.html',
         'future.html',
         'elsi.html',
         'team.html'
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'design.html': 'Design',
         'simulation.html': 'Simulation',
         'experiment.html': 'Experiment',
+        'experiment-solutions.html': 'Experimental Details',
         'future.html': 'Future',
         'elsi.html': 'ELSI',
         'team.html': 'Team'
@@ -36,7 +38,60 @@ document.addEventListener('DOMContentLoaded', () => {
     // ブロックされるため、その旨をユーザーに伝えるためのフラグ
     const isFileProtocol = location.protocol === 'file:';
 
-    // 各ページを取得し、<main>タグ内のテキストのみを抽出してインデックスを構築する
+    // 「文章のかたまり」として扱うタグ。テキストは、いちばん近い、このタグの中に入れる（入れ子で、同じ文章が二重に出ないようにする）
+    const BLOCK_TAGS = new Set([
+        'p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'td', 'th', 'dt', 'dd', 'caption', 'figcaption', 'blockquote',
+        'div', 'section', 'article', 'aside', 'header', 'footer', 'nav', 'ul', 'ol', 'dl', 'table', 'tr', 'thead', 'tbody',
+        'figure', 'pre', 'form', 'label', 'button', 'summary', 'details', 'main', 'body',
+        'text'   // SVG（フローチャートなど）の文字
+    ]);
+    // 文字として拾わないもの
+    const SKIP_TAGS = new Set(['script', 'style', 'noscript', 'template', 'title']);
+
+    // 左の目次に出る見出し（toc.js と同じ決まり：.content-section の中の h2・h3。data-no-toc がついたものは、目次に出ない）は、検索に出さない
+    function isTocHeading(el) {
+        const tag = el.localName;
+        return (tag === 'h2' || tag === 'h3') && !!el.closest('.content-section') && !el.closest('[data-no-toc]');
+    }
+
+    // <main> の中の、見えている文字を、すべて集めて、「文章のかたまり」ごとの { page, text } にする
+    function extractBlocks(main, page) {
+        const blocks = new Map();   // かたまりの要素 -> 文字の断片（出てきた順）
+        const walker = main.ownerDocument.createTreeWalker(main, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+        function blockOf(node) {
+            let el = node.parentElement;
+            while (el && el !== main && !BLOCK_TAGS.has(el.localName)) el = el.parentElement;
+            return el || main;
+        }
+        function skipped(node) {
+            for (let el = node.parentElement; el; el = el.parentElement) {
+                if (SKIP_TAGS.has(el.localName) || el.hasAttribute('hidden') || el.getAttribute('aria-hidden') === 'true') return true;
+                if (el === main) break;
+            }
+            return false;
+        }
+        function add(block, piece) {
+            if (!blocks.has(block)) blocks.set(block, []);
+            blocks.get(block).push(piece);
+        }
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            if (skipped(node)) continue;
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                if (node.localName === 'br') add(blockOf(node), ' ');   // 改行は、空白として扱う
+                continue;
+            }
+            add(blockOf(node), node.nodeValue);
+        }
+        const entries = [];
+        blocks.forEach((pieces, block) => {
+            if (isTocHeading(block)) return;
+            const text = pieces.join('').replace(/\s+/g, ' ').trim();
+            if (text) entries.push({ page, text });
+        });
+        return entries;
+    }
+
+    // 各ページを取得し、<main>タグ内のテキストを抽出してインデックスを構築する
     async function buildSearchIndex() {
         const results = await Promise.all(PAGES.map(async (page) => {
             try {
@@ -46,15 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const doc = new DOMParser().parseFromString(html, 'text/html');
                 const main = doc.querySelector('main');
                 if (!main) return [];
-
-                // 見出しや段落、リストなど、意味のあるテキストブロック単位で抽出
-                const blocks = main.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption');
-                const entries = [];
-                blocks.forEach((el) => {
-                    const text = el.textContent.replace(/\s+/g, ' ').trim();
-                    if (text) entries.push({ page, text });
-                });
-                return entries;
+                return extractBlocks(main, page);
             } catch (err) {
                 console.error(`検索インデックスの構築に失敗しました: ${page}`, err);
                 return [];
@@ -74,8 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (idx === -1) return null;
 
         const matchText = text.match(matchRegex)[0];
-        const start = Math.max(0, idx - radius);
-        const end = Math.min(text.length, idx + matchText.length + radius);
+        let start = Math.max(0, idx - radius);
+        let end = Math.min(text.length, idx + matchText.length + radius);
+        // 単語の途中で切らない（途中で切ると、リンク先で、該当箇所まで飛べないため）。前は、前の空白まで、後ろは、次の空白まで広げる
+        if (start > 0) start = text.lastIndexOf(' ', start) + 1;
+        if (end < text.length) {
+            const sp = text.indexOf(' ', end);
+            end = sp === -1 ? text.length : sp;
+        }
 
         return {
             raw: text.slice(start, end),
@@ -96,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Text Fragments（#:~:text=...）を使い、該当箇所まで自動スクロールするリンク先URLを作る
     function buildTextFragmentUrl(page, snippetWindow) {
-        const fragmentText = encodeURIComponent(snippetWindow.raw.trim());
+        const fragmentText = encodeURIComponent(snippetWindow.raw.trim()).replace(/-/g, '%2D');   // - は、飛び先の指定で特別な意味があるので、符号にする
         return `${page}#:~:text=${fragmentText}`;
     }
 
