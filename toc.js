@@ -220,7 +220,23 @@
     side.className = 'toc-side';
     side.appendChild(tools);
     side.appendChild(nav);
-    side.appendChild(top);
+    /* ページの <main> に data-toc-link-href があるとき、目次の一番下（「↑」の右となり）に、紫のボタン形のリンクを出す（文字は data-toc-link-text）。
+       目次の中身の一部なので、目次といっしょにスクロールする */
+    var linkHref = main.getAttribute('data-toc-link-href');
+    var action = null;
+    if (linkHref) {
+        var bottomRow = document.createElement('div');
+        bottomRow.className = 'toc-bottom-row';
+        action = document.createElement('a');
+        action.className = 'toc-action';
+        action.href = linkHref;
+        action.textContent = main.getAttribute('data-toc-link-text') || linkHref;
+        bottomRow.appendChild(top);
+        bottomRow.appendChild(action);
+        side.appendChild(bottomRow);
+    } else {
+        side.appendChild(top);
+    }
     var body = document.createElement('div');
     body.className = 'toc-main';
     main.insertBefore(layout, sections[0]);
@@ -298,6 +314,12 @@
 
     /* ---- いま読んでいる項目を、目次の中で示す ---- */
     var current = -1;
+    var triggerIdx = -1;   // 目次のボタンを見せ始める見出しの番号（data-toc-link つきの、最初の見出し）。なければ -1
+    if (action) {
+        for (var ti = 0; ti < links.length; ti++) {
+            if (links[ti].head.hasAttribute('data-toc-link')) { triggerIdx = ti; break; }
+        }
+    }
     function update() {
         var idx = 0;
         for (var i = links.length - 1; i >= 0; i--) {
@@ -307,6 +329,7 @@
         if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) idx = links.length - 1;
         if (idx === current) return;
         current = idx;
+        if (action) action.href = links[idx].head.getAttribute('data-toc-link') || linkHref;   // 読んでいる見出しに data-toc-link があれば、ボタンの行き先を、そこに変える（なければ、data-toc-link-href）
         if (links[idx].parent) setFold(links[idx].parent, false);   // 閉じている大きな項目の中の、小見出しを読み始めたら、その項目を開く（選ばれた項目が、見えるように）
         // 親（大見出し）を探す：小見出しが選ばれているときは、その親も、薄く示す
         var parent = -1;
@@ -318,6 +341,13 @@
             it.row.classList.toggle('is-current', active);
             if (active) it.a.setAttribute('aria-current', 'true'); else it.a.removeAttribute('aria-current');
         });
+        if (triggerIdx >= 0) {
+            // 目次の左下にボタンがあるページ：最初の data-toc-link つきの見出し（Experiment では「GUV Preparation」）にさしかかったら、
+            // 目次を、なめらかに一番下まで動かして、ボタンを見せる。そこより上に戻ったら、目次を、先頭に戻す
+            var maxTop = Math.max(0, side.scrollHeight - side.clientHeight);
+            side.scrollTo({ top: idx >= triggerIdx ? maxTop : 0, behavior: 'smooth' });
+            return;
+        }
         // 目次が長くて、はみ出しているときは、選ばれた項目が見えるように、目次の中だけ動かす
         var a = links[idx].a;
         var sr = side.getBoundingClientRect();
