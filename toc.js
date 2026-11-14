@@ -364,6 +364,17 @@
     window.addEventListener('resize', onScroll);
     window.addEventListener('load', update);
     update();
+    /* <main> に data-toc-flash-hash があるページ（Experimental Details）：別のページから「#項目」つきのリンクで開いたとき、
+       飛んだ先の見出しを、目次から飛んだときと同じように、黄色く光らせる（Experiment の左下のボタンから来たとき） */
+    if (main.hasAttribute('data-toc-flash-hash') && location.hash.length > 1) {
+        var hashId;
+        try { hashId = decodeURIComponent(location.hash.slice(1)); } catch (e) { hashId = location.hash.slice(1); }
+        var hashTarget = document.getElementById(hashId);
+        if (hashTarget) {
+            var hashHead = /^H[1-6]$/.test(hashTarget.tagName) ? hashTarget : hashTarget.querySelector('h2, h3');
+            if (hashHead) flashWhenArrived(hashHead);
+        }
+    }
 })();
 
 /* 本文の中のリンク（Explore the simulation、参考文献、Back to … など）は、なめらかに動かず、すぐその場所へ飛ぶ。
