@@ -338,14 +338,14 @@
                       <div class="flow-explanation">
 <h3>Simulation steps and equations</h3>
 <ol>
-<li><strong>Read the settings.</strong> Load the simulation parameters and command-line arguments. DNA bond lifetime and surface density are input parameters.</li>
-<li><strong>Initialize the system.</strong> Select a DNA surface density and initialize the GUV positions, DNA populations, bond states and time. Initially, all DNA is free and no GUV pairs are bonded.</li>
-<li><strong>Calculate geometry and timing.</strong> Calculate separations using the minimum-image convention and approximate the contact area for equal-radius spheres.<div class="guv-equation" role="group">
+<li><strong>Reading the settings</strong> Simulation parameters and command-line arguments are loaded. DNA bond lifetime and surface density are input parameters.</li>
+<li><strong>Initializing the system</strong> A DNA surface density is selected, and the GUV positions, DNA populations, bond states and initial time are set. Initially, all DNA is free and no GUV pairs are bonded.</li>
+<li><strong>Calculating geometry and timing</strong> Pairwise separations are calculated using the minimum-image convention, and the contact area for equal-radius spheres is approximated.<div class="guv-equation" role="group">
 <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Contact area">
 <mrow><msub><mi>S</mi><mtext>ij</mtext></msub><mo>=</mo><mi>π</mi><mi>R</mi><mrow><mi>max</mi><mo>(</mo><mn>2</mn><mi>R</mi><mo>+</mo><msub><mi>d</mi><mi>l</mi></msub><mo>−</mo><msub><mi>r</mi><mtext>ij</mtext></msub><mo>,</mo><mn>0</mn><mo>)</mo></mrow></mrow>
 </math>
 </div><p><i>S</i><sub>ij</sub> is the contact area between GUVs <i>i</i> and <i>j</i> (µm²), <i>R</i> is the common GUV radius (µm), <i>d</i><sub>l</sub> is the DNA reach (µm), and <i>r</i><sub>ij</sub> is the centre-to-centre distance (µm). The max function sets the contact area to zero when the GUVs are too far apart.</p><p>Adapted from Eq. (1) of Sánchez et al. <a href="#ref-1">[1]</a>. The adaptive time step follows the force-stability, contact-resolution and probability limits, and stops at the next recording time.</p></li>
-<li><strong>Update DNA-mediated connections.</strong> Apply the following three operations in order. Free DNA populations used in each operation reflect the preceding updates.<h4>4.1 Dissociation of existing pairs</h4><div class="guv-equation" role="group">
+<li><strong>Updating DNA-mediated connections</strong> The following three operations are performed in order. Free DNA populations used in each operation reflect the preceding updates.<h4>4.1 Dissociation of existing pairs</h4><div class="guv-equation" role="group">
 <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Pair dissociation probability">
 <mrow><msub><mi>P</mi><mtext>off,ij</mtext></msub><mo>=</mo><msup><mrow><mo>[</mo><mn>1</mn><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>Δt</mi><mo>/</mo><msub><mi>τ</mi><mtext>off</mtext></msub></mrow></msup><mo>]</mo></mrow><msub><mi>B</mi><mtext>ij</mtext></msub></msup></mrow>
 </math>
@@ -358,15 +358,15 @@
 <mrow><msub><mi>P</mi><mtext>on,ij</mtext></msub><mo>=</mo><mrow><mi>min</mi><mo>(</mo><mfrac><mrow><msub><mi>N</mi><mtext>free,i</mtext></msub><msub><mi>S</mi><mtext>ij</mtext></msub></mrow><mrow><mn>4</mn><mi>π</mi><msup><mi>R</mi><mn>2</mn></msup></mrow></mfrac><mo>,</mo><mfrac><mrow><msub><mi>N</mi><mtext>free,j</mtext></msub><msub><mi>S</mi><mtext>ij</mtext></msub></mrow><mrow><mn>4</mn><mi>π</mi><msup><mi>R</mi><mn>2</mn></msup></mrow></mfrac><mo>)</mo></mrow><mrow><mo>(</mo><mn>1</mn><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>Δt</mi><mo>/</mo><msub><mi>τ</mi><mi>h</mi></msub></mrow></msup><mo>)</mo></mrow></mrow>
 </math>
 </div><p><i>P</i><sub>on,ij</sub> is the probability of forming the first bridge during one time step, <i>N</i><sub>free,i</sub> and <i>N</i><sub>free,j</sub> are the unallocated DNA counts on the two GUVs, <i>S</i><sub>ij</sub> is their contact area (µm²), 4π<i>R</i>² is the surface area of one GUV (µm²), Δ<i>t</i> is the time-step width (s), and τ<sub>h</sub> is the hybridization-time parameter (s). The min function makes the GUV with fewer available linkers the limiting side.</p><p>Following Eq. (2) of Sánchez et al. <a href="#ref-1">[1]</a>, with their low-coverage approximation of the available surface as 4πR².</p><p>For an eligible unbound A–B pair, a new bridge forms if a fresh uniform random number <i>u</i> ∈ [0, 1) is smaller than <i>P</i><sub>on,ij</sub>. Each GUV must have at least one free linker, and the contact capacity must be at least one. A pair that dissociated in this step cannot rebind in the same step.</p></li>
-<li><strong>Move the GUVs.</strong> Calculate repulsive and bond forces, update the GUV positions, and apply periodic boundaries.<div class="guv-equation" role="group">
+<li><strong>Moving the GUVs</strong> Repulsive and bond forces are calculated, the GUV positions are updated, and periodic boundaries are applied.<div class="guv-equation" role="group">
 <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Overdamped Brownian motion">
 <mrow><msub><mi mathvariant="bold">x</mi><mi>i</mi></msub><mo>(</mo><mi>t</mi><mo>+</mo><mi>Δt</mi><mo>)</mo><mo>=</mo><msub><mi mathvariant="bold">x</mi><mi>i</mi></msub><mo>(</mo><mi>t</mi><mo>)</mo><mo>+</mo><msub><mi>D</mi><mi>i</mi></msub><msub><mi mathvariant="bold">f</mi><mi>i</mi></msub><mi>Δt</mi><mo>+</mo><msqrt><mrow><mn>2</mn><msub><mi>D</mi><mi>i</mi></msub><mi>Δt</mi></mrow></msqrt><msub><mi mathvariant="bold">ξ</mi><mi>i</mi></msub></mrow>
 </math>
 </div><p><b>x</b><sub>i</sub>(<i>t</i>) is the position of GUV <i>i</i> at time <i>t</i> (µm), <i>D</i><sub>i</sub> is its diffusion coefficient (µm²/s), <b>f</b><sub>i</sub> = <b>F</b><sub>i</sub>/(<i>k</i><sub>B</sub><i>T</i>) is the reduced force (µm⁻¹), Δ<i>t</i> is the time-step width (s), and <b>ξ</b><sub>i</sub> is a three-dimensional standard normal random vector.</p><p>The repulsive interaction uses the WCA form <a href="#ref-3" id="cite-3">[3]</a>, while bonded pairs are held by a FENE interaction <a href="#ref-4" id="cite-4">[4]</a> based on the model of Sánchez et al. <a href="#ref-1">[1]</a>.</p><p>This implementation uses an overdamped Brownian position update, and periodic wrapping is applied after movement.</p></li>
-<li><strong>Count clusters.</strong> At each recording time, classify each GUV as a monomer, a member of a dimer, or a member of a larger cluster.</li>
-<li><strong>Repeat the calculation.</strong> Repeat steps 3–6 until the specified end time is reached. The time step is recomputed as the configuration changes.</li>
-<li><strong>Save the results.</strong> Save the simulation results as CSV files and plots.</li>
-<li><strong>Continue or finish.</strong> Repeat the simulation for the next DNA surface density, or finish when all conditions have been completed.</li>
+<li><strong>Counting clusters</strong> At each recording time, each GUV is classified as a monomer, a member of a dimer, or a member of a larger cluster.</li>
+<li><strong>Repeating the calculation</strong> Steps 3–6 are repeated until the specified end time is reached. The time step is recomputed as the configuration changes.</li>
+<li><strong>Saving the results</strong> The simulation results are saved as CSV files and plots.</li>
+<li><strong>Continuing or finishing</strong> The simulation proceeds to the next DNA surface density, or ends after all conditions have been completed.</li>
 </ol>
 </div>
 </section>
