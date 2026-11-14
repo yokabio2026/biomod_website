@@ -45,13 +45,29 @@
     </div>
 
     <main class="content">
+        <style>
+            main.content > .content-section {
+                margin-bottom: 48px;
+            }
+            main.content h3 {
+                margin: 80px 0 14px;
+                padding: 3px 0 3px 12px;
+                border-left: 4px solid #713bb5;
+                color: #2b1055 !important;
+                font-size: 32px;
+                line-height: 1.25;
+            }
+            main.content :is(h1, h2, h4, h5, h6) {
+                color: #2b1055 !important;
+            }
+        </style>
         <div class="page-hero-header page-hero-header--with-title page-hero-header--with-image">
             <h1>Simulation</h1>
             <!-- 帯の右側の飾りの絵（3つのGUVがつながった図）。位置・大きさは style.css の .page-hero-image -->
             <img class="page-hero-image" src="images/home-hero-guv-network-v3.webp" alt="" aria-hidden="true">
         </div>
         <div class="content-section">
-            <h2 class="section-title">Abstract for the Simulation</h2>
+            <h2 class="section-title">Abstract for Simulation</h2>
             <div class="content-space">
                 <div class="section-text">
                     <!-- ▼ ここに文章を書く -->
@@ -85,10 +101,13 @@
                             border-radius: 14px;
                             background: #f7fafc;
                         }
-                        .result-summary-card h3 {
-                            margin: 0 0 10px;
+                        .content-section .result-summary-card h3 {
+                            margin: 28px 0 10px;
+                            padding: 0;
+                            border-left: 0;
                             color: #18384d;
                             font-size: 20px;
+                            line-height: normal;
                         }
                         .result-summary-card p {
                             margin: 0;
@@ -225,10 +244,12 @@
                       color: #18384d;
                       font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif;
                     }
-                    .guv-simple-en-flow h2 { margin: 0 0 12px; font-size: 26px; color: #18384d; }
-                    .guv-simple-en-flow .flow-scroll { width: 100%; max-width: 780px; margin: 0 auto; overflow-x: auto; }
-                    .guv-simple-en-flow svg { display: block; width: 100%; min-width: 500px; height: auto; }
-                    .guv-simple-en-flow svg text { font-family: inherit; fill: #18384d; font-size: 18px; text-anchor: middle; }
+                    .guv-simple-en-flow h2,
+                    .guv-simple-en-flow .flow-explanation h3 { border-left: 4px solid #713bb5; padding: 3px 0 3px 12px; }
+                    .guv-simple-en-flow h2 { margin: 80px 0 14px; font-size: 32px; line-height: 1.25; color: #2b1055; }
+                    .guv-simple-en-flow .flow-scroll { display: flex; justify-content: center; align-items: center; width: 100%; max-width: 100%; max-height: 82vh; margin: 0 auto; overflow: hidden; }
+                    .guv-simple-en-flow svg { display: block; width: auto; max-width: 100%; height: min(78vh, 900px); min-height: 0; }
+                    .guv-simple-en-flow svg text { font-family: inherit; fill: #18384d; font-size: 20px; text-anchor: middle; }
                     .guv-simple-en-flow svg .shape { stroke: #46677d; stroke-width: 1.8; }
                     .guv-simple-en-flow svg .process { fill: #f0f6fa; }
                     .guv-simple-en-flow svg .decision { fill: #fff5dc; }
@@ -238,17 +259,17 @@
                     .guv-simple-en-flow svg .edge { fill: none; stroke: #46677d; stroke-width: 1.8; marker-end: url(#guv-simple-en-arrow); }
                     .guv-simple-en-flow svg .branch { font-size: 16px; }
                     .guv-simple-en-flow .flow-explanation { margin-top: 24px; }
-                    .guv-simple-en-flow .flow-explanation h3 { margin: 0 0 12px; font-size: 24px; color: #18384d; }
+                    .guv-simple-en-flow .flow-explanation h3 { margin: 80px 0 12px; font-size: 32px; line-height: 1.25; color: #2b1055; border-left: 4px solid #713bb5; padding: 3px 0 3px 12px; }
                     .guv-simple-en-flow .flow-explanation ol { display: block; margin: 0; padding-left: 24px; list-style: decimal outside; }
                     .guv-simple-en-flow .flow-explanation li { display: list-item; margin: 0 0 10px; line-height: 1.7; }
 
-.guv-simple-en-flow .flow-explanation > ol > li::marker { font-size: 20px; font-weight: 700; }
-.guv-simple-en-flow .flow-explanation > ol > li > strong { display: block; margin-bottom: 8px; font-size: 20px; line-height: 1.4; }
-.guv-simple-en-flow .flow-explanation h4 { margin: 26px 0 12px; font-size: 18px; color: #18384d; }
+.guv-simple-en-flow .flow-explanation > ol > li::marker { font-size: 24px; font-weight: 700; color: #2b1055; }
+.guv-simple-en-flow .flow-explanation > ol > li > strong { display: block; margin: 18px 0 14px; font-size: 24px; line-height: 1.3; color: #2b1055; }
+.guv-simple-en-flow .flow-explanation h4 { margin: 22px 0 10px; font-size: 20px; line-height: 1.3; color: #2b1055; }
 .guv-simple-en-flow .flow-explanation p { margin: 12px 0 20px; line-height: 1.8; }
 .guv-simple-en-flow .flow-explanation > ol > li { margin-bottom: 28px; }
-.guv-simple-en-flow .guv-equation { display: block; box-sizing: border-box; width: 100%; margin: 22px 0; padding: 20px 12px; overflow-x: auto; text-align: center; background: #f6f0fb; border-radius: 8px; }
-.guv-simple-en-flow .guv-equation math { display: block math; width: max-content; min-width: min-content; max-width: none; margin: 0 auto; font-size: 1.65rem; font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", math; color: #18384d; }
+.guv-simple-en-flow .guv-equation { display: block; box-sizing: border-box; width: 100%; margin: 22px 0; padding: 20px 16px; overflow-x: auto; text-align: center; background: #f1eafa; border: 1.5px solid #c4b3d8; border-radius: 4px; color: #2b1055; box-shadow: none; }
+.guv-simple-en-flow .guv-equation math { display: block; width: max-content; min-width: min-content; max-width: none; margin: 0 auto; font-size: 1.65rem; font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", math; color: #2b1055; }
 @media (max-width: 600px) { .guv-simple-en-flow .guv-equation { padding: 16px 8px; } .guv-simple-en-flow .guv-equation math { font-size: 1.35rem; } }
                     </style>
                     
@@ -263,70 +284,53 @@
                               <path d="M 0 0 L 10 5 L 0 10 Z" fill="#46677d"/>
                             </marker>
                           </defs>
-                    
-                          <!-- Start and end: terminator symbols -->
                           <rect class="shape terminal" x="280" y="16" width="200" height="48" rx="24" ry="24"/>
                           <text class="terminal-label" x="380" y="47">Start</text>
                           <path class="edge" d="M 380 64 V 95"/>
-                    
-                          <!-- Input: parallelogram -->
                           <polygon class="shape io" points="200,95 600,95 560,155 160,155"/>
                           <text x="380" y="132">Read settings and arguments</text>
                           <path class="edge" d="M 380 155 V 190"/>
-                    
-                          <!-- Process: rectangle -->
                           <rect class="shape process" x="180" y="190" width="400" height="64"/>
                           <text x="380" y="216">Select DNA surface density</text>
                           <text x="380" y="240">Initialize GUVs, DNA and time</text>
                           <path class="edge" d="M 380 254 V 290"/>
-                    
                           <rect class="shape process" x="180" y="290" width="400" height="64"/>
                           <text x="380" y="316">Calculate distances and contact areas</text>
                           <text x="380" y="340">Determine the time step Δt</text>
                           <path class="edge" d="M 380 354 V 390"/>
-                    
                           <rect class="shape process" x="180" y="390" width="400" height="84"/>
                           <text x="380" y="417">1. Test existing pairs for dissociation</text>
                           <text x="380" y="441">2. Recruit DNA into contact regions</text>
                           <text x="380" y="465">3. Test for new bond formation</text>
                           <path class="edge" d="M 380 474 V 510"/>
-                    
                           <rect class="shape process" x="180" y="510" width="400" height="64"/>
                           <text x="380" y="536">Move GUVs: forces + Brownian motion</text>
                           <text x="380" y="560">Apply periodic boundaries; update time</text>
                           <path class="edge" d="M 380 574 V 600"/>
-                    
-                          <!-- Decision: diamond, with Yes and No branches -->
                           <polygon class="shape decision" points="380,600 535,642 380,684 225,642"/>
                           <text x="380" y="648">Recording time reached?</text>
                           <path class="edge" d="M 380 684 V 722"/>
                           <text class="branch" x="406" y="708">Yes</text>
-                    
                           <rect class="shape process" x="180" y="722" width="400" height="56"/>
                           <text x="380" y="755">Count monomers, dimers and multimers</text>
                           <path class="edge" d="M 380 778 V 820"/>
                           <path class="edge" d="M 535 642 H 625 V 800 H 380 V 820"/>
                           <text class="branch" x="582" y="631">No</text>
-                    
                           <polygon class="shape decision" points="380,820 535,862 380,904 225,862"/>
                           <text x="380" y="868">End time reached?</text>
                           <path class="edge" d="M 225 862 H 100 V 322 H 180"/>
                           <text class="branch" x="165" y="851">No</text>
                           <path class="edge" d="M 380 904 V 942"/>
                           <text class="branch" x="406" y="928">Yes</text>
-                    
-                          <!-- Output: parallelogram -->
                           <polygon class="shape io" points="200,942 600,942 560,1002 160,1002"/>
                           <text x="380" y="979">Save results as CSV files and plots</text>
                           <path class="edge" d="M 380 1002 V 1030"/>
-                    
                           <polygon class="shape decision" points="380,1030 555,1072 380,1114 205,1072"/>
                           <text x="380" y="1078">More density conditions?</text>
                           <path class="edge" d="M 555 1072 H 700 V 222 H 580"/>
                           <text class="branch" x="610" y="1061">Yes</text>
                           <path class="edge" d="M 380 1114 V 1132"/>
                           <text class="branch" x="427" y="1129">No</text>
-                    
                           <rect class="shape terminal" x="280" y="1132" width="200" height="40" rx="20" ry="20"/>
                           <text class="terminal-label" x="380" y="1158">End</text>
                         </svg>
@@ -335,7 +339,7 @@
 <h3>Simulation steps and equations</h3>
 <ol>
 <li><strong>Read the settings.</strong> Load the simulation parameters and command-line arguments. DNA bond lifetime and surface density are input parameters.</li>
-<li><strong>Initialize the system.</strong> Select a DNA surface density and initialize the GUV positions, DNA populations, bond states and time.<p>The Stokes–Einstein relation is also used in the particle model of Sánchez et al. <a href="#ref-1" id="cite-1">[1]</a>.</p><p><i>R</i> is the common GUV radius, ρ<sub>i</sub> is its DNA surface density, <i>T</i> is temperature, and η is solvent viscosity. The diffusion coefficient is calculated in SI units and converted to µm²/s. Initially, all DNA is free and no GUV pairs are bonded.</p></li>
+<li><strong>Initialize the system.</strong> Select a DNA surface density and initialize the GUV positions, DNA populations, bond states and time. Initially, all DNA is free and no GUV pairs are bonded.</li>
 <li><strong>Calculate geometry and timing.</strong> Calculate separations using the minimum-image convention and approximate the contact area for equal-radius spheres.<div class="guv-equation" role="group">
 <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Contact area">
 <mrow><msub><mi>S</mi><mtext>ij</mtext></msub><mo>=</mo><mi>π</mi><mi>R</mi><mrow><mi>max</mi><mo>(</mo><mn>2</mn><mi>R</mi><mo>+</mo><msub><mi>d</mi><mi>l</mi></msub><mo>−</mo><msub><mi>r</mi><mtext>ij</mtext></msub><mo>,</mo><mn>0</mn><mo>)</mo></mrow></mrow>
@@ -359,7 +363,7 @@
 <mrow><msub><mi mathvariant="bold">x</mi><mi>i</mi></msub><mo>(</mo><mi>t</mi><mo>+</mo><mi>Δt</mi><mo>)</mo><mo>=</mo><msub><mi mathvariant="bold">x</mi><mi>i</mi></msub><mo>(</mo><mi>t</mi><mo>)</mo><mo>+</mo><msub><mi>D</mi><mi>i</mi></msub><msub><mi mathvariant="bold">f</mi><mi>i</mi></msub><mi>Δt</mi><mo>+</mo><msqrt><mrow><mn>2</mn><msub><mi>D</mi><mi>i</mi></msub><mi>Δt</mi></mrow></msqrt><msub><mi mathvariant="bold">ξ</mi><mi>i</mi></msub></mrow>
 </math>
 </div><p><b>x</b><sub>i</sub>(<i>t</i>) is the position of GUV <i>i</i> at time <i>t</i> (µm), <i>D</i><sub>i</sub> is its diffusion coefficient (µm²/s), <b>f</b><sub>i</sub> = <b>F</b><sub>i</sub>/(<i>k</i><sub>B</sub><i>T</i>) is the reduced force (µm⁻¹), Δ<i>t</i> is the time-step width (s), and <b>ξ</b><sub>i</sub> is a three-dimensional standard normal random vector.</p><p>The repulsive interaction uses the WCA form <a href="#ref-3" id="cite-3">[3]</a>, while bonded pairs are held by a FENE interaction <a href="#ref-4" id="cite-4">[4]</a> based on the model of Sánchez et al. <a href="#ref-1">[1]</a>.</p><p>This implementation uses an overdamped Brownian position update, and periodic wrapping is applied after movement.</p></li>
-<li><strong>Count clusters.</strong> At each recording time, classify the current connected components.<p>𝒞 is the set of connected components formed by the currently bonded GUV pairs, including isolated GUVs; |<i>c</i>| is the number of GUVs in a component. Each dimer or larger cluster counts as one cluster. No equilibrium calculation or waiting period is required for this classification.</p></li>
+<li><strong>Count clusters.</strong> At each recording time, classify each GUV as a monomer, a member of a dimer, or a member of a larger cluster.</li>
 <li><strong>Repeat the calculation.</strong> Repeat steps 3–6 until the specified end time is reached. The time step is recomputed as the configuration changes.</li>
 <li><strong>Save the results.</strong> Save the simulation results as CSV files and plots.</li>
 <li><strong>Continue or finish.</strong> Repeat the simulation for the next DNA surface density, or finish when all conditions have been completed.</li>
@@ -368,7 +372,7 @@
 </section>
 
                     <section class="guv-explorer-section" aria-labelledby="guv-explorer-title">
-                        <h3 id="guv-explorer-title" style="font-size:24px;color:#2b1055;margin:26px 0 12px;">Let’s Explore the Simulation!</h3>
+                        <h3 id="guv-explorer-title">Let’s Explore the Simulation!</h3>
                         <div id="guv-inline-explorer" lang="en">
 <style>#guv-inline-explorer *{box-sizing:border-box}#guv-inline-explorer{margin:0;background:white;color:#203244;font:15px system-ui,-apple-system,sans-serif}#guv-inline-explorer{width:78%;max-width:900px;margin:0 auto;padding:0 6px}#guv-inline-explorer h1{font-size:22px;font-weight:600;margin:0 0 22px}#guv-inline-explorer .controls{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:8px}#guv-inline-explorer label{display:block;font-weight:500}#guv-inline-explorer output{display:block;font-size:17px;margin:3px 0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}#guv-inline-explorer input[type=range]{width:100%;height:30px;accent-color:#176b8b;margin:0}#guv-inline-explorer input:disabled{opacity:.5}#guv-inline-explorer .limits{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#607080}#guv-inline-explorer .chart{background:white;border:1px solid #e0e5ea;border-radius:10px;padding:8px;margin-top:8px}#guv-inline-explorer #guv-explore-chart{display:block;width:100%;height:280px;touch-action:pan-y;font:12px system-ui}#guv-inline-explorer #guv-explore-conditions{line-height:1.7;overflow-wrap:anywhere}#guv-inline-explorer #guv-explore-plotSummary{margin:2px 0 6px;line-height:1.7;overflow-wrap:anywhere;font-weight:600}#guv-inline-explorer #guv-explore-error{padding:12px;background:#fff1ed;color:#8b2717;white-space:pre-wrap}#guv-inline-explorer #guv-explore-detail{font-variant-numeric:tabular-nums;min-height:28px;line-height:1.7;margin-top:8px;overflow-wrap:anywhere}#guv-inline-explorer .legend{display:flex;gap:18px;flex-wrap:wrap;margin:1px 0 4px;font-size:14px}#guv-inline-explorer .legend span{display:inline-flex;align-items:center;gap:6px}#guv-inline-explorer .swatch{width:23px;height:0;border-top:3px solid}#guv-inline-explorer .mono{border-color:#1f77b4}#guv-inline-explorer .di{border-color:#ff7f0e;border-top-style:dashed}#guv-inline-explorer .multi{border-color:#2ca02c;border-top-style:dotted}#guv-inline-explorer #guv-explore-runWrap{margin-top:6px}#guv-inline-explorer select{font:inherit;max-width:100%;padding:7px;border:1px solid #bcc8d2;border-radius:5px;background:white;color:inherit}#guv-inline-explorer .note{font-size:13px;color:#536475;line-height:1.6;margin:12px 0}#guv-inline-explorer #guv-explore-missing{padding:45px 12px;text-align:center;font-size:18px}#guv-inline-explorer [hidden]{display:none!important}@media(max-width:650px){#guv-inline-explorer{width:100%;padding:0 8px}#guv-inline-explorer .controls{grid-template-columns:1fr;gap:10px}#guv-inline-explorer h1{font-size:19px}#guv-inline-explorer output{display:inline;font-size:17px;margin-left:10px}#guv-inline-explorer .limits{display:none}#guv-inline-explorer #guv-explore-chart{height:260px}#guv-inline-explorer .chart{padding:6px}}
 #guv-inline-explorer .chart-grid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:10px;align-items:stretch}
