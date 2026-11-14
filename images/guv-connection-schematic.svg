@@ -12,7 +12,12 @@
   <path d="M368 102h36" stroke="#bc99ff"/>
   <path d="M368 118h36" stroke="#ffab55"/>
 </g>
-<path d="M204 102v16m10-16v16m10-16v16M376 102v16m10-16v16m10-16v16" stroke="#e5c15f" stroke-width="3"/>
+<g stroke-width="3">
+  <path d="M204 102v16 M224 102v16" stroke="#35cdd4"/>
+  <path d="M214 102v16" stroke="#ff78ac"/>
+  <path d="M376 102v16 M396 102v16" stroke="#bc99ff"/>
+  <path d="M386 102v16" stroke="#ffab55"/>
+</g>
 <g fill="#ff9271"><circle cx="103" cy="85" r="5"/><circle cx="145" cy="103" r="5"/><circle cx="120" cy="135" r="5"/></g>
 <g fill="#49bfee"><circle cx="449" cy="87" r="5"/><circle cx="490" cy="107" r="5"/><circle cx="462" cy="136" r="5"/></g>
 <g text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700">
@@ -24,9 +29,9 @@
 <text x="472" y="234" fill="#49bfee">1 mM</text>
 </g>
 <g font-family="Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle">
-  <text x="193" y="85" fill="#35cdd4">L1</text>
-  <text x="235" y="85" fill="#ff78ac">R1</text>
-  <text x="365" y="85" fill="#bc99ff">L2</text>
-  <text x="407" y="85" fill="#ffab55">R2</text>
+  <text x="193" y="58" fill="#35cdd4">L1</text>
+  <text x="235" y="58" fill="#ff78ac">R1</text>
+  <text x="365" y="58" fill="#bc99ff">L2</text>
+  <text x="407" y="58" fill="#ffab55">R2</text>
 </g>
 </svg>
