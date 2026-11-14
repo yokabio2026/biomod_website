@@ -890,11 +890,25 @@ a.search-result-item:hover {
 
 /* Teamページ：使い方の一言と、写真を元の並びに戻すボタン */
 .team-hint {
-    margin: 0 0 28px;        /* 下：写真の列との間のあき */
+    width: fit-content;      /* 文字の幅に合わせた、灰色の四角にする（中央に置く） */
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto 28px;     /* 下：写真の列との間のあき */
+    padding: 7px 16px;       /* 四角の内側のあき（上下・左右） */
+    border-radius: 6px;      /* 四角の角の丸さ（小さいほど、角ばる） */
+    background: #ececec;     /* 四角の色：うすい灰色（濃くするときは #d8d8d8 など） */
     color: #666666;
-    font-size: 16px;
+    font-family: "Baloo 2", "Nunito", "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;   /* 「ALiGN」の文字と、同じフォント */
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     text-align: center;
 }
+
+/* 文を、3つに分けて、「ALiGN」の文字と、同じ3色（オレンジ・緑・青。ALiGN の .align-badge-layer の color と同じ値）で、色分けする */
+.team-hint .hint-orange { color: #ff8a5b; }
+.team-hint .hint-green  { color: #77c46e; }
+.team-hint .hint-blue   { color: #45b7f5; }
 
 .reset-layout-btn {
     position: fixed;
