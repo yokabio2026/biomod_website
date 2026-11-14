@@ -1228,6 +1228,22 @@ a.search-result-item:hover {
     color: #ffffff;
 }
 
+/* 画面の右下に、ずっと表示しておく紫のボタン（Experimental Details の「Back to Experiment」）。
+   位置：right・bottom（画面のふちからの距離）。狭い画面では、左下の「Contents」ボタンと同じ高さに並ぶ（toc.css の .toc-toggle） */
+.section-text a.pill-link.pill-link--float {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+    z-index: 1100;
+}
+
+@media (max-width: 999px) {   /* 左の「Contents」ボタンが出る幅（toc.css）と同じ */
+    .section-text a.pill-link.pill-link--float {
+        right: 14px;
+        bottom: 16px;
+    }
+}
+
 /* 3枚の写真が、DNAでつながると、3枚の上に出る「ALiGN」の文字（script.js の updateAlignBadges が、位置・大きさ・濃さを決める）。
    写真の上・YOKABIOくんの下。操作は、じゃましない。
    文字は、同じ「ALiGN」を、3枚重ねて作る（.align-badge-layer）。1枚ずつ、色と、枠の色が違い、自分の担当の幅（横の範囲）だけを切り出して見せる：
