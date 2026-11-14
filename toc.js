@@ -222,7 +222,39 @@
     side.appendChild(nav);
     /* ページの <main> に data-toc-link-href があるとき、目次の一番下（「↑」の右となり）に、紫のボタン形のリンクを出す（文字は data-toc-link-text）。
        目次の中身の一部なので、目次といっしょにスクロールする */
-    var linkHref = main.getAttribute('data-toc-link-href');
+    /* ボタンの設定は、ページ（HTML）に書かなくても、ここ（PAGE_LINKS）に書いておける。HTML の data-toc-link… の指定が、あれば、そちらが優先。
+       ページごとに：href = ボタンの行き先のページ／text = ボタンの文字／sections = 「読んでいる見出しの文字」→「行き先ページの、飛び先の id」
+       （Experiment のページは、仲間が、HTML を丸ごと差し替えることがあるので、HTML には書かず、ここに書いている） */
+    var PAGE_LINKS = {
+        'experiment.html': {
+            href: 'experiment-solutions.html',
+            text: 'View experimental details',
+            sections: {
+                'GUV Preparation': 'guv-preparation',
+                'α-Hemolysin Purification': 'hemolysin-purification',
+                'Pore Formation in GUVs with α-Hemolysin': 'pore-formation',
+                'Blocking the Pores with TRIMEB': 'trimeb',
+                'Creation of DOPE-MAL-DNA': 'dna-purification',
+                'DNA Purification': 'dna-purification',
+                'DNA Receptor Dimerization': 'dna-receptor-dimerization',
+                'Attaching DNA to GUVs': 'attaching-dna',
+                'Connecting GUVs with DNA': 'connecting-guvs-with-dna'
+            }
+        }
+    };
+    var pageName = (location.pathname.split('/').pop() || '').toLowerCase();
+    var pageLinks = PAGE_LINKS[pageName] || null;
+    var linkHref = main.getAttribute('data-toc-link-href') || (pageLinks && pageLinks.href) || '';
+    // 見出しごとの行き先：見出しの data-toc-link があれば、それ。なければ、PAGE_LINKS の sections から、見出しの文字で探す。なければ ''
+    function headLink(head) {
+        var attr = head.getAttribute('data-toc-link');
+        if (attr) return attr;
+        if (pageLinks && pageLinks.sections) {
+            var id = pageLinks.sections[head.textContent.replace(/\s+/g, ' ').trim()];
+            if (id) return pageLinks.href + '#' + id;
+        }
+        return '';
+    }
     var action = null;
     if (linkHref) {
         var bottomRow = document.createElement('div');
@@ -230,7 +262,7 @@
         action = document.createElement('a');
         action.className = 'toc-action';
         action.href = linkHref;
-        action.textContent = main.getAttribute('data-toc-link-text') || linkHref;
+        action.textContent = main.getAttribute('data-toc-link-text') || (pageLinks && pageLinks.text) || linkHref;
         bottomRow.appendChild(top);
         bottomRow.appendChild(action);
         side.appendChild(bottomRow);
@@ -317,7 +349,7 @@
     var triggerIdx = -1;   // 目次のボタンを見せ始める見出しの番号（data-toc-link つきの、最初の見出し）。なければ -1
     if (action) {
         for (var ti = 0; ti < links.length; ti++) {
-            if (links[ti].head.hasAttribute('data-toc-link')) { triggerIdx = ti; break; }
+            if (headLink(links[ti].head)) { triggerIdx = ti; break; }
         }
     }
     function update() {
@@ -329,7 +361,7 @@
         if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) idx = links.length - 1;
         if (idx === current) return;
         current = idx;
-        if (action) action.href = links[idx].head.getAttribute('data-toc-link') || linkHref;   // 読んでいる見出しに data-toc-link があれば、ボタンの行き先を、そこに変える（なければ、data-toc-link-href）
+        if (action) action.href = headLink(links[idx].head) || linkHref;   // 読んでいる見出しに data-toc-link があれば、ボタンの行き先を、そこに変える（なければ、data-toc-link-href）
         if (links[idx].parent) setFold(links[idx].parent, false);   // 閉じている大きな項目の中の、小見出しを読み始めたら、その項目を開く（選ばれた項目が、見えるように）
         // 親（大見出し）を探す：小見出しが選ばれているときは、その親も、薄く示す
         var parent = -1;
@@ -342,7 +374,7 @@
             if (active) it.a.setAttribute('aria-current', 'true'); else it.a.removeAttribute('aria-current');
         });
         if (triggerIdx >= 0) {
-            // 目次の左下にボタンがあるページ：最初の data-toc-link つきの見出し（Experiment では「GUV Preparation」）にさしかかったら、
+            // 目次の左下にボタンがあるページ：最初の、行き先つきの見出し（Experiment では「GUV Preparation」）にさしかかったら、
             // 目次を、なめらかに一番下まで動かして、ボタンを見せる。そこより上に戻ったら、目次を、先頭に戻す
             var maxTop = Math.max(0, side.scrollHeight - side.clientHeight);
             side.scrollTo({ top: idx >= triggerIdx ? maxTop : 0, behavior: 'smooth' });
