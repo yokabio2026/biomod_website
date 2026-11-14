@@ -54,39 +54,69 @@
             <h2 class="section-title">Extension to Branched Networks</h2>
             <div class="content-space">
                 <div class="section-text">
-                    <p>
-                        In this project, we proposed a network that connects three GUVs in a line: GUV1–GUV2–GUV3.
-                        As a next step, we plan to extend this linear network to a branched network.
-                    </p>
+                    <div class="study-row">
+                        <div class="study-text">
+                            <p>
+                                In this project, we proposed a network that connects three GUVs in a line: GUV1–GUV2–GUV3.
+                                As a next step, we plan to extend this linear network to a branched network.
+                            </p>
 
-                    <figure class="fig-block fig-small">
-                        <img src="images/future-branched-network-v5.png" alt="Six GUVs connected through DNA: GUV1, GUV3 and GUV4 attach to GUV2, and GUV5 and GUV6 attach to GUV4">
+                            <p>
+                                For example, we consider connecting a fourth GUV (GUV4) to the middle GUV2, in addition to GUV1 and GUV3.
+                                GUV2 then becomes a branch point with three connections: GUV1–GUV2, GUV2–GUV3 and GUV2–GUV4.
+                                Because each connection in ALiGN is designed independently with its own DNA sequence, we expect that adding a new pair of sequences will add a new branch without disturbing the existing connections.
+                            </p>
+
+                            <p>
+                                Contents released from one GUV pass through the branch point and reach two GUVs in different directions.
+                                In this way, contents can be moved in various directions, just as cells send signals to many partners.
+                            </p>
+                        </div>
+                        <figure>
+                        <img src="images/future-branched-network-v6.png" alt="Six GUVs connected through DNA: GUV1, GUV3 and GUV4 attach to GUV2, and GUV5 and GUV6 attach to GUV4">
                         <figcaption><strong>Fig. 1 An example of a branched network: six GUVs connected through DNA.</strong> GUV2 and GUV4 each connect to three GUVs, forming branch points.</figcaption>
                     </figure>
+                    </div>
 
-                    <p>
-                        For example, we consider connecting a fourth GUV (GUV4) to the middle GUV2, in addition to GUV1 and GUV3.
-                        GUV2 then becomes a branch point with three connections: GUV1–GUV2, GUV2–GUV3 and GUV2–GUV4.
-                        Because each connection in ALiGN is designed independently with its own DNA sequence, we expect that adding a new pair of sequences will add a new branch without disturbing the existing connections.
-                    </p>
+                    <div class="study-row" style="grid-template-columns:minmax(0,0.8fr) minmax(0,1.2fr);">
+                        <div class="study-text">
+                            <p>
+                                Branching increases the number of partners that one GUV can have. In a line, a GUV has at most two partners, so it can receive from one side and pass on to the other side. At a branch point, a GUV can have three or more partners. This makes it easier to carry out convergent synthesis, in which two parts of a molecule are made separately and then joined <a href="#ref-1" id="cite-1">[1]</a>. Here, the red contents of GUV1 and the green contents of GUV2 react first, and the product then mixes with the purple contents of GUV5. In the line (Fig. 2, top), the red contents of GUV1 have to pass through GUV2 to reach GUV3, so GUV3 is expected to receive more green contents than red contents, and the red contents already mix with the green ones in GUV2. In the branched network (Fig. 2, bottom), GUV1 and GUV2 are both connected directly to GUV3, so the red and green contents are expected to reach GUV3 in similar amounts and mix there evenly. The product is then passed on to GUV4, where it mixes with the purple contents. A branch point can also pass one product to two GUVs for two different reactions.
+                            </p>
+                        </div>
+                        <figure>
+                            <img style="margin-bottom:36px;" src="images/future-convergent-line-v1.png" alt="Line: five GUVs in a line, GUV1 (red) to GUV5 (purple). GUV1 contains red dots and GUV2 contains mostly green dots with some red. GUV3 and GUV4 contain mostly green dots with a few red dots and a few joined red-and-green dots, and GUV5 contains mostly purple dots.">
+                            <img src="images/future-convergent-branch-v1.png" alt="Branch: a branched network: GUV1 (red) and GUV2 (green) are both connected to GUV3, which is connected to GUV4, which is connected to GUV5 (purple). GUV3 contains mostly joined red-and-green dots, and GUV4 contains joined red-and-green dots and purple dots.">
+                            <figcaption><strong>Fig. 2 Reacting the red and green contents and then mixing the product with the purple contents, in a line (top) and in a branched network (bottom).</strong> Red, green and purple dots are the contents of GUV1, GUV2 and GUV5. A red dot and a green dot joined and circled in white are the product of the reaction between the red and green contents. GUV3 and GUV4 are the places where the contents meet.</figcaption>
+                        </figure>
+                    </div>
 
-                    <p>
-                        Contents released from one GUV pass through the branch point and reach two GUVs in different directions.
-                        In this way, contents can be moved in various directions, just as cells send signals to many partners.
-                    </p>
+                    <div class="study-row">
+                        <div class="study-text">
+                            <p>
+                                All the pores between connected GUVs are open, so contents released from one GUV spread in every direction.
+                                Pores whose opening or assembly is controlled by light have been reported.
+                                Wang et al. modified α-hemolysin, the pore protein that we also use, by chemically attaching small molecules whose shape changes with light (photoswitches), and opened and closed the pores repeatedly with light of two wavelengths <a href="#ref-2" id="cite-2">[2]</a>.
+                                Mutter et al. attached photoswitches to the pore-forming toxin FraC and controlled with light whether it forms pores in membranes <a href="#ref-3" id="cite-3">[3]</a>.
+                                Both studies measured the ionic current through flat lipid membranes <a href="#ref-2">[2]</a><a href="#ref-3">[3]</a>.
+                            </p>
 
-                    <p>
-                        All the pores between connected GUVs are open, so contents released from one GUV spread in every direction.
-                        Pores whose opening or assembly is controlled by light have been reported.
-                        Wang et al. modified α-hemolysin, the pore protein that we also use, by chemically attaching small molecules whose shape changes with light (photoswitches), and opened and closed the pores repeatedly with light of two wavelengths <a href="#ref-1" id="cite-1">[1]</a>.
-                        Mutter et al. attached photoswitches to the pore-forming toxin FraC and controlled with light whether it forms pores in membranes <a href="#ref-2" id="cite-2">[2]</a>.
-                        Both studies measured the ionic current through flat lipid membranes <a href="#ref-1">[1]</a><a href="#ref-2">[2]</a>.
-                    </p>
-
-                    <p>
-                        If pores of this kind were placed in a branched network, we could open only the pores on the branch that we illuminate, so that contents are expected to move toward a chosen GUV instead of spreading to all of them.
-                        Whether these pores work between connected GUVs remains to be examined.
-                    </p>
+                            <p>
+                                If pores of this kind were placed in a branched network, we could open only the pores on the branch that we illuminate, so that contents are expected to move toward a chosen GUV instead of spreading to all of them.
+                                Whether these pores work between connected GUVs remains to be examined.
+                            </p>
+                        </div>
+                        <div>
+                        <figure>
+                            <img src="images/future-prior-wang-fig1f.png" alt="Left: an alpha-hemolysin pore in a lipid bilayer with the photoswitch in the E form (green), shown from the side and from above; the pore is narrow. Right: the same pore with the photoswitch in the Z form (purple); the pore is wide open. 365 nm light switches the pore to the right state and 530 nm light switches it back.">
+                            <figcaption><strong>Fig. 3 A pore of α-hemolysin that is switched by light.</strong> With the photoswitches in the E form (left, green), the pore is narrow (OFF state). After 365 nm light turns them into the Z form (right, purple), the pore is wide open (ON state). 530 nm light switches it back. Cropped from Fig. 1f of Wang et al. <a href="#ref-2">[2]</a>, © 2025 The Authors, published under CC BY 4.0.</figcaption>
+                        </figure>
+                        <figure>
+                            <img src="images/future-prior-mutter-abstract.png" alt="A FraC protein with a photoswitch (azobenzene). In the trans form, shown on the left, the protein stays on the membrane surface and forms no pore. In the cis form, shown on the right, the protein enters the membrane and forms a pore. Violet light turns trans into cis and blue light turns it back.">
+                            <figcaption><strong>Fig. 4 A pore that forms only after illumination.</strong> With the photoswitch in the trans form (left), FraC stays on the membrane and forms no pore. After light turns it into the cis form (right), FraC enters the membrane and forms a pore. Light of another color turns it back. Reproduced from Mutter et al. <a href="#ref-3">[3]</a>, abstract graphic. © 2019 The Authors, published by the American Chemical Society under CC BY-NC-ND 4.0.</figcaption>
+                        </figure>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -96,19 +126,25 @@
             <div class="content-space">
                 <div class="section-text">
                     <p id="ref-1">
-                        [1] Wang, X., Kerckhoffs, A., Riexinger, J., Cornall, M., Langton, M. J., Bayley, H. &amp; Qing, Y.
-                        ON–OFF nanopores for optical control of transmembrane ionic communication.
-                        <em>Nat. Nanotechnol.</em> <strong>20</strong>, 432–440 (2025).
-                        <a href="https://doi.org/10.1038/s41565-024-01823-x">https://doi.org/10.1038/s41565-024-01823-x</a>
+                        [1] Rao, R. B. 18.17: Synthesis. In <em>Map: Organic Chemistry (Smith)</em>, Chapter 18. Chemistry LibreTexts (open textbook, CC BY-NC-SA 4.0). Accessed 14 November 2026.
+                        <a href="https://chem.libretexts.org/Bookshelves/Organic_Chemistry/Map%3A_Organic_Chemistry_(Smith)/18%3A_Introduction_to_Carbonyl_Chemistry_Organometallic_Reagents_Oxidation_and_Reduction/18.17%3A_Synthesis">https://chem.libretexts.org/…/18.17%3A_Synthesis</a>
                         <a href="#cite-1">↩ Back to the text</a>
                     </p>
 
                     <p id="ref-2">
-                        [2] Mutter, N. L., Volarić, J., Szymanski, W., Feringa, B. L. &amp; Maglia, G.
+                        [2] Wang, X., Kerckhoffs, A., Riexinger, J., Cornall, M., Langton, M. J., Bayley, H. &amp; Qing, Y.
+                        ON–OFF nanopores for optical control of transmembrane ionic communication.
+                        <em>Nat. Nanotechnol.</em> <strong>20</strong>, 432–440 (2025).
+                        <a href="https://doi.org/10.1038/s41565-024-01823-x">https://doi.org/10.1038/s41565-024-01823-x</a>
+                        <a href="#cite-2">↩ Back to the text</a>
+                    </p>
+
+                    <p id="ref-3">
+                        [3] Mutter, N. L., Volarić, J., Szymanski, W., Feringa, B. L. &amp; Maglia, G.
                         Reversible photocontrolled nanopore assembly.
                         <em>J. Am. Chem. Soc.</em> <strong>141</strong>, 14356–14363 (2019).
                         <a href="https://doi.org/10.1021/jacs.9b06998">https://doi.org/10.1021/jacs.9b06998</a>
-                        <a href="#cite-2">↩ Back to the text</a>
+                        <a href="#cite-3">↩ Back to the text</a>
                     </p>
                 </div>
             </div>
