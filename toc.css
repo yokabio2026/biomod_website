@@ -14,10 +14,10 @@ html {
 
 /* 参考文献：本文の [1] などから文献一覧へ飛ぶとき、文献一覧の「↩ Back to the text」から本文へ戻るとき、
    飛んだ先（引用の位置と、文献）が、上のメニューバーの下に隠れないようにする。
-   メニューバー（約 60px）の分に、少し間を足した値。本文へ戻る先は、その文献が最初に出てくる引用の位置 */
+   メニューバーの実際の高さ（画面の幅で、1段にも2段にもなる）に、80px の間を足した値。本文へ戻る先は、その文献が最初に出てくる引用の位置 */
 [id^="cite-"],
 [id^="ref-"] {
-    scroll-margin-top: 110px;
+    scroll-margin-top: calc(var(--navbar-h, 100px) + 80px);   /* --navbar-h は toc.js が、メニューバーの実際の高さに合わせて入れる */
 }
 
 /* Experimental Details のように、ボックス（section）自体に id があるページ：飛んだとき、ボックスの上の線が、メニューバーの下に来る（見出しが、隠れない） */
@@ -601,11 +601,6 @@ html {
 
     .content .content-section.exp-box[id] {
         scroll-margin-top: 90px;
-    }
-
-    [id^="cite-"],
-    [id^="ref-"] {
-        scroll-margin-top: 150px;   /* スマホは、メニューバーが2段で高いため */
     }
 }
 
