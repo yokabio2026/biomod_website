@@ -14,6 +14,7 @@
     var main = document.querySelector('main.content');
     if (!main) return;
     var heads = Array.prototype.slice.call(main.querySelectorAll('.content-section h2, .content-section h3')).filter(function (h) {
+        if (h.closest('[data-no-toc]')) return false;   // data-no-toc をつけた見出し（や、その中の見出し）は、目次に入れない
         return h.textContent.trim() && h.getClientRects().length > 0;   // 文字が空の見出し・いま見えていない見出しは、入れない
     });
     var sections = Array.prototype.slice.call(main.querySelectorAll(':scope > .content-section'));
