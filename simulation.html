@@ -99,7 +99,7 @@
                             padding: 20px;
                             border: 1px solid #d7e2e8;
                             border-radius: 14px;
-                            background: #f7fafc;
+                            background: #f1eafa;
                         }
                         .content-section .result-summary-card h3 {
                             margin: 28px 0 10px;
@@ -113,7 +113,7 @@
                             margin: 0;
                         }
                         .result-summary-highlight {
-                            background: #eaf5f4;
+                            background: #f1eafa;
                             border-color: #93c8c1;
                         }
                         .result-summary-figures {
@@ -165,6 +165,10 @@
                             .result-summary-figure img { height: auto; }
                         }
                     </style>
+                    <div class="result-summary-figures">
+<figure class="result-summary-figure"><img src="images/simulation-relative-dimer-balance-heatmap-3600s.png" alt="Relative evaluation score at 3,600 s, normalized to 100 at the maximum among evaluated conditions."><figcaption>Figure 1. Relative evaluation score at 3,600 s, normalized to 100 at the maximum among evaluated conditions.</figcaption></figure>
+<figure class="result-summary-figure"><img src="images/simulation-100um-1h-1e-3s.png" alt="DNA surface density 50 linkers/µm² and bond lifetime 0.001 s; three-seed average" style="width:100%;height:auto;" loading="lazy"><figcaption>Figure 2. DNA surface density 50 linkers/µm² and bond lifetime 0.001 s; three-seed average</figcaption></figure>
+</div>
                     <div class="result-summary-grid">
                         <article class="result-summary-card">
                             <h3 data-no-toc>Bond lifetime</h3>
@@ -179,10 +183,7 @@
                             <p>Among the evaluated conditions, a DNA surface density of 50 linkers/µm² on both GUV types and a bond lifetime of 0.001 s achieved the highest score at 3,600 s for promoting dimer formation while limiting multimer formation. This comparison used the average of three random-seed runs.</p>
                         </article>
                     </div>
-<div class="result-summary-figures">
-<figure class="result-summary-figure"><img src="images/simulation-relative-dimer-balance-heatmap-3600s.png" alt="Relative evaluation score at 3,600 s, normalized to 100 at the maximum among evaluated conditions."><figcaption>Relative evaluation score at 3,600 s, normalized to 100 at the maximum among evaluated conditions.</figcaption></figure>
-<figure class="result-summary-figure"><img src="images/simulation-100um-1h-1e-3s.png" alt="DNA surface density 50 linkers/µm² and bond lifetime 0.001 s; three-seed average" style="width:100%;height:auto;" loading="lazy"><figcaption>DNA surface density 50 linkers/µm² and bond lifetime 0.001 s; three-seed average</figcaption></figure>
-</div>
+
                     <nav class="result-summary-links" aria-label="Simulation page shortcuts">
                         <a href="#guv-explorer-title">Explore the simulation</a>
                         <a href="#detailed-results">View results</a>
@@ -616,11 +617,13 @@ updateSelection();
 <p>The highest score among the evaluated conditions was obtained at DNA surface density 50 linkers/µm² and bond lifetime 0.001 s. This three-seed averaged result identifies the best condition under the stated evaluation criterion.</p>
 <h3>Three-seed averaged GUV time course at the best condition</h3>
 <p>The horizontal axis shows time in seconds and the vertical axis shows the number of GUVs in each cluster category. Blue, orange, and green indicate monomers, dimers, and multimers (three or more GUVs), respectively. Each dimer contributes two GUVs to the orange curve.</p>
-<figure style="margin:24px 0;"><img src="images/simulation-100um-1h-1e-3s.png" alt="DNA surface density 50 linkers/µm² and bond lifetime 0.001 s; three-seed average" style="width:100%;height:auto;" loading="lazy"><figcaption>DNA surface density 50 linkers/µm² and bond lifetime 0.001 s; three-seed average</figcaption></figure>
+<figure style="margin:24px 0;"><img src="images/simulation-100um-1h-1e-3s.png" alt="DNA surface density 50 linkers/µm² and bond lifetime 0.001 s; three-seed average" style="width:100%;height:auto;" loading="lazy"><figcaption>Figure 2. DNA surface density 50 linkers/µm² and bond lifetime 0.001 s; three-seed average</figcaption></figure>
 <p>The curves show the pointwise average of three independent random-seed runs. At 3,600 s, the integer-displayed average was 44 monomer GUVs, 55 GUVs belonging to dimers, and 1 GUV belonging to a multimer (3+ GUVs). The orange value counts GUVs, so a dimer pair contributes two.</p>
 <h3>Three-seed averaged results</h3>
 <p>The time-course values are averaged across three random seeds at a DNA surface density of 50 linkers/µm² and a bond lifetime of 0.001 s. At each recorded time point, the plotted integer counts retain the total of 100 GUVs. At 3,600 s, the average is displayed as 44 monomers, 55 GUVs in dimers, and 1 GUV in multimers.</p>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:24px;"><figure style="margin:0;"><figcaption style="margin:0 0 10px;text-align:left;"><span style="display:inline-block;padding:7px 16px;border-left:4px solid #713bb5;border-radius:4px;background:#f1eafa;color:#2b1055;font-size:20px;font-weight:700;line-height:1.3;letter-spacing:0.02em;">Seed 42</span></figcaption><img src="images/simulation-seed42.png" alt="Seed 42: 100 linkers/µm², tau_off = 0.001 s" style="display:block;width:100%;height:auto;" loading="lazy"></figure><figure style="margin:0;"><figcaption style="margin:0 0 10px;text-align:left;"><span style="display:inline-block;padding:7px 16px;border-left:4px solid #713bb5;border-radius:4px;background:#f1eafa;color:#2b1055;font-size:20px;font-weight:700;line-height:1.3;letter-spacing:0.02em;">Seed 126</span></figcaption><img src="images/simulation-seed126.png" alt="Seed 126: 100 linkers/µm², tau_off = 0.001 s" style="display:block;width:100%;height:auto;" loading="lazy"></figure><figure style="margin:0;"><figcaption style="margin:0 0 10px;text-align:left;"><span style="display:inline-block;padding:7px 16px;border-left:4px solid #713bb5;border-radius:4px;background:#f1eafa;color:#2b1055;font-size:20px;font-weight:700;line-height:1.3;letter-spacing:0.02em;">Seed 210</span></figcaption><img src="images/simulation-seed210.png" alt="Seed 210: 100 linkers/µm², tau_off = 0.001 s" style="display:block;width:100%;height:auto;" loading="lazy"></figure></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:24px;"><figure style="margin:0;"><div style="margin:0 0 10px;text-align:left;"><span style="display:inline-block;padding:7px 16px;border-left:4px solid #713bb5;border-radius:4px;background:#f1eafa;color:#2b1055;font-size:20px;font-weight:700;line-height:1.3;letter-spacing:0.02em;">Seed 42</span></div><img src="images/simulation-seed42.png" alt="Seed 42: 100 linkers/µm², tau_off = 0.001 s" style="display:block;width:100%;height:auto;" loading="lazy"><figcaption style="margin-top: 12px; text-align: center;">Figure 3. GUV time course for Seed 42.</figcaption></figure><figure style="margin:0;"><div style="margin:0 0 10px;text-align:left;"><span style="display:inline-block;padding:7px 16px;border-left:4px solid #713bb5;border-radius:4px;background:#f1eafa;color:#2b1055;font-size:20px;font-weight:700;line-height:1.3;letter-spacing:0.02em;">Seed 126</span></div><img src="images/simulation-seed126.png" alt="Seed 126: 100 linkers/µm², tau_off = 0.001 s" style="display:block;width:100%;height:auto;" loading="lazy"><figcaption style="margin-top: 12px; text-align: center;">Figure 4. GUV time course for Seed 126.</figcaption></figure><figure style="margin:0;"><div style="margin:0 0 10px;text-align:left;"><span style="display:inline-block;padding:7px 16px;border-left:4px solid #713bb5;border-radius:4px;background:#f1eafa;color:#2b1055;font-size:20px;font-weight:700;line-height:1.3;letter-spacing:0.02em;">Seed 210</span></div><img src="images/simulation-seed210.png" alt="Seed 210: 100 linkers/µm², tau_off = 0.001 s" style="display:block;width:100%;height:auto;" loading="lazy"><figcaption style="margin-top: 12px; text-align: center;">Figure 5. GUV time course for Seed 210.</figcaption></figure></div>
+<p style="margin-top: 28px;">Across all three random seeds (42, 126, and 210), the final number of GUVs belonging to dimers exceeded that belonging to multimers. This consistent trend indicates that, in this simulation, a DNA surface density of 50 linkers/µm² and a bond lifetime of 0.001 s favor dimer formation while limiting multimer formation.</p>
+
 
 </div></div></div>
 
