@@ -37,6 +37,11 @@
             width: 100%;
             margin-top: 10px;
         }
+        .content.experiment-page .section-text > figure.dna-receptor-figure {
+            width: 50%;
+            max-width: 760px;
+            margin: 24px auto 32px;
+        }
         .experiment-page .experiment-subsection + .experiment-subsection {
             margin-top: 56px;
             padding-top: 36px;
@@ -51,9 +56,77 @@
             font-weight: bold;
             line-height: 1.4;
         }
+        .experiment-page .experiment-image-row {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .experiment-page .experiment-image-row p {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .experiment-page .experiment-image-row img {
+            display: block;
+            flex: 0 0 20%;
+            width: 20%;
+            max-width: 320px;
+            height: auto;
+            margin: 0;
+        }
+        .experiment-page .experiment-image-row img.experiment-image-wide {
+            flex-basis: 40%;
+            width: 40%;
+            max-width: 440px;
+        }
+        .experiment-page .experiment-image-row img.experiment-image-compact {
+            flex-basis: 20%;
+            width: 20%;
+            max-width: 320px;
+        }
+        .experiment-page .experiment-image-row img.experiment-image-extra-wide {
+            flex-basis: 60%;
+            width: 60%;
+            max-width: 660px;
+        }
+        .experiment-page .dna-sequences {
+            margin: 12px 0 24px;
+            padding: 14px 18px;
+            border: 1px solid #d8cde9;
+            border-radius: 8px;
+            background: #f7f4fb;
+        }
+        .experiment-page .dna-sequences p {
+            margin: 0 0 8px;
+        }
+        .experiment-page .dna-sequences p:last-child {
+            margin-bottom: 0;
+        }
+        .experiment-page .dna-sequences code {
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.95em;
+            overflow-wrap: anywhere;
+        }
         @media (max-width: 600px) {
             .experiment-page .experiment-subtitle {
                 font-size: 1.6rem;
+            }
+            .experiment-page .experiment-image-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+            .experiment-page .experiment-image-row img {
+                width: 75%;
+                max-width: 320px;
+            }
+            .experiment-page .experiment-image-row img.experiment-image-wide {
+                flex: 0 0 auto;
+                width: 100%;
+                max-width: none;
+            }
+            .experiment-page .experiment-image-row img.experiment-image-compact {
+                width: 75%;
+                max-width: 320px;
             }
         }
     </style>
@@ -109,7 +182,7 @@
                         The objective of this study was to specifically connect GUVs via DNA and facilitate the exchange of materials between GUVs. To achieve this objective, GUVs, αHL, and DNA were prepared, and the following experiments were conducted:
                     </p>
                     <ul>
-                        <li>Whether the prepared DNA could specifically bind to the target GUVs</li>
+                        <li>Whether the prepared DNA can bind specifically</li>
                         <li>Whether pores could be formed in the GUV membrane by αHL</li>
                         <li>Whether the pores formed by αHL could be closed by TRIMEB</li>
                         <li>Whether DNA could be inserted into the GUV membrane</li>
@@ -131,13 +204,17 @@
                 <section class="experiment-subsection" id="guv-preparation">
                     <h3 class="experiment-subtitle">GUV Preparation</h3>
                     <div class="section-text">
-                        <p>
-                            We made GUVs by the emulsion transfer method <a href="https://doi.org/10.1021/la026100v" aria-label="Reference: emulsion transfer">[1]</a>. 
-                        </p>
-                        <p>Fig. 1 shows the GUVs we made.</p>
+                        <div class="experiment-image-row">
+                            <p>
+                                We made GUVs by the emulsion transfer method <a href="https://doi.org/10.1021/la026100v" aria-label="Reference: emulsion transfer">[1]</a>.<br>
+                                The GUV membranes contained green fluorescent molecules, while the interiors contained red fluorescent molecules.
+
+                            </p>
+                            <img src="images/experiment-1.png" alt="GUV preparation by the emulsion transfer method">
+                        </div>
                         <figure>
                             <img src="images/experiment-fig1.jpg" alt="GUVs made by the emulsion transfer method, in phase contrast (left) and fluorescence (right): green membrane and red inside">
-                            <figcaption><strong>Fig. 1 GUVs made by the emulsion transfer method.</strong> Left: phase contrast. Right: fluorescence of the same field; the membrane is green (NBD-PE) and the inside is red (sulforhodamine B). Scale bars: 100 µm.</figcaption>
+                            <figcaption><strong>Fig. 1 GUVs made by the emulsion transfer method.</strong> (a) phase contrast. (b) fluorescence of the same field; the membrane is green (NBD-PE) and the inside is red (sulforhodamine B). Scale bars: 100 µm.</figcaption>
                         </figure>
                         <p>We can see green fluorescence on the membrane and red fluorescence inside, so the GUVs were made correctly.</p>
                     </div>
@@ -146,27 +223,20 @@
                 <section class="experiment-subsection" id="dna-purification">
                     <h3 class="experiment-subtitle">DNA Purification</h3>
                     <div class="section-text">
-                        <h4 class="sub-title" id="method-2">Method</h4>
                         <p>
                             In this project, DNA is conjugated with maleimide-functionalized lipids through a thiol–maleimide coupling reaction to generate lipid-conjugated DNA. <br>
-                            The resulting lipid-conjugated DNA is then inserted into the GUV membrane to produce DNA-functionalized GUVs.<br>
                         </p>
                         <figure>
                             <img src="images/experiment-scheme1.png" alt="Reaction of thiol-modified DNA with maleimide-lipid to give DNA-conjugated lipid">
-                            <figcaption><strong>Scheme 1 Making the DNA-conjugated lipid.</strong> Thiol-modified DNA reacts with maleimide-lipid to give DNA-conjugated lipid.</figcaption>
                         </figure>
-                        <p>We purified the DNA with the following steps.</p>
-                        <ul>
-                            <li>The target DNA was captured with gel balls.</li>
-                            <li>The DNA was reacted with a lipid that has a maleimide group.</li>
-                            <li>Only the DNA bound to the maleimide lipid was collected by HPLC.</li>
-                            <li>The concentration was measured by absorbance.</li>
-                        </ul>
-                        <h4 class="sub-title" id="results-2">Results</h4>
-                        <p>Fig. 2 shows the results of HPLC and the absorbance measurement.</p>
+                        <p style="margin: 36px 0;">
+                            HPLC was used to separate lipid-conjugated DNA, unreacted DNA, and free lipids.<br>
+                            The presence of DNA in the collected fractions was confirmed by measuring their absorbance.<br>
+                            Fig. 2 shows the results of HPLC and the absorbance measurement.
+                        </p>
                         <figure>
                             <img src="images/experiment-fig2.png" alt="HPLC chromatograms (left) and absorbance spectrum (right) of the DNA-conjugated lipid">
-                            <figcaption><strong>Fig. 2 Purification of the DNA-conjugated lipid.</strong> Left: HPLC chromatograms. Right: absorbance spectrum.</figcaption>
+                            <figcaption><strong>Fig. 2 Purification of the DNA-conjugated lipid.</strong> (a) HPLC chromatograms. (b) absorbance spectrum.</figcaption>
                         </figure>
                         <p>
                             In the HPLC analysis, a peak appeared at a location where neither DNA nor maleimide-conjugated lipids had been observed.We interpreted this third peak as lipid-conjugated DNA.<br>
@@ -178,40 +248,65 @@
                 <section class="experiment-subsection" id="hemolysin-purification">
                     <h3 class="experiment-subtitle">α-Hemolysin Purification</h3>
                     <div class="section-text">
-                        <h4 class="sub-title" id="method-3">Method</h4>
-                        <p>We purified αHL with the following steps.</p>
-                        <ul>
-                            <li>The αHL plasmid was expressed in E. coli.</li>
-                            <li>The protein was purified using the His-tag.</li>
-                            <li>The sample was desalted and dissolved in buffer (20 mM HEPES, 150 mM NaCl, pH 7).</li>
-                            <li>Electrophoresis (28 mA, 60 min) was performed to check the purification.</li>
-                        </ul>
-                        <h4 class="sub-title" id="results-3">Results</h4>
+                        <p>αHL was expressed and purified using Escherichia coli. The purified protein was then analyzed by SDS-PAGE to confirm successful purification of αHL. </p>
                         <div class="study-row">
                             <div class="study-text">
                                 <p>
-                                    The results in Figure 3 show that a band appears between 30 kDa and 46 kDa. <br>
-                                    Previous studies have shown that a band for αHL appears around 33 kDa on electrophoresis, and the results in Figure 3 are consistent with this<a href="https://doi.org/10.1038/s41467-025-61741-x" aria-label="Reference: emulsion transfer">[2]</a>.<br>
-                                    Therefore, it can be concluded that alpha-hemolysin was successfully purified.
+                                    As shown in Fig. 3, a band was observed at approximately 25–35 kDa.
+                                    Previous studies have reported that αHL has a molecular weight of approximately 33 kDa <a href="https://doi.org/10.1038/s41467-025-61741-x" aria-label="Reference: emulsion transfer">[2]</a>. 
+                                    Therefore, the band observed in Fig. 3 was considered to correspond to αHL. <br>
+                                    These results confirmed that αHL was successfully purified. In addition, a band was observed at approximately 60–75 kDa. 
+                                    This band was considered to possibly result from the formation of an αHL dimer.
                                 </p>
                             </div>
                             <figure class="fig-narrow">
                                 <img src="images/experiment-fig3.png" alt="Electrophoresis gel of purified alpha-hemolysin (left) and protein marker (right)">
-                                <figcaption><strong>Fig. 3 Electrophoresis of the purified α-hemolysin.</strong> Left: gel; the orange circle marks the band near 33.2 kDa. Right: size marker (kDa).</figcaption>
+                                <figcaption><strong>Fig. 3 Electrophoresis of the purified α-hemolysin.</strong>   the band near 33 kDa.</figcaption>
                             </figure>
                         </div>
+                    </div>
+                </section>
+
+                <section class="experiment-subsection" id="dna-receptor-dimerization">
+                    <h3 class="experiment-subtitle">DNA Receptor Dimerization</h3>
+                    <div class="section-text">
+                        <p>The DNA sequences used in this experiment were as follows:</p>
+                        <div class="dna-sequences">
+                            <p>L1: <code>5′-GCATCTACACTCAATACCCAGCC-3′ (SH)</code></p>
+                            <p>R1: <code>(SH) 5′-GGCTGGGTATTGAGTGTAGATGC-3′</code></p>
+                            <p>L2: <code>5′-CTAGTCCATTGTAACGAAGGCCA-3′ (SH)</code></p>
+                            <p>R2: <code>(SH) 5′-TGGCCTTCGTTACAATGGACTAG-3′</code></p>
+                        </div>
+                        <p>L1 and R1, as well as L2 and R2, were designed to be complementary and to hybridize with each other.</p>
+                        <p>
+                            Gel electrophoresis was used to investigate whether complementary DNA receptors form dimers in the absence of GUVs and whether non-complementary pairs exhibit nonspecific binding.<br> 
+                            All six possible combinations of L1, R1, L2, and R2 were examined.
+
+                        </p>
+                        <figure class="dna-receptor-figure">
+                                <img src="images/dna-receptor-gel.png" alt="Angle-corrected electrophoresis image showing seven numbered lanes, with a gap between lanes 4 and 5">
+                                <figcaption><strong>Fig. 7 Gel electrophoresis of DNA receptor pairs.</strong> Lane 1 is the low molecular weight DNA ladder. Lanes 2&ndash;7 show L1 + R1, L1 + L2, L1 + R2, R1 + L2, R1 + R2, and L2 + R2, respectively. The ladder signal is saturated.</figcaption>
+                        </figure>
+                        <p>
+                            For L1 + R1 and L2 + R2, two closely spaced bands were observed.
+                            The first band appeared at the same position as the bands in the other samples and was therefore considered to correspond to unbound DNA.<br>
+                            In contrast, the second band appeared higher than those observed in the other samples and was considered to correspond to a DNA complex formed by the binding of the complementary DNA strands.<br>
+                            These results confirmed that the complementary DNA strands successfully bound to each other.
+                        </p>
                     </div>
                 </section>
 
                 <section class="experiment-subsection" id="pore-formation-in-guvs-with-hemolysin">
                     <h3 class="experiment-subtitle">Pore Formation in GUVs with α-Hemolysin</h3>
                     <div class="section-text">
-                        <p>We added αHL to the inner aqueous solution of the GUVs in Fig. 1.</p>
-                        <h4 class="sub-title" id="results-4">Results</h4>
-                        <p>Fig. 4 shows the GUVs we made.</p>
+                        <div class="experiment-image-row">
+                            <p>We added αHL (25 ng/μL) to the inner aqueous solution of the GUVs. <br>
+                                αHL is known to form pores in lipid membranes, which is expected to allow the fluorescent molecules inside the GUVs to leak out.</p>
+                            <img class="experiment-image-wide" src="images/experiment-2.png" alt="Addition of αHL to the GUV solution">
+                        </div>
                         <figure class="fig-stack">
                             <img src="images/experiment-fig4.jpg" alt="GUVs made with alpha-hemolysin in the inner solution, in phase contrast (left) and fluorescence (right); the red fluorescence has gone out">
-                            <figcaption><strong>Fig. 4 GUVs made with αHL in the inner aqueous solution.</strong> Left: phase contrast. Right: fluorescence of the same field; the red fluorescence has gone out of most GUVs. Scale bars: 100 µm.</figcaption>
+                            <figcaption><strong>Fig. 4 GUVs made with αHL in the inner aqueous solution.</strong> (a) phase contrast. (b) fluorescence of the same field; the red fluorescence has gone out of most GUVs. Scale bars: 100 µm.</figcaption>
                         </figure>
                         <p>
                             The red fluorescence has gone out, so the contents come out of the GUVs. From this, we think that nanopores were formed in the GUVs.<br>
@@ -224,13 +319,14 @@
                 <section class="experiment-subsection" id="blocking-the-pores-with-trimeb">
                     <h3 class="experiment-subtitle">Blocking the Pores with TRIMEB</h3>
                     <div class="section-text">
-                        <h4 class="sub-title" id="method-5">Method</h4>
-                        <p>We added 25 ng/mL of alpha-hemolysin to the inner layer and 40 mM torimebu to the outer layer, and then checked whether the holes created by the alpha-hemolysin had been sealed.</p>
-                        <h4 class="sub-title" id="results-5">Results</h4>
-                        <p>Fig. 5 shows the GUVs made by adding TRIMEB to the outer aqueous solution of Fig. 4.</p>
+                        <div class="experiment-image-row">
+                            <p>We added αHL (25 ng/μL) to the inner aqueous solution of the GUVs and TRIMEB (4 mM) to the outer solution. <br>
+                                The addition of TRIMEB is known to suppress the leakage of substances through the pores formed by αHL in the GUV membrane.</p>
+                            <img class="experiment-image-wide" src="images/experiment-3.png" alt="Addition of alpha-hemolysin and TRIMEB to the GUV solutions">
+                        </div>
                         <figure class="fig-stack">
                             <img src="images/experiment-fig5.jpg" alt="GUVs made with TRIMEB in the outer solution, in phase contrast (left) and fluorescence (right); the red fluorescence stays inside">
-                            <figcaption><strong>Fig. 5 GUVs made with TRIMEB in the outer aqueous solution.</strong> Left: phase contrast. Right: fluorescence of the same field; compared with Fig. 4, the red fluorescence stays inside. Scale bars: 100 µm.</figcaption>
+                            <figcaption><strong>Fig. 5 GUVs made with TRIMEB in the outer aqueous solution.</strong> (a): phase contrast. (b): fluorescence of the same field; compared with Fig. 4, the red fluorescence stays inside. Scale bars: 100 µm.</figcaption>
                         </figure>
                         <p>
                             This figure shows the distribution of red fluorescence with and without the addition of TRMEB.<br>
@@ -243,7 +339,10 @@
                     <h3 class="experiment-subtitle">Attaching DNA to GUVs</h3>
                     <div class="section-text">
                         <h4 class="sub-title" id="method-6">Method</h4>
-                        <p>We added DNA to the inner aqueous solution of the GUVs and then stained the GUVs with SYBR Gold. The GUVs used here are different from the GUVs used so far: they do not contain NBD-PE.</p>
+                        <div class="experiment-image-row">
+                            <p>We added DNA to the inner aqueous solution of the GUVs and then stained the GUVs with SYBR Gold. The GUVs used here are different from the GUVs used so far: they do not contain NBD-PE.</p>
+                            <img class="experiment-image-wide experiment-image-compact" src="images/experiment-4.png" alt="DNA staining of GUVs with SYBR Gold">
+                        </div>
                         <h4 class="sub-title" id="results-6">Results</h4>
                         <p>Fig. 6 shows the stained GUVs. We can see fluorescence around the membrane. From this, we think that the DNA was inserted into the GUV membrane.</p>
                         <figure>
@@ -253,26 +352,14 @@
                     </div>
                 </section>
 
-                <section class="experiment-subsection" id="dna-receptor-dimerization">
-                    <h3 class="experiment-subtitle">DNA Receptor Dimerization</h3>
-                    <div class="section-text">
-                        <h4 class="sub-title" id="method-7">Method</h4>
-                        <p>We used gel electrophoresis to test whether complementary DNA receptors form dimers in solution without GUVs and whether noncomplementary pairs show nonspecific association.</p>
-                        <p>We tested all six pairwise combinations of L1, R1, L2, and R2 on a 10% polyacrylamide gel. Each strand had a target concentration of 0.1 &micro;M before adding loading buffer. The gel was run for 60 minutes at 25 &deg;C with settings of 100 V and 20 mA.</p>
-                        <h4 class="sub-title" id="results-7">Results</h4>
-                        <figure>
-                            <img src="images/dna-receptor-gel.png" alt="Angle-corrected electrophoresis image showing seven numbered lanes, with a gap between lanes 4 and 5">
-                            <figcaption><strong>Fig. 7 Gel electrophoresis of DNA receptor pairs.</strong> Lane 1 is the low molecular weight DNA ladder. Lanes 2&ndash;7 show L1 + R1, L1 + L2, L1 + R2, R1 + L2, R1 + R2, and L2 + R2, respectively. The ladder signal is saturated.</figcaption>
-                        </figure>
-                        <p>Two closely spaced bands are visible in lanes 2 and 7. This mobility pattern is consistent with the presence of more than one DNA species in each of these samples.</p>
-                    </div>
-                </section>
-
                 <section class="experiment-subsection" id="connecting-guvs-with-dna">
                     <h3 class="experiment-subtitle">Connecting GUVs with DNA</h3>
                     <div class="section-text">
                         <h4 class="sub-title" id="method-8">Method</h4>
-                        <p>We prepared three kinds of GUVs with DNA by the method in the previous section. We adjusted them so that the fluorescence inside was red (sulforhodamine B), none, and blue (Alexa647), in this order.</p>
+                        <div class="experiment-image-row">
+                            <p>We prepared three kinds of GUVs with DNA by the method in the previous section. We adjusted them so that the fluorescence inside was red (sulforhodamine B), none, and blue (Alexa647), in this order.</p>
+                            <img class="experiment-image-wide experiment-image-extra-wide" src="images/experiment-5.png" alt="Three kinds of GUVs prepared for DNA-mediated connection">
+                        </div>
                         <h4 class="sub-title" id="results-8">Results</h4>
                         <figure>
                             <img src="images/experiment-fig7.jpg" alt="The same field in phase contrast (left) and fluorescence (right) after trying to connect GUVs with DNA">
@@ -291,7 +378,7 @@
                     <p>
                         We could not show by experiments the main idea of this project, that is, to connect GUVs specifically with DNA and to exchange materials between them. However, we confirmed that we can make pores in GUVs with αHL and block them. If we can add DNA to GUVs from the outside and adjust the surface density, we think that we can confirm ALiGN by experiments.
                     </p>
-                    <p style="text-align:center;">
+                      <p style="text-align:center;">
                         <a class="pill-link" href="experiment-solutions.html">View experimental details</a>
                     </p>
                 </div>
