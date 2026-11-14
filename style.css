@@ -324,6 +324,48 @@ a.search-result-item:hover {
     vertical-align: baseline;
 }
 
+/* Project の Issue：左に 4 つの要素の一覧、右に「Satisfies 1〜4」の図を並べる（幅がせまい画面では縦に積む） */
+.section-text .issue-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    margin: 22px 0;
+}
+
+.section-text .issue-row .issue-row-lists {
+    flex: 0 0 auto;
+}
+
+.section-text .issue-row .issue-row-lists p.key-block {
+    margin: 14px 0;
+}
+
+.section-text .issue-row figure.issue-row-fig {
+    flex: 0 1 340px;
+    width: 340px;
+    margin: 0;
+}
+
+.section-text .issue-row figure.issue-row-fig img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+@media (max-width: 760px) {
+    .section-text .issue-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .section-text .issue-row figure.issue-row-fig {
+        width: 100%;
+        flex-basis: auto;
+    }
+}
+
 .section-text .key-box figure.fig-hero {
     margin: 14px auto 6px;
 }
