@@ -14,7 +14,7 @@ html {
 
 /* 参考文献：本文の [1] などから文献一覧へ飛ぶとき、文献一覧の「↩ Back to the text」から本文へ戻るとき、
    飛んだ先（引用の位置と、文献）が、上のメニューバーの下に隠れないようにする。
-   メニューバーの実際の高さ（画面の幅で、1段にも2段にもなる）に、80px の間を足した値。本文へ戻る先は、その文献が最初に出てくる引用の位置。Simulation と Experiment には、かけない（toc.js が、ref-margin というクラスを付けたページだけ） */
+   メニューバーの実際の高さ（画面の幅で、1段にも2段にもなる）に、80px の間を足した値。本文へ戻る先は、その文献が最初に出てくる引用の位置。Simulation には、かけない（toc.js が、ref-margin というクラスを付けたページだけ） */
 html.ref-margin [id^="cite-"],
 html.ref-margin [id^="ref-"] {
     scroll-margin-top: calc(var(--navbar-h, 100px) + 80px);   /* --navbar-h は toc.js が、メニューバーの実際の高さに合わせて入れる */
