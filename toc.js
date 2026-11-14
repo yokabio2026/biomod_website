@@ -1,3 +1,19 @@
+/* 上のメニューバーの実際の高さを、CSS の変数 --navbar-h に入れる（画面の幅で、メニューバーが 1段にも 2段にもなるため）。
+   参考文献のリンクで飛んだ先が、メニューバーの下に隠れないように、toc.css が使う */
+(function () {
+    var nav = document.querySelector('header.navbar') || document.querySelector('.navbar');
+    if (!nav) return;
+    /* Simulation と Experiment（と、その詳細ページ）は、担当の人が直している途中なので、この余白は、かけない */
+    var page = location.pathname.split('/').pop();
+    if (!/^(simulation|experiment)/.test(page)) document.documentElement.classList.add('ref-margin');
+    function setNavbarHeight() {
+        document.documentElement.style.setProperty('--navbar-h', nav.offsetHeight + 'px');
+    }
+    setNavbarHeight();
+    window.addEventListener('resize', setNavbarHeight);
+    window.addEventListener('load', setNavbarHeight);
+})();
+
 /* ページの左に、項目別にジャンプできる目次（サイドバー）を出す。
    ・見出しから、自動で作る。ページのHTMLに、目次の中身を書く必要はない
         大きな項目：<h2 class="section-title">／小さな項目：<h3 class="sub-title">。
