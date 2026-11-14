@@ -43,9 +43,14 @@
             margin: 24px auto 32px;
         }
         .content.experiment-page .section-text > figure.abstract-figure {
-            width: 70%;
-            max-width: 760px;
+            width: 100%;
+            max-width: 100%;
             margin: 24px auto 0;
+        }
+        .content.experiment-page .section-text > figure.fig7-small {
+            width: 72%;
+            max-width: 760px;
+            margin: 24px auto 32px;
         }
         .experiment-page .experiment-subsection + .experiment-subsection {
             margin-top: 56px;
@@ -139,6 +144,9 @@
             .experiment-page .experiment-subtitle {
                 font-size: 1.6rem;
             }
+            .content.experiment-page .section-text > figure.fig7-small {
+                width: 90%;
+            }
             .experiment-page .experiment-image-row {
                 align-items: flex-start;
                 flex-direction: column;
@@ -220,7 +228,7 @@
                     <ol>
                         <li>Whether pores could be formed in the GUV membrane by αHL</li>
                         <li>Whether the pores formed by αHL could be closed by TRIMEB</li>
-                        <li>Whether the prepared DNA could bind specifically to the target GUVs</li>
+                        <li>Whether the prepared DNA could specifically bind to the target</li>
                         <li>Whether DNA could be inserted into the GUV membrane</li>
                         <li>Whether GUVs could be connected via DNA</li>
                     </ol>
@@ -255,7 +263,7 @@
                             <img src="images/experiment-fig1.jpg" alt="GUVs made by the emulsion transfer method, in phase contrast (left) and fluorescence (right): green membrane and red inside">
                             <figcaption><strong>Fig. 1 GUVs made by the emulsion transfer method.</strong> (A) Phase contrast image. (B) Fluorescence image of the same field; the membrane is green (NBD-PE) and the inside is red (sulforhodamine B). Scale bars: 100 µm.</figcaption>
                         </figure>
-                        <p>We can see green fluorescence on the membrane and red fluorescence inside, so the GUVs were made correctly.</p>
+                        <p>In Fig. 1(B), green fluorescence was observed on the surface of the membrane, while red fluorescence was observed inside the GUVs, indicating that the GUVs were successfully prepared.</p>
                     </div>
                 </section>
 
@@ -264,7 +272,7 @@
                     <div class="section-text">
                         <div class="study-row">
                             <div class="study-text">
-                                <p>αHL was expressed and purified using Escherichia coli. The purified protein was then analyzed by SDS-PAGE to confirm successful purification of αHL.</p>
+                                <p>αHL was expressed and purified using <em>e. coli</em>. The purified protein was then analyzed by SDS-PAGE to confirm successful purification of αHL.</p>
                                 <p>
                                     As shown in Fig. 2, a band was observed at approximately 25–35 kDa (red).
                                     Previous studies have reported that αHL has a molecular weight of approximately 33 kDa <a href="#ref-2" id="cite-2">[2]</a>. 
@@ -291,12 +299,14 @@
                         </div>
                         <figure class="fig-stack">
                             <img src="images/experiment-fig4.png" alt="GUVs made with αHL in the inner solution, in phase contrast (left) and fluorescence (right); the red fluorescence has gone out">
-                            <figcaption><strong>Fig. 3 GUVs made with αHL in the inner aqueous solution.</strong> (A) Phase contrast image. (B) Fluorescence image of the same field; the red fluorescence has gone out of most GUVs. Scale bars: 100 µm. (C) Histogram of red fluorescence (blue: no αHL, orange: αHL)</figcaption>
+                            <figcaption><strong>Fig. 3 GUVs made with αHL in the inner aqueous solution.</strong> (A) Phase contrast image. (B) Fluorescence image of the same field; the red fluorescence has leaked out most GUVs. Scale bars: 100 µm. (C) Histogram of red fluorescence (blue: no αHL, orange: αHL)</figcaption>
                         </figure>
                         <p>
-                            The red fluorescence had leaked out, indicating that the contents had escaped from the GUVs. These results suggest that nanopores were formed in the GUV membranes.<br>
-                            The figure below shows the distribution of red fluorescence both with and without the addition of αHL.<br>
-                            From this distribution, it can be seen that the brightness is lower when αHL is added. This confirms that the red fluorescence has been lost and that the fluorescent molecules escaped through the pores formed by αHL.
+                            In Fig. 3(B), red fluorescence was observed leaking from the GUVs, indicating that the encapsulated contents had leaked out of the GUVs. 
+                            These results suggest that nanopores were formed in the GUV membrane.<br>
+                            Fig. 3(C) shows the distribution of red fluorescence intensity with and without the addition of αHL. 
+                            The fluorescence intensity was lower in the presence of αHL. 
+                            This decrease in fluorescence intensity supports that the red fluorescent molecules leaked out from the GUVs through pores formed by αHL.
                         </p>
                     </div>
                 </section>
@@ -311,11 +321,13 @@
                         </div>
                         <figure class="fig-stack">
                             <img src="images/experiment-fig5.jpg" alt="GUVs made with TRIMEB in the outer solution, in phase contrast (left) and fluorescence (right); the red fluorescence stays inside">
-                            <figcaption><strong>Fig. 4 GUVs made with TRIMEB in the outer aqueous solution.</strong> (A) Phase contrast image. (B) Fluorescence image of the same field; compared with Fig. 3, the red fluorescence stays inside. Scale bars: 100 µm. (C) Histogram of red fluorescence (blue: αHL, orange: αHL + TRIMEB)</figcaption>
+                            <figcaption><strong>Fig. 4 GUVs made with TRIMEB in the outer solution.</strong> (A) Phase contrast image. (B) Fluorescence image of the same field, the red fluorescence stays inside. Scale bars: 100 µm. (C) Histogram of red fluorescence (blue: αHL, orange: αHL + TRIMEB)</figcaption>
                         </figure>
                         <p>
-                            This figure shows the distribution of red fluorescence with and without TRIMEB.<br>
-                            This distribution indicates that the addition of TRIMEB suppresses the leakage of fluorescent molecules through the pores formed by αHL.
+                            In Fig. 4(B), the red fluorescence intensity was higher than that observed in Fig. 3(B). 
+                            This indicates that TRIMEB successfully suppressed the leakage of the encapsulated contents.<br>
+                            Fig. 4(C) shows the distribution of red fluorescence intensity with and without the addition of TRIMEB. 
+                            The distribution indicates that the addition of TRIMEB suppressed the leakage of fluorescent molecules through the pores formed by αHL.
                         </p>
                     </div>
                 </section>
@@ -324,7 +336,7 @@
                     <h3 class="experiment-subtitle">Creation of DOPE-MAL-DNA</h3>
                     <div class="section-text">
                         <p>
-                            In this project, DNA is conjugated with maleimide-functionalized lipids through a thiol–maleimide coupling reaction to generate lipid-conjugated DNA. <br>
+                            In this project, DNA is conjugated with DOPE-MAL through a thiol-maleimide coupling reaction to generate lipid-conjugated DNA. <br>
                         </p>
                         <figure>
                             <img src="images/experiment-scheme1.png" alt="Reaction of thiol-modified DNA with maleimide-lipid to give DNA-conjugated lipid">
@@ -332,7 +344,7 @@
                         <p style="margin: 36px 0;">
                             HPLC was used to separate lipid-conjugated DNA, unreacted DNA, and free lipids.<br>
                             The presence of DNA in the collected fractions was confirmed by absorbance measurements.<br>
-                            Fig. 5 shows the results of HPLC and the absorbance measurement.
+                            Fig. 5 shows the results of HPLC and the absorbance measurements.
                         </p>
                         <figure>
                             <img src="images/experiment-fig2.png" alt="HPLC chromatograms (left) and absorbance spectrum (right) of the DNA-conjugated lipid">
@@ -384,11 +396,12 @@
                             </p>
                             <img class="experiment-image-wide experiment-image-compact" src="images/experiment-4.png" alt="DNA staining of GUVs with SYBR Gold">
                         </div>
-                        <p>Fig. 7 shows the stained GUVs. We can see fluorescence around the membrane. From this, we think that the DNA was inserted into the GUV membrane.</p>
-                        <figure>
+                        <figure class="fig7-small">
                             <img src="images/experiment-fig6.png" alt="A GUV stained with SYBR Gold in phase contrast (left) and fluorescence (right); fluorescence around the membrane">
                             <figcaption><strong>Fig. 7 A GUV stained with SYBR Gold.</strong> (A) Phase contrast image. (B) Fluorescence image of the same GUV; fluorescence is seen around the membrane.</figcaption>
                         </figure>
+                        <p>Fig. 7 shows the stained GUVs. 
+                            Fluorescence was observed around the membrane, indicating that the DNA was considered to be inserted into the GUV membrane.</p>
                     </div>
                 </section>
 
@@ -396,12 +409,12 @@
                     <h3 class="experiment-subtitle">Connecting GUVs with DNA</h3>
                     <div class="section-text">
                         <div class="experiment-image-row">
-                            <p>We prepared three kinds of GUVs with DNA by the method in the previous section. We adjusted them so that the fluorescence inside was red (sulforhodamine B), none, and blue (Alexa647), in this order.</p>
+                            <p>We prepared three kinds of GUVs with DNA by the method in the previous section. We adjusted them so that the fluorescence inside was red (sulforhodamine B), none, and blue (Alexa Fluor 647), in this order.</p>
                             <img class="experiment-image-wide experiment-image-extra-wide" src="images/experiment-5.png" alt="Three kinds of GUVs prepared for DNA-mediated connection">
                         </div>
                         <figure>
                             <img src="images/experiment-fig7.png" alt="The same field in phase contrast (left) and fluorescence (right) after trying to connect GUVs with DNA">
-                            <figcaption><strong>Fig. 8 The result of connecting GUVs with DNA.</strong> (A) Phase contrast image. (B) Fluorescence image of the same field. Only a very small part of the GUVs were connected as intended.</figcaption>
+                            <figcaption><strong>Fig. 8 The result of connecting GUVs with DNA.</strong> (A) Phase contrast image. (B) Fluorescence image of the same field. Only a small fraction of the GUVs were successfully connected as intended.</figcaption>
                         </figure>
                         <p>
                             Only <span class="result-highlight">6.25%</span> of the GUVs exhibited the intended binding, indicating that only a small fraction of the GUVs successfully bound to each other. <br>
@@ -422,7 +435,7 @@
                         Experiments and simulations supported the feasibility of four elements required for ALiGN. 
                         These are selective pairing with intended partners, control over the number of partners, pore formation in GUV membranes, and blockage of the resulting pores.<br>
                         Simulations showed that the number of partners could be controlled. The simulation results could therefore guide how much DNA is added to the outer aqueous phase after GUV formation. 
-                        If this allows control over DNA surface density on GUV membranes, ALiGN could be reproduced experimentally as an integrated system.
+                        If this allows control over DNA surface density on GUV membranes, ALiGN could be realized experimentally as an integrated system.
                     </p>
                       <p style="text-align:center;">
                         <a class="pill-link" href="experiment-solutions.html">View experimental details</a>
@@ -445,15 +458,15 @@
                     <p id="ref-2">
                         [2] Chatterjee, A., Roy, A., Satheesh, T., Das, P. P., Mondal, B., Kishore, P., Ganji, M. &amp; Dutta, S.
                         Structural insights into pre-pore intermediates of alpha-hemolysin in the lipidic environment.
-                        <em>Nat. Commun.</em> <strong>16</strong>, 6348 (2025).
+                        <em>Nat. Commun</em> <strong>16</strong>, 6348 (2025).
                         <a href="https://doi.org/10.1038/s41467-025-61741-x">https://doi.org/10.1038/s41467-025-61741-x</a>
                         <a href="#cite-2">↩ Back to the text</a>
                     </p>
                     <p id="ref-3">
-                        [3] Romanov, V., McCullough, J., Gale, B. K. & Frost, A. 
-                        A tunable microfluidic device enables cargo encapsulation by cell- or organelle-sized lipid vesicles comprising asymmetric lipid bilayers. 
-                        <em>Adv. Biosyst.</em> <strong>3</strong>, 1900010 (2019). 
-                        <a href="https://doi.org/10.1002/adbi.201900010">https://doi.org/10.1002/adbi.201900010</a>
+                        [3] J. Lemière, K. Guevorkian, C. Campillo, C. Sykes, and T. Betz.
+                        α-Hemolysin membrane pore density measured on liposomes.
+                        <em>Soft Matter</em> <strong>9</strong>, 3181-3187 (2013). 
+                         <a href="https://doi.org/10.1039/C3SM27812C">https://doi.org/10.1039/C3SM27812C</a>
                         <a href="#cite-3">↩ Back to the text</a>
                     </p>
                     <p id="ref-4">
