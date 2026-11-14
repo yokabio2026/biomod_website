@@ -3,6 +3,9 @@
 (function () {
     var nav = document.querySelector('header.navbar') || document.querySelector('.navbar');
     if (!nav) return;
+    /* Simulation と Experiment（と、その詳細ページ）は、担当の人が直している途中なので、この余白は、かけない */
+    var page = location.pathname.split('/').pop();
+    if (!/^(simulation|experiment)/.test(page)) document.documentElement.classList.add('ref-margin');
     function setNavbarHeight() {
         document.documentElement.style.setProperty('--navbar-h', nav.offsetHeight + 'px');
     }
