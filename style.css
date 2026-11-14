@@ -890,9 +890,9 @@ a.search-result-item:hover {
 
 /* Teamページ：使い方の一言と、写真を元の並びに戻すボタン */
 .team-hint {
-    margin: 0;
-    color: #777777;
-    font-size: 14px;
+    margin: 0 0 28px;        /* 下：写真の列との間のあき */
+    color: #666666;
+    font-size: 16px;
     text-align: center;
 }
 
@@ -918,16 +918,18 @@ a.search-result-item:hover {
     transition: transform 0.2s ease;
 }
 
-/* マスコットにカーソルを重ねたときの、雲型のふきだし「Tap to reset」（写真を元の位置に戻して、DNAを外す、という意味）（見た目だけ。クリックの動きは変えない）。
-   ふきだしはマスコットの左上。しっぽの先が、マスコットの顔の方を向く。クリックや重なりの判定には、加わらない */
+/* マスコットの、雲型のふきだし「Tap to reset」（写真を元の位置に戻して、DNAを外す、という意味）（見た目だけ。クリックの動きは変えない）。
+   いつも出している。ふきだしはマスコットの左上。しっぽの先が、マスコットの顔の方を向く。クリックや重なりの判定には、加わらない。
+   大きさ：width と height（比は 148:66 のまま。大きくするときは、両方を同じ割合で）と、文字の大きさ（.reset-bubble-text の font-size）。
+   位置：right・bottom（しっぽの先を、マスコットの顔に合わせる。小さくしたときは、同じ割合で小さくする） */
 .reset-bubble {
     position: absolute;
-    right: calc(100% - 12px);
-    bottom: calc(100% - 26px);
-    width: 148px;
-    height: 66px;
-    opacity: 0;
-    transform: scale(0.9);
+    right: calc(100% - 10px);
+    bottom: calc(100% - 22px);
+    width: 124px;
+    height: 55px;
+    opacity: 1;
+    transform: scale(1);
     transform-origin: 94% 92%;   /* しっぽの先を中心に、ふくらむ */
     transition: opacity 0.2s ease, transform 0.2s ease;
     pointer-events: none;
@@ -960,7 +962,7 @@ a.search-result-item:hover {
     align-items: center;
     justify-content: center;
     font-family: "Baloo 2", "Nunito", "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
-    font-size: 15.5px;
+    font-size: 15px;   /* 「Pull the DNA!」も、ふきだしの中に、収まる大きさの上限（これ以上は、はみ出す）。ふきだしの幅（124px）に合わせた値 */
     font-weight: 700;
     line-height: 1;
     letter-spacing: 0.01em;
@@ -991,9 +993,9 @@ a.search-result-item:hover {
 
 /* 現れるとき：少しだけ大きくなってから、ぷるんと落ち着く（控えめ） */
 @keyframes bubble-pop {
-    0%   { opacity: 0; transform: scale(0.88) translateY(4px); }
-    60%  { opacity: 1; transform: scale(1.05) translateY(0); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
+    0%   { transform: scale(0.88) translateY(4px); }
+    60%  { transform: scale(1.05) translateY(0); }
+    100% { transform: scale(1) translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1013,6 +1015,18 @@ a.search-result-item:hover {
         width: 68px;
         right: 12px;
         bottom: 12px;
+    }
+
+    /* スマホ：マスコットが小さいので、ふきだしも、さらに小さく */
+    .reset-bubble {
+        right: calc(100% - 8px);
+        bottom: calc(100% - 18px);
+        width: 100px;
+        height: 45px;
+    }
+
+    .reset-bubble-text {
+        font-size: 11.5px;
     }
 }
 
