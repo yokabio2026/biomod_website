@@ -190,13 +190,16 @@
                             height: auto;
                             min-width: 0;
                         }
+                        .guv-video-shell { position: relative; }
+                        .guv-video-seek { display: block; width: 100%; height: 14px; margin: 6px 0 0; accent-color: #6c5a8d; opacity: .72; cursor: ew-resize; }
+                        .guv-video-seek:hover, .guv-video-seek:focus-visible { opacity: .95; }
                         @media (max-width: 700px) {
                             .guv-model-videos { grid-template-columns: 1fr; }
                         }
                     </style>
                     <div class="guv-model-videos">
-                        <video src="videos/simulation_guv_brownian.mp4" autoplay loop muted playsinline aria-label="GUV Brownian motion"></video>
-                        <video src="videos/simulation_clusters_timeline.mp4" autoplay loop muted playsinline aria-label="GUV cluster timeline"></video>
+                        <div class="guv-video-shell"><video src="videos/simulation_guv_brownian.mp4" autoplay loop muted playsinline aria-label="GUV Brownian motion"></video></div>
+                        <div class="guv-video-shell"><video src="videos/simulation_clusters_timeline.mp4" autoplay loop muted playsinline aria-label="GUV cluster timeline"></video><input class="guv-video-seek" type="range" min="0" max="1" step="0.001" value="0" aria-label="Simulation time"></div>
                     </div>
 
                     <!-- ▼ ここに文章を書く -->
@@ -244,7 +247,7 @@
 .guv-simple-en-flow .flow-explanation h4 { margin: 26px 0 12px; font-size: 18px; color: #18384d; }
 .guv-simple-en-flow .flow-explanation p { margin: 12px 0 20px; line-height: 1.8; }
 .guv-simple-en-flow .flow-explanation > ol > li { margin-bottom: 28px; }
-.guv-simple-en-flow .guv-equation { display: block; box-sizing: border-box; width: 100%; margin: 22px 0; padding: 20px 12px; overflow-x: auto; text-align: center; background: #f4f8fb; border-radius: 8px; }
+.guv-simple-en-flow .guv-equation { display: block; box-sizing: border-box; width: 100%; margin: 22px 0; padding: 20px 12px; overflow-x: auto; text-align: center; background: #f6f0fb; border-radius: 8px; }
 .guv-simple-en-flow .guv-equation math { display: block math; width: max-content; min-width: min-content; max-width: none; margin: 0 auto; font-size: 1.65rem; font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", math; color: #18384d; }
 @media (max-width: 600px) { .guv-simple-en-flow .guv-equation { padding: 16px 8px; } .guv-simple-en-flow .guv-equation math { font-size: 1.35rem; } }
                     </style>
@@ -656,6 +659,58 @@ Molecular dynamics simulation for polymers in the presence of a heat bath.
   matchAbstractTextSize();
   window.addEventListener('load', matchAbstractTextSize);
   window.addEventListener('resize', matchAbstractTextSize);
+})();
+</script>
+<script>
+(function () {
+  const shells = Array.from(document.querySelectorAll('.guv-video-shell'));
+  const videos = shells.map(shell => shell.querySelector('video')).filter(Boolean);
+  const seekbar = document.querySelector('.guv-video-seek');
+  if (!seekbar || videos.length < 2) return;
+  let dragging = false;
+  let resumeAfterDrag = false;
+  let pendingFraction = null;
+  let frame = 0;
+  function setFraction(fraction, seekVideos = true) {
+    fraction = Math.max(0, Math.min(1, fraction));
+    seekbar.value = fraction;
+    if (seekVideos) videos.forEach(video => {
+      if (video.duration && Math.abs(video.currentTime - fraction * video.duration) > 0.01) {
+        video.currentTime = fraction * video.duration;
+      }
+    });
+  }
+  function syncFromVideo() {
+    if (dragging) return;
+    const video = videos[1];
+    if (video.duration) setFraction(video.currentTime / video.duration, false);
+  }
+  videos.forEach(video => {
+    video.addEventListener('loadedmetadata', syncFromVideo);
+    video.addEventListener('timeupdate', syncFromVideo);
+  });
+  seekbar.addEventListener('pointerdown', () => {
+    dragging = true;
+    resumeAfterDrag = videos.some(video => !video.paused);
+    videos.forEach(video => video.pause());
+  });
+  function finishDrag() {
+    dragging = false;
+    if (resumeAfterDrag) videos.forEach(video => video.play().catch(() => {}));
+    resumeAfterDrag = false;
+  }
+  seekbar.addEventListener('pointerup', finishDrag);
+  seekbar.addEventListener('pointercancel', finishDrag);
+  seekbar.addEventListener('input', () => {
+    pendingFraction = Number(seekbar.value);
+    if (!frame) frame = requestAnimationFrame(() => {
+      frame = 0;
+      if (pendingFraction !== null) {
+        setFraction(pendingFraction);
+        pendingFraction = null;
+      }
+    });
+  });
 })();
 </script>
     </main>
